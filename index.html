@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>안면도 스마트 구역카드</title>
+  <title>안면도 봉사활동 구역카드</title>
 
   <!-- 카카오 지도 API -->
   <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=e41e9b55de02ad81ebeb00e3721d52e2&libraries=services&autoload=false"></script>
@@ -47,7 +47,7 @@
     .btn-check { background: #64748b; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; min-width: 58px; }
     .btn-check.completed { background: #10b981; }
 
-    /* 전체보기 상태의 지도 주소 라벨 */
+    /* 전체보기 주소 라벨 */
     .map-addr-tag {
       background: rgba(15, 23, 42, 0.88);
       color: #f8fafc;
@@ -68,7 +68,7 @@
       text-decoration: line-through;
     }
 
-    /* 단독 확인용 상세 말풍선 */
+    /* 단독 확인용 말풍선 */
     .custom-speech-bubble {
       position: relative;
       background: #ffffff;
@@ -108,11 +108,7 @@
       <button class="btn-gps" onclick="locateUser()">내 위치 📍</button>
     </div>
     <div class="dropdown-group">
-      <select id="selTown" class="select-btn" onchange="onTownChange()">
-        <option value="안면읍" selected>안면읍</option>
-        <option value="고남면">고남면</option>
-        <option value="남면">남면</option>
-      </select>
+      <select id="selTown" class="select-btn" onchange="onTownChange()"></select>
       <select id="selVillage" class="select-btn" onchange="onVillageChange()"></select>
       <select id="selZone" class="select-btn" onchange="onZoneChange()"></select>
     </div>
@@ -134,29 +130,51 @@
   <div class="list-area" id="listArea"></div>
 
   <script>
-    const VILLAGE_MAP = {
-      "안면읍": ["승언리", "창기리", "중장리", "정당리", "신야리", "황도리"],
-      "고남면": ["고남리", "장곡리", "누동리"],
-      "남면": ["신온리", "달산리", "몽산리", "신장리", "진산리", "양잠리", "원청리", "당암리"]
+    // ==========================================
+    // 정식 데이터베이스 (읍·면 > 리 > 구역별 분류)
+    // ==========================================
+    const ZONE_DATABASE = {
+      "안면읍": {
+        "승언리": {
+          "승언-01": { title: "승언-01 (구억말/광지길)", addrs: ["충청남도 태안군 안면읍 광지길 16", "충청남도 태안군 안면읍 광지길 47", "충청남도 태안군 안면읍 광지길 71", "충청남도 태안군 안면읍 구억말길 11", "충청남도 태안군 안면읍 구억말길 16", "충청남도 태안군 안면읍 구억말길 35", "충청남도 태안군 안면읍 구억말길 18-5", "충청남도 태안군 안면읍 구억말길 18-45"] },
+          "승언-02": { title: "승언-02 (그네들길 입구)", addrs: ["충청남도 태안군 안면읍 그네들길 1", "충청남도 태안군 안면읍 그네들길 7", "충청남도 태안군 안면읍 그네들길 15", "충청남도 태안군 안면읍 그네들길 27", "충청남도 태안군 안면읍 그네들길 37", "충청남도 태안군 안면읍 그네들길 43", "충청남도 태안군 안면읍 그네들길 55"] },
+          "승언-03": { title: "승언-03 (그물목길 일대)", addrs: ["충청남도 태안군 안면읍 그물목길 4", "충청남도 태안군 안면읍 그물목길 24", "충청남도 태안군 안면읍 그물목길 93", "충청남도 태안군 안면읍 그물목길 124", "충청남도 태안군 안면읍 그물목길 157", "충청남도 태안군 안면읍 그물목길 187"] },
+          "승언-04": { title: "승언-04 (꽃지1길 북단)", addrs: ["충청남도 태안군 안면읍 꽃지1길 20", "충청남도 태안군 안면읍 꽃지1길 42", "충청남도 태안군 안면읍 꽃지1길 88", "충청남도 태안군 안면읍 꽃지1길 108-2", "충청남도 태안군 안면읍 꽃지1길 151", "충청남도 태안군 안면읍 꽃지1길 213"] },
+          "승언-05": { title: "승언-05 (꽃지해안로 일대)", addrs: ["충청남도 태안군 안면읍 꽃지해안로 102", "충청남도 태안군 안면읍 꽃지해안로 134", "충청남도 태안군 안면읍 꽃지해안로 276", "충청남도 태안군 안면읍 꽃지해안로 400", "충청남도 태안군 안면읍 꽃지해안로 433", "충청남도 태안군 안면읍 꽃지해안로 491"] },
+          "승언-06": { title: "승언-06 (장터로 터미널)", addrs: ["충청남도 태안군 안면읍 장터로 10", "충청남도 태안군 안면읍 장터로 19", "충청남도 태안군 안면읍 장터로 35", "충청남도 태안군 안면읍 장터로 65", "충청남도 태안군 안면읍 장터로 85", "충청남도 태안군 안면읍 장터로 115"] },
+          "승언-07": { title: "승언-07 (방포로 중심)", addrs: ["충청남도 태안군 안면읍 방포로 1", "충청남도 태안군 안면읍 방포로 12", "충청남도 태안군 안면읍 방포로 28", "충청남도 태안군 안면읍 방포로 46", "충청남도 태안군 안면읍 방포로 88", "충청남도 태안군 안면읍 방포로 118"] },
+          "승언-08": { title: "승언-08 (안면대로 입구)", addrs: ["충청남도 태안군 안면읍 안면대로 2639-7", "충청남도 태안군 안면읍 안면대로 2652", "충청남도 태안군 안면읍 안면대로 2672", "충청남도 태안군 안면읍 안면대로 2691", "충청남도 태안군 안면읍 안면대로 2763-2", "충청남도 태안군 안면읍 안면대로 2792"] }
+        },
+        "창기리": {
+          "창기-01": { title: "창기-01 (창기삼거리 일대)", addrs: ["충청남도 태안군 안면읍 창기리 12-3", "충청남도 태안군 안면읍 백사장1길 15", "충청남도 태안군 안면읍 백사장2길 8"] }
+        },
+        "중장리": {
+          "중장-01": { title: "중장-01 (대야도 일대)", addrs: ["충청남도 태안군 안면읍 대야도길 12", "충청남도 태안군 안면읍 중장길 45"] }
+        },
+        "정당리": {},
+        "신야리": {},
+        "황도리": {}
+      },
+      "고남면": {
+        "고남리": {
+          "고남-01": { title: "고남-01 (영목항 입구)", addrs: ["충청남도 태안군 고남면 안면대로 4268", "충청남도 태안군 고남면 영목항길 19"] }
+        },
+        "장곡리": {},
+        "누동리": {}
+      },
+      "남면": {
+        "신온리": {
+          "신온-01": { title: "신온-01 (드르니항 일대)", addrs: ["충청남도 태안군 남면 드르니길 38", "충청남도 태안군 남면 안면대로 1685"] }
+        },
+        "몽산리": {},
+        "달산리": {},
+        "신장리": {},
+        "진산리": {},
+        "양잠리": {},
+        "원청리": {},
+        "당암리": {}
+      }
     };
-
-    const SEUNGEON_ZONES = {
-      "승언-01": { title: "승언-01 (구억말/광지길)", addrs: ["충청남도 태안군 안면읍 광지길 16", "충청남도 태안군 안면읍 광지길 47", "충청남도 태안군 안면읍 광지길 71", "충청남도 태안군 안면읍 구억말길 11", "충청남도 태안군 안면읍 구억말길 16", "충청남도 태안군 안면읍 구억말길 35", "충청남도 태안군 안면읍 구억말길 18-5", "충청남도 태안군 안면읍 구억말길 18-45"] },
-      "승언-02": { title: "승언-02 (그네들길 입구)", addrs: ["충청남도 태안군 안면읍 그네들길 1", "충청남도 태안군 안면읍 그네들길 7", "충청남도 태안군 안면읍 그네들길 15", "충청남도 태안군 안면읍 그네들길 27", "충청남도 태안군 안면읍 그네들길 37", "충청남도 태안군 안면읍 그네들길 43", "충청남도 태안군 안면읍 그네들길 55"] },
-      "승언-03": { title: "승언-03 (그물목길 일대)", addrs: ["충청남도 태안군 안면읍 그물목길 4", "충청남도 태안군 안면읍 그물목길 24", "충청남도 태안군 안면읍 그물목길 93", "충청남도 태안군 안면읍 그물목길 124", "충청남도 태안군 안면읍 그물목길 157", "충청남도 태안군 안면읍 그물목길 187"] },
-      "승언-04": { title: "승언-04 (꽃지1길 북단)", addrs: ["충청남도 태안군 안면읍 꽃지1길 20", "충청남도 태안군 안면읍 꽃지1길 42", "충청남도 태안군 안면읍 꽃지1길 88", "충청남도 태안군 안면읍 꽃지1길 108-2", "충청남도 태안군 안면읍 꽃지1길 151", "충청남도 태안군 안면읍 꽃지1길 213"] },
-      "승언-05": { title: "승언-05 (꽃지해안로 일대)", addrs: ["충청남도 태안군 안면읍 꽃지해안로 102", "충청남도 태안군 안면읍 꽃지해안로 134", "충청남도 태안군 안면읍 꽃지해안로 276", "충청남도 태안군 안면읍 꽃지해안로 400", "충청남도 태안군 안면읍 꽃지해안로 433", "충청남도 태안군 안면읍 꽃지해안로 491"] },
-      "승언-06": { title: "승언-06 (장터로 터미널)", addrs: ["충청남도 태안군 안면읍 장터로 10", "충청남도 태안군 안면읍 장터로 19", "충청남도 태안군 안면읍 장터로 35", "충청남도 태안군 안면읍 장터로 65", "충청남도 태안군 안면읍 장터로 85", "충청남도 태안군 안면읍 장터로 115"] },
-      "승언-07": { title: "승언-07 (방포로 중심)", addrs: ["충청남도 태안군 안면읍 방포로 1", "충청남도 태안군 안면읍 방포로 12", "충청남도 태안군 안면읍 방포로 28", "충청남도 태안군 안면읍 방포로 46", "충청남도 태안군 안면읍 방포로 88", "충청남도 태안군 안면읍 방포로 118"] },
-      "승언-08": { title: "승언-08 (안면대로 입구)", addrs: ["충청남도 태안군 안면읍 안면대로 2639-7", "충청남도 태안군 안면읍 안면대로 2652", "충청남도 태안군 안면읍 안면대로 2672", "충청남도 태안군 안면읍 안면대로 2691", "충청남도 태안군 안면읍 안면대로 2763-2", "충청남도 태안군 안면읍 안면대로 2792"] }
-    };
-    for(let i = 9; i <= 35; i++) {
-      const zid = `승언-${i < 10 ? '0'+i : i}`;
-      SEUNGEON_ZONES[zid] = {
-        title: `${zid} (안면읍 외곽 ${i}구역)`,
-        addrs: [`충청남도 태안군 안면읍 방포1길 ${i*2}`, `충청남도 태안군 안면읍 송림길 ${i*3}`, `충청남도 태안군 안면읍 밧개길 ${10+i*2}`]
-      };
-    }
 
     let map = null, geocoder = null, userMarker = null;
     let markersMap = {};
@@ -166,7 +184,7 @@
     let addrCoordCache = {};
     let curTown = "안면읍", curVillage = "승언리", curZoneKey = "승언-01";
     let focusedAddr = null;
-    let doneMap = JSON.parse(localStorage.getItem('volunteer_done_v8') || '{}');
+    let doneMap = JSON.parse(localStorage.getItem('volunteer_done_v9') || '{}');
 
     function getMarkerImage(isDone, isLarge = false) {
       const w = isLarge ? 34 : 26;
@@ -191,8 +209,8 @@
       });
     }
 
-    updateVillageDropdown();
-    updateZoneDropdown();
+    // 초기 드롭다운 채우기
+    initDropdowns();
     renderCurrentList();
 
     window.onload = function() {
@@ -211,49 +229,71 @@
       });
     };
 
+    function initDropdowns() {
+      const tSelect = document.getElementById('selTown');
+      tSelect.innerHTML = '';
+      Object.keys(ZONE_DATABASE).forEach(town => {
+        const opt = document.createElement('option');
+        opt.value = town;
+        opt.innerText = town;
+        tSelect.appendChild(opt);
+      });
+      curTown = Object.keys(ZONE_DATABASE)[0] || '안면읍';
+      tSelect.value = curTown;
+
+      updateVillageDropdown();
+    }
+
     function onTownChange() {
       curTown = document.getElementById('selTown').value;
       updateVillageDropdown();
-      onVillageChange();
     }
 
     function updateVillageDropdown() {
       const vSelect = document.getElementById('selVillage');
       vSelect.innerHTML = '';
-      (VILLAGE_MAP[curTown] || []).forEach(v => {
+      const villages = Object.keys(ZONE_DATABASE[curTown] || {});
+      
+      villages.forEach(v => {
         const opt = document.createElement('option');
         opt.value = v;
         opt.innerText = v;
         vSelect.appendChild(opt);
       });
-      curVillage = (VILLAGE_MAP[curTown] || [])[0] || '';
+
+      curVillage = villages[0] || '';
+      vSelect.value = curVillage;
+      updateZoneDropdown();
     }
 
     function onVillageChange() {
       curVillage = document.getElementById('selVillage').value;
       updateZoneDropdown();
-      onZoneChange();
     }
 
     function updateZoneDropdown() {
       const zSelect = document.getElementById('selZone');
       zSelect.innerHTML = '';
+      const zones = ZONE_DATABASE[curTown]?.[curVillage] || {};
+      const zoneKeys = Object.keys(zones);
 
-      if (curTown === '안면읍' && curVillage === '승언리') {
-        Object.keys(SEUNGEON_ZONES).forEach(k => {
+      if (zoneKeys.length > 0) {
+        zoneKeys.forEach(k => {
           const opt = document.createElement('option');
           opt.value = k;
-          opt.innerText = SEUNGEON_ZONES[k].title;
+          opt.innerText = zones[k].title;
           zSelect.appendChild(opt);
         });
-        curZoneKey = "승언-01";
+        curZoneKey = zoneKeys[0];
       } else {
         const opt = document.createElement('option');
         opt.value = "";
-        opt.innerText = "데이터 준비중";
+        opt.innerText = "구역 준비중";
         zSelect.appendChild(opt);
         curZoneKey = "";
       }
+
+      onZoneChange();
     }
 
     function onZoneChange() {
@@ -265,15 +305,21 @@
       }
     }
 
+    function getCurrentZoneObject() {
+      if (!curTown || !curVillage || !curZoneKey) return null;
+      return ZONE_DATABASE[curTown]?.[curVillage]?.[curZoneKey] || null;
+    }
+
     function renderCurrentList() {
-      const zone = SEUNGEON_ZONES[curZoneKey];
+      const zone = getCurrentZoneObject();
       const listEl = document.getElementById('listArea');
       listEl.innerHTML = '';
 
-      if (!zone) {
-        document.getElementById('zoneTitle').innerText = `${curVillage} (준비 중)`;
+      if (!zone || !zone.addrs || zone.addrs.length === 0) {
+        document.getElementById('zoneTitle').innerText = `${curVillage} (구역 데이터 준비중)`;
         document.getElementById('progRatio').innerText = '0 / 0 (0%)';
         document.getElementById('btnAllPins').style.display = 'none';
+        listEl.innerHTML = '<div style="color:#94a3b8; text-align:center; padding:30px; font-size:13px;">선택한 구역의 주소 데이터가 등록되지 않았습니다.</div>';
         return;
       }
 
@@ -290,7 +336,7 @@
         card.className = 'house-card' + (isDone ? ' completed' : '') + (isFocused ? ' focused' : '');
         card.innerHTML = `
           <div class="address-text" onclick="focusSingleAddress('${addr}')">
-            #${idx + 1}. ${addr.replace('충청남도 태안군 안면읍 ', '')}
+            #${idx + 1}. ${addr.replace(/충청남도 태안군 (안면읍|고남면|남면) /, '')}
           </div>
           <div class="btn-wrap">
             <a class="btn-navi" href="https://map.kakao.com/link/search/${encodeURIComponent(addr)}" target="_blank">길안내</a>
@@ -302,22 +348,21 @@
         listEl.appendChild(card);
       });
 
-      const pct = zone.addrs.length > 0 ? Math.round((doneCnt / zone.addrs.length) * 100) : 0;
+      const pct = Math.round((doneCnt / zone.addrs.length) * 100);
       document.getElementById('progRatio').innerText = `${doneCnt} / ${zone.addrs.length} (${pct}%)`;
     }
 
-    // 전체보기: 모든 핀과 주소 라벨을 지도에 동시 표시
     function drawPinsForCurrentZone(fitBounds = false) {
       clearAllMapMarkers();
 
-      const zone = SEUNGEON_ZONES[curZoneKey];
-      if (!zone || !geocoder) return;
+      const zone = getCurrentZoneObject();
+      if (!zone || !zone.addrs || !geocoder) return;
 
       const bounds = new kakao.maps.LatLngBounds();
       let count = 0;
 
       zone.addrs.forEach((addr, idx) => {
-        const shortAddr = addr.replace('충청남도 태안군 안면읍 ', '');
+        const shortAddr = addr.replace(/충청남도 태안군 (안면읍|고남면|남면) /, '');
         const labelText = `#${idx + 1} ${shortAddr}`;
 
         if (addrCoordCache[addr]) {
@@ -354,7 +399,6 @@
         focusSingleAddress(addr);
       });
 
-      // 전체보기 상태에서 핀 머리 위에 주소 라벨 함께 부착
       const labelOverlay = new kakao.maps.CustomOverlay({
         position: pos,
         content: `<div class="map-addr-tag ${isDone ? 'done' : ''}">${labelText}</div>`,
@@ -367,7 +411,6 @@
       overlaysList.push(labelOverlay);
     }
 
-    // 단독 주소 상세 보기 모드
     function focusSingleAddress(addr) {
       if (!map) return;
       focusedAddr = addr;
@@ -383,14 +426,13 @@
           image: getMarkerImage(isDone, true)
         });
 
+        const shortAddr = addr.replace(/충청남도 태안군 (안면읍|고남면|남면) /, '');
         const bubbleHtml = `
           <div class="custom-speech-bubble ${isDone ? 'done' : ''}">
             <div class="bubble-status ${isDone ? 'visited' : 'unvisited'}">
               ${isDone ? '✓ 방문완료' : '● 미방문'}
             </div>
-            <div class="bubble-title">
-              ${addr.replace('충청남도 태안군 안면읍 ', '')}
-            </div>
+            <div class="bubble-title">${shortAddr}</div>
           </div>
         `;
 
@@ -442,7 +484,7 @@
 
     function toggleDone(addr) {
       doneMap[addr] = !doneMap[addr];
-      localStorage.setItem('volunteer_done_v8', JSON.stringify(doneMap));
+      localStorage.setItem('volunteer_done_v9', JSON.stringify(doneMap));
 
       renderCurrentList();
 
