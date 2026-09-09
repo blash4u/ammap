@@ -41,14 +41,34 @@
     
     .address-text { font-size: 13px; font-weight: bold; color: #0369a1; cursor: pointer; flex: 1; padding-right: 8px; }
     .address-text:hover { text-decoration: underline; }
-    .click-tag { font-size: 10px; color: #64748b; font-weight: normal; margin-left: 4px; }
 
     .btn-wrap { display: flex; gap: 5px; align-items: center; }
     .btn-navi { background: #fde047; color: #854d0e; text-decoration: none; padding: 5px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
     .btn-check { background: #64748b; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; min-width: 58px; }
     .btn-check.completed { background: #10b981; }
 
-    /* 정밀 말풍선 스타일 */
+    /* 전체보기 상태의 지도 주소 라벨 */
+    .map-addr-tag {
+      background: rgba(15, 23, 42, 0.88);
+      color: #f8fafc;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 6px;
+      border-radius: 4px;
+      border: 1px solid #475569;
+      white-space: nowrap;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      transform: translateY(-38px);
+      pointer-events: none;
+    }
+    .map-addr-tag.done {
+      background: rgba(16, 185, 129, 0.95);
+      border-color: #059669;
+      color: #ffffff;
+      text-decoration: line-through;
+    }
+
+    /* 단독 확인용 상세 말풍선 */
     .custom-speech-bubble {
       position: relative;
       background: #ffffff;
@@ -60,22 +80,11 @@
       white-space: nowrap;
       pointer-events: none;
     }
-    .custom-speech-bubble.done {
-      border-color: #10b981;
-    }
-    .bubble-status {
-      font-size: 10px;
-      font-weight: 800;
-      margin-bottom: 2px;
-    }
+    .custom-speech-bubble.done { border-color: #10b981; }
+    .bubble-status { font-size: 10px; font-weight: 800; margin-bottom: 2px; }
     .bubble-status.unvisited { color: #ef4444; }
     .bubble-status.visited { color: #10b981; }
-    .bubble-title {
-      font-size: 12px;
-      font-weight: 700;
-      color: #0f172a;
-    }
-    /* 말풍선 꼬리 */
+    .bubble-title { font-size: 12px; font-weight: 700; color: #0f172a; }
     .custom-speech-bubble::after {
       content: '';
       position: absolute;
@@ -88,9 +97,7 @@
       border-right: 7px solid transparent;
       border-top: 8px solid #0284c7;
     }
-    .custom-speech-bubble.done::after {
-      border-top-color: #10b981;
-    }
+    .custom-speech-bubble.done::after { border-top-color: #10b981; }
   </style>
 </head>
 <body>
@@ -152,7 +159,8 @@
     }
 
     let map = null, geocoder = null, userMarker = null;
-    let markersMap = {}; // addr -> marker 매핑 객체
+    let markersMap = {};
+    let overlaysList = [];
     let singleMarker = null;
     let activeOverlay = null;
     let addrCoordCache = {};
@@ -160,7 +168,6 @@
     let focusedAddr = null;
     let doneMap = JSON.parse(localStorage.getItem('volunteer_done_v8') || '{}');
 
-    // ★ 내장형 초고화질 SVG 핀 생성기 (절대 깨지지 않고 404가 없음)
     function getMarkerImage(isDone, isLarge = false) {
       const w = isLarge ? 34 : 26;
       const h = isLarge ? 44 : 34;
@@ -200,7 +207,7 @@
         geocoder = new kakao.maps.services.Geocoder();
 
         document.getElementById('map-status').style.display = 'none';
-        drawPinsForCurrentZone();
+        drawPinsForCurrentZone(true);
       });
     };
 
@@ -254,7 +261,7 @@
       focusedAddr = null;
       renderCurrentList();
       if (map && geocoder) {
-        drawPinsForCurrentZone();
+        drawPinsForCurrentZone(true);
       }
     }
 
@@ -284,7 +291,6 @@
         card.innerHTML = `
           <div class="address-text" onclick="focusSingleAddress('${addr}')">
             #${idx + 1}. ${addr.replace('충청남도 태안군 안면읍 ', '')}
-            <span class="click-tag">📍지도확인</span>
           </div>
           <div class="btn-wrap">
             <a class="btn-navi" href="https://map.kakao.com/link/search/${encodeURIComponent(addr)}" target="_blank">길안내</a>
@@ -300,8 +306,8 @@
       document.getElementById('progRatio').innerText = `${doneCnt} / ${zone.addrs.length} (${pct}%)`;
     }
 
-    // 구역 전체 핀 꽂기
-    function drawPinsForCurrentZone() {
+    // 전체보기: 모든 핀과 주소 라벨을 지도에 동시 표시
+    function drawPinsForCurrentZone(fitBounds = false) {
       clearAllMapMarkers();
 
       const zone = SEUNGEON_ZONES[curZoneKey];
@@ -310,12 +316,15 @@
       const bounds = new kakao.maps.LatLngBounds();
       let count = 0;
 
-      zone.addrs.forEach(addr => {
+      zone.addrs.forEach((addr, idx) => {
+        const shortAddr = addr.replace('충청남도 태안군 안면읍 ', '');
+        const labelText = `#${idx + 1} ${shortAddr}`;
+
         if (addrCoordCache[addr]) {
-          addMarker(addr, addrCoordCache[addr]);
+          addMarkerWithLabel(addr, addrCoordCache[addr], labelText);
           bounds.extend(addrCoordCache[addr]);
           count++;
-          if (count > 0 && !focusedAddr) map.setBounds(bounds);
+          if (count > 0 && fitBounds && !focusedAddr) map.setBounds(bounds);
           return;
         }
 
@@ -323,17 +332,18 @@
           if (status === kakao.maps.services.Status.OK) {
             const pos = new kakao.maps.LatLng(result[0].y, result[0].x);
             addrCoordCache[addr] = pos;
-            addMarker(addr, pos);
+            addMarkerWithLabel(addr, pos, labelText);
             bounds.extend(pos);
             count++;
-            if (count > 0 && !focusedAddr) map.setBounds(bounds);
+            if (count > 0 && fitBounds && !focusedAddr) map.setBounds(bounds);
           }
         });
       });
     }
 
-    function addMarker(addr, pos) {
+    function addMarkerWithLabel(addr, pos, labelText) {
       const isDone = !!doneMap[addr];
+
       const marker = new kakao.maps.Marker({
         map: map,
         position: pos,
@@ -344,10 +354,20 @@
         focusSingleAddress(addr);
       });
 
+      // 전체보기 상태에서 핀 머리 위에 주소 라벨 함께 부착
+      const labelOverlay = new kakao.maps.CustomOverlay({
+        position: pos,
+        content: `<div class="map-addr-tag ${isDone ? 'done' : ''}">${labelText}</div>`,
+        xAnchor: 0.5,
+        yAnchor: 0.5,
+        map: map
+      });
+
       markersMap[addr] = marker;
+      overlaysList.push(labelOverlay);
     }
 
-    // ★ 단독 주소 핀 & 정밀 말풍선 표시
+    // 단독 주소 상세 보기 모드
     function focusSingleAddress(addr) {
       if (!map) return;
       focusedAddr = addr;
@@ -357,14 +377,12 @@
       const showPin = (pos) => {
         const isDone = !!doneMap[addr];
 
-        // 1. 단독 대형 핀 생성
         singleMarker = new kakao.maps.Marker({
           map: map,
           position: pos,
           image: getMarkerImage(isDone, true)
         });
 
-        // 2. 꼬리가 달린 정밀 말풍선 생성 (좌표 기준 완벽 정렬)
         const bubbleHtml = `
           <div class="custom-speech-bubble ${isDone ? 'done' : ''}">
             <div class="bubble-status ${isDone ? 'visited' : 'unvisited'}">
@@ -379,13 +397,13 @@
         activeOverlay = new kakao.maps.CustomOverlay({
           position: pos,
           content: bubbleHtml,
-          yAnchor: 1.35, // 핀 머리 바로 위에 정확하게 안착
+          yAnchor: 1.35,
           xAnchor: 0.5,
           map: map
         });
 
         map.setCenter(pos);
-        map.setLevel(2); // 지붕이 선명한 초근접 줌
+        map.setLevel(2);
       };
 
       if (addrCoordCache[addr]) {
@@ -401,16 +419,17 @@
       }
     }
 
-    // 전체 보기 복귀
     function showAllPins() {
       focusedAddr = null;
       renderCurrentList();
-      drawPinsForCurrentZone();
+      drawPinsForCurrentZone(true);
     }
 
     function clearAllMapMarkers() {
       Object.values(markersMap).forEach(m => m.setMap(null));
       markersMap = {};
+      overlaysList.forEach(o => o.setMap(null));
+      overlaysList = [];
       if (singleMarker) {
         singleMarker.setMap(null);
         singleMarker = null;
@@ -421,23 +440,16 @@
       }
     }
 
-    // ★ 미방문 / 완료 토글 시 즉시 반영
     function toggleDone(addr) {
       doneMap[addr] = !doneMap[addr];
       localStorage.setItem('volunteer_done_v8', JSON.stringify(doneMap));
-      const isDone = !!doneMap[addr];
 
-      // 1. 하단 리스트 실시간 갱신
       renderCurrentList();
 
-      // 2. 단독 모드일 때: 핀 색상과 말풍선 상태 즉시 전환
       if (focusedAddr === addr && singleMarker) {
-        singleMarker.setImage(getMarkerImage(isDone, true));
         focusSingleAddress(addr);
-      } 
-      // 3. 전체 모드일 때: 해당 핀 색상 즉시 전환 (깜빡임 없이 즉시 전환)
-      else if (markersMap[addr]) {
-        markersMap[addr].setImage(getMarkerImage(isDone, false));
+      } else if (!focusedAddr && map) {
+        drawPinsForCurrentZone(false);
       }
     }
 
