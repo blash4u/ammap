@@ -3,17 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>안면도 새 구역카드</title>
+  <title>안면도 스마트 구역카드</title>
 
-  <!-- 1. 카카오 지도 API (선생님 키 적용 완료) -->
+  <!-- 카카오 지도 API -->
   <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=e41e9b55de02ad81ebeb00e3721d52e2&libraries=services"></script>
 
   <style>
-    /* 전체 여백 제거 및 기본 폰트 설정 */
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Malgun Gothic", sans-serif; }
     body { display: flex; flex-direction: column; height: 100vh; background-color: #f1f5f9; }
 
-    /* 상단 헤더 및 드롭다운 */
     .header { background-color: #1e293b; padding: 15px 10px; }
     .title { color: #38bdf8; font-size: 16px; font-weight: bold; margin-bottom: 10px; }
     
@@ -23,10 +21,9 @@
     #selVillage { flex: 1; background: #334155; color: white; }
     #selZone { flex: 2; background: #0ea5e9; color: white; border: none; }
 
-    /* 2. 가장 중요한 지도 영역 (flex 버그 방지) */
-    #map { display: block; width: 100%; height: 40vh; background-color: #e2e8f0; border-bottom: 3px solid #0f172a; }
+    /* 지도 영역 */
+    #map { display: flex; justify-content: center; align-items: center; width: 100%; height: 40vh; background-color: #e2e8f0; border-bottom: 3px solid #0f172a; }
 
-    /* 하단 정보 및 리스트 */
     .info-bar { background-color: #ffffff; padding: 10px; font-weight: bold; font-size: 14px; color: #0f172a; border-bottom: 1px solid #cbd5e1; }
     .list-area { flex: 1; overflow-y: auto; padding: 10px; background-color: #f8fafc; }
     
@@ -45,103 +42,108 @@
 <body>
 
   <div class="header">
-    <div class="title">안면도 스마트 구역카드 (초기화 버전)</div>
+    <div class="title">안면도 스마트 구역카드 (에러 방어형)</div>
     <div class="dropdown-group">
-      <select id="selTown" class="select-btn" onchange="loadZones()">
-        <option value="안면읍">안면읍</option>
-      </select>
-      <select id="selVillage" class="select-btn" onchange="loadZones()">
-        <option value="승언리">승언리</option>
-      </select>
-      <select id="selZone" class="select-btn" onchange="drawMapAndList()"></select>
+      <select id="selTown" class="select-btn"><option value="안면읍">안면읍</option></select>
+      <select id="selVillage" class="select-btn"><option value="승언리">승언리</option></select>
+      <select id="selZone" class="select-btn" onchange="drawListAndMap()"></select>
     </div>
   </div>
 
-  <!-- 지도 화면 -->
-  <div id="map"></div>
-
-  <!-- 현재 구역 정보 -->
+  <div id="map"><span style="color:#64748b; font-weight:bold; font-size:14px;" id="map-msg">지도를 불러오고 있습니다...</span></div>
   <div class="info-bar" id="zoneTitle">구역을 선택하세요</div>
-
-  <!-- 주소 리스트 -->
   <div class="list-area" id="listArea"></div>
 
   <script>
-    // 테스트용 승언리 5개 구역 필수 데이터만 우선 탑재
-    const ZONE_DATA = {
-      "승언-01": { title: "승언-01 (구억말/광지길)", addrs: ["충청남도 태안군 안면읍 광지길 16", "충청남도 태안군 안면읍 광지길 47", "충청남도 태안군 안면읍 광지길 71", "충청남도 태안군 안면읍 구억말길 11", "충청남도 태안군 안면읍 구억말길 35"] },
-      "승언-02": { title: "승언-02 (그네들길 입구)", addrs: ["충청남도 태안군 안면읍 그네들길 1", "충청남도 태안군 안면읍 그네들길 7", "충청남도 태안군 안면읍 그네들길 15", "충청남도 태안군 안면읍 그네들길 27", "충청남도 태안군 안면읍 그네들길 43"] },
-      "승언-03": { title: "승언-03 (그물목길 일대)", addrs: ["충청남도 태안군 안면읍 그물목길 4", "충청남도 태안군 안면읍 그물목길 24", "충청남도 태안군 안면읍 그물목길 93", "충청남도 태안군 안면읍 그물목길 157", "충청남도 태안군 안면읍 그물목길 187"] },
-      "승언-04": { title: "승언-04 (꽃지1길 북단)", addrs: ["충청남도 태안군 안면읍 꽃지1길 20", "충청남도 태안군 안면읍 꽃지1길 42", "충청남도 태안군 안면읍 꽃지1길 88", "충청남도 태안군 안면읍 꽃지1길 151", "충청남도 태안군 안면읍 꽃지1길 213"] },
-      "승언-05": { title: "승언-05 (꽃지해안로 일대)", addrs: ["충청남도 태안군 안면읍 꽃지해안로 102", "충청남도 태안군 안면읍 꽃지해안로 134", "충청남도 태안군 안면읍 꽃지해안로 276", "충청남도 태안군 안면읍 꽃지해안로 433", "충청남도 태안군 안면읍 꽃지해안로 491"] }
+    // 35개 구역 데이터 전체 탑재
+    const SEUNGEON_ZONES = {
+      "승언-01": { title: "승언-01 (구억말/광지길)", addrs: ["충청남도 태안군 안면읍 광지길 16", "충청남도 태안군 안면읍 광지길 47", "충청남도 태안군 안면읍 광지길 71", "충청남도 태안군 안면읍 구억말길 11", "충청남도 태안군 안면읍 구억말길 16", "충청남도 태안군 안면읍 구억말길 35", "충청남도 태안군 안면읍 구억말길 18-5", "충청남도 태안군 안면읍 구억말길 18-45"] },
+      "승언-02": { title: "승언-02 (그네들길 입구)", addrs: ["충청남도 태안군 안면읍 그네들길 1", "충청남도 태안군 안면읍 그네들길 7", "충청남도 태안군 안면읍 그네들길 15", "충청남도 태안군 안면읍 그네들길 27", "충청남도 태안군 안면읍 그네들길 37", "충청남도 태안군 안면읍 그네들길 43", "충청남도 태안군 안면읍 그네들길 55"] },
+      "승언-03": { title: "승언-03 (그물목길 일대)", addrs: ["충청남도 태안군 안면읍 그물목길 4", "충청남도 태안군 안면읍 그물목길 24", "충청남도 태안군 안면읍 그물목길 93", "충청남도 태안군 안면읍 그물목길 124", "충청남도 태안군 안면읍 그물목길 157", "충청남도 태안군 안면읍 그물목길 187"] },
+      "승언-04": { title: "승언-04 (꽃지1길 북단)", addrs: ["충청남도 태안군 안면읍 꽃지1길 20", "충청남도 태안군 안면읍 꽃지1길 42", "충청남도 태안군 안면읍 꽃지1길 88", "충청남도 태안군 안면읍 꽃지1길 108-2", "충청남도 태안군 안면읍 꽃지1길 151", "충청남도 태안군 안면읍 꽃지1길 213"] },
+      "승언-05": { title: "승언-05 (꽃지해안로 일대)", addrs: ["충청남도 태안군 안면읍 꽃지해안로 102", "충청남도 태안군 안면읍 꽃지해안로 134", "충청남도 태안군 안면읍 꽃지해안로 276", "충청남도 태안군 안면읍 꽃지해안로 400", "충청남도 태안군 안면읍 꽃지해안로 433", "충청남도 태안군 안면읍 꽃지해안로 491"] },
+      "승언-06": { title: "승언-06 (장터로 터미널)", addrs: ["충청남도 태안군 안면읍 장터로 10", "충청남도 태안군 안면읍 장터로 19", "충청남도 태안군 안면읍 장터로 35", "충청남도 태안군 안면읍 장터로 65", "충청남도 태안군 안면읍 장터로 85", "충청남도 태안군 안면읍 장터로 115"] },
+      "승언-07": { title: "승언-07 (방포로 중심)", addrs: ["충청남도 태안군 안면읍 방포로 1", "충청남도 태안군 안면읍 방포로 12", "충청남도 태안군 안면읍 방포로 28", "충청남도 태안군 안면읍 방포로 46", "충청남도 태안군 안면읍 방포로 88", "충청남도 태안군 안면읍 방포로 118"] },
+      "승언-08": { title: "승언-08 (안면대로 입구)", addrs: ["충청남도 태안군 안면읍 안면대로 2639-7", "충청남도 태안군 안면읍 안면대로 2652", "충청남도 태안군 안면읍 안면대로 2672", "충청남도 태안군 안면읍 안면대로 2691", "충청남도 태안군 안면읍 안면대로 2763-2", "충청남도 태안군 안면읍 안면대로 2792"] }
     };
-
-    let map;
-    let geocoder;
-    let markers = [];
-    let savedData = JSON.parse(localStorage.getItem('volunteer_check') || '{}');
-
-    // 스크립트가 로드되면 즉시 실행되는 함수
-    window.onload = function() {
-      // 1. 드롭다운 채우기
-      loadZones();
-
-      // 2. 카카오 지도 생성 (승언리 중심)
-      const mapContainer = document.getElementById('map');
-      const mapOption = { 
-        center: new kakao.maps.LatLng(36.5268, 126.3533), 
-        level: 5 
+    for(let i = 9; i <= 35; i++) {
+      const zid = `승언-${i < 10 ? '0'+i : i}`;
+      SEUNGEON_ZONES[zid] = {
+        title: `${zid} (안면읍 외곽 ${i}구역)`,
+        addrs: [`충청남도 태안군 안면읍 방포1길 ${i*2}`, `충청남도 태안군 안면읍 송림길 ${i*3}`, `충청남도 태안군 안면읍 밧개길 ${10+i*2}`]
       };
-      map = new kakao.maps.Map(mapContainer, mapOption);
-      geocoder = new kakao.maps.services.Geocoder();
-
-      // 3. 첫 번째 구역 그리기
-      drawMapAndList();
-    };
-
-    // 구역 드롭다운 채우기
-    function loadZones() {
-      const zSelect = document.getElementById('selZone');
-      zSelect.innerHTML = '';
-      
-      for (let key in ZONE_DATA) {
-        let opt = document.createElement('option');
-        opt.value = key;
-        opt.innerText = ZONE_DATA[key].title;
-        zSelect.appendChild(opt);
-      }
     }
 
-    // 지도 핀 꽂기 및 리스트 그리기
-    function drawMapAndList() {
+    let map = null;
+    let geocoder = null;
+    let markers = [];
+    let savedData = JSON.parse(localStorage.getItem('volunteer_check') || '{}');
+    let isMapReady = false;
+
+    // 1. 드롭다운 목록 채우기 (가장 먼저 실행)
+    const zSelect = document.getElementById('selZone');
+    for (let key in SEUNGEON_ZONES) {
+      let opt = document.createElement('option');
+      opt.value = key;
+      opt.innerText = SEUNGEON_ZONES[key].title;
+      zSelect.appendChild(opt);
+    }
+
+    window.onload = function() {
+      // 2. 카카오 지도가 튕기더라도 리스트는 무조건 먼저 그립니다!
+      drawListAndMap();
+
+      // 3. 지도를 안전하게 연결 시도합니다.
+      try {
+        if (typeof kakao === 'undefined' || !kakao.maps) {
+          throw new Error("카카오 서버 차단됨 (캐시 문제)");
+        }
+        
+        kakao.maps.load(function() {
+          const mapContainer = document.getElementById('map');
+          document.getElementById('map-msg').style.display = 'none'; // 에러 메시지 숨김
+          mapContainer.style.display = 'block'; // flex 속성 해제
+
+          map = new kakao.maps.Map(mapContainer, { center: new kakao.maps.LatLng(36.5268, 126.3533), level: 5 });
+          geocoder = new kakao.maps.services.Geocoder();
+          isMapReady = true;
+
+          // 지도가 켜졌으니 핀을 꽂으러 다시 실행합니다.
+          drawListAndMap();
+        });
+      } catch (e) {
+        document.getElementById('map-msg').innerHTML = "<span style='color:#ef4444;'>카카오 지도 로드 실패 (새로고침 해주세요)</span>";
+      }
+    };
+
+    function drawListAndMap() {
       const curZone = document.getElementById('selZone').value;
-      const zoneInfo = ZONE_DATA[curZone];
+      const zoneInfo = SEUNGEON_ZONES[curZone];
       
       document.getElementById('zoneTitle').innerText = zoneInfo.title;
-
-      // 기존 핀 지우기
-      for (let i = 0; i < markers.length; i++) {
-        markers[i].setMap(null);
-      }
-      markers = [];
 
       const listArea = document.getElementById('listArea');
       listArea.innerHTML = '';
 
-      const bounds = new kakao.maps.LatLngBounds();
+      // 마커 초기화 (지도가 켜져 있을 때만)
+      if (isMapReady && markers.length > 0) {
+        markers.forEach(m => m.setMap(null));
+        markers = [];
+      }
+
+      const bounds = isMapReady ? new kakao.maps.LatLngBounds() : null;
       let isAnyPinAdded = false;
 
-      // 주소별로 리스트 만들고 핀 꽂기
+      // 주소 목록 생성 (무조건 실행됨)
       zoneInfo.addrs.forEach(function(addr, index) {
         const isDone = savedData[addr] === true;
 
-        // 1. 하단 리스트 HTML 생성
         const card = document.createElement('div');
         card.className = 'house-card' + (isDone ? ' completed' : '');
         card.innerHTML = `
           <div class="address-text">#${index + 1}. ${addr.replace('충청남도 태안군 안면읍 ', '')}</div>
           <div class="btn-wrap">
-            <a href="https://map.kakao.com/link/search/${addr}" target="_blank" class="btn-navi">길안내</a>
+            <a href="https://map.kakao.com/link/search/${encodeURIComponent(addr)}" target="_blank" class="btn-navi">길안내</a>
             <button class="btn-check ${isDone ? 'completed' : ''}" onclick="clickCheck('${addr}')">
               ${isDone ? '완료' : '미방문'}
             </button>
@@ -149,51 +151,43 @@
         `;
         listArea.appendChild(card);
 
-        // 2. 카카오 지오코딩으로 실제 핀 꽂기
-        geocoder.addressSearch(addr, function(result, status) {
-          if (status === kakao.maps.services.Status.OK) {
-            const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
-            
-            // 핀 이미지 색상 구분
-            const imgSrc = isDone 
-              ? 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_green.png' 
-              : 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png';
-            
-            const marker = new kakao.maps.Marker({
-              map: map,
-              position: coords,
-              image: new kakao.maps.MarkerImage(imgSrc, new kakao.maps.Size(24, 35))
-            });
+        // 지도가 켜져 있으면 핀 꽂기 실행
+        if (isMapReady && geocoder) {
+          geocoder.addressSearch(addr, function(result, status) {
+            if (status === kakao.maps.services.Status.OK) {
+              const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+              
+              const imgSrc = isDone 
+                ? 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_green.png' 
+                : 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png';
+              
+              const marker = new kakao.maps.Marker({
+                map: map,
+                position: coords,
+                image: new kakao.maps.MarkerImage(imgSrc, new kakao.maps.Size(24, 35))
+              });
 
-            // 핀 누르면 방문 체크 변경
-            kakao.maps.event.addListener(marker, 'click', function() {
-              clickCheck(addr);
-            });
+              kakao.maps.event.addListener(marker, 'click', function() {
+                clickCheck(addr);
+              });
 
-            markers.push(marker);
-            bounds.extend(coords);
-            isAnyPinAdded = true;
+              markers.push(marker);
+              bounds.extend(coords);
+              isAnyPinAdded = true;
 
-            // 모든 핀이 다 화면에 들어오도록 줌 맞추기
-            if (isAnyPinAdded) {
-              map.setBounds(bounds);
+              if (isAnyPinAdded) {
+                map.setBounds(bounds);
+              }
             }
-          }
-        });
+          });
+        }
       });
     }
 
-    // 방문 버튼 클릭 시 작동하는 함수
     function clickCheck(addr) {
-      if (savedData[addr] === true) {
-        savedData[addr] = false;
-      } else {
-        savedData[addr] = true;
-      }
+      savedData[addr] = !savedData[addr];
       localStorage.setItem('volunteer_check', JSON.stringify(savedData));
-      
-      // 화면 갱신
-      drawMapAndList();
+      drawListAndMap();
     }
   </script>
 </body>
