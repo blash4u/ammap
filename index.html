@@ -5,57 +5,81 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>안면도 스마트 구역카드</title>
 
-  <!-- 카카오 지도 API -->
-  <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=e41e9b55de02ad81ebeb00e3721d52e2&libraries=services"></script>
+  <!-- 카카오 공식 가이드 규격: autoload=false 필수 적용 -->
+  <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=e41e9b55de02ad81ebeb00e3721d52e2&libraries=services&autoload=false"></script>
 
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Malgun Gothic", sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Malgun Gothic", -apple-system, sans-serif; }
     body { display: flex; flex-direction: column; height: 100vh; background-color: #f1f5f9; }
 
-    .header { background-color: #1e293b; padding: 15px 10px; }
-    .title { color: #38bdf8; font-size: 16px; font-weight: bold; margin-bottom: 10px; }
-    
+    .header { background-color: #1e293b; padding: 12px 10px; }
+    .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .title { color: #38bdf8; font-size: 15px; font-weight: bold; }
+    .btn-gps { background: #0284c7; color: #fff; border: none; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; }
+
     .dropdown-group { display: flex; gap: 5px; width: 100%; }
-    .select-btn { height: 40px; padding: 5px; border-radius: 5px; font-size: 13px; font-weight: bold; border: 1px solid #475569; }
-    #selTown { flex: 1; background: #334155; color: white; }
-    #selVillage { flex: 1; background: #334155; color: white; }
-    #selZone { flex: 2; background: #0ea5e9; color: white; border: none; }
+    .select-btn { height: 38px; padding: 4px; border-radius: 5px; font-size: 12px; font-weight: bold; border: 1px solid #475569; outline: none; }
+    #selTown { flex: 2.5; background: #334155; color: white; }
+    #selVillage { flex: 2.5; background: #334155; color: white; }
+    #selZone { flex: 5; background: #0ea5e9; color: white; border: none; }
 
-    /* 지도 영역 */
-    #map { display: flex; justify-content: center; align-items: center; width: 100%; height: 40vh; background-color: #e2e8f0; border-bottom: 3px solid #0f172a; }
+    /* 지도 컨테이너 */
+    #map-wrapper { position: relative; width: 100%; height: 42vh; background-color: #cbd5e1; }
+    #map { width: 100%; height: 100%; }
+    #map-status { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #e2e8f0; color: #475569; font-size: 13px; font-weight: bold; z-index: 10; padding: 15px; text-align: center; line-height: 1.5; }
 
-    .info-bar { background-color: #ffffff; padding: 10px; font-weight: bold; font-size: 14px; color: #0f172a; border-bottom: 1px solid #cbd5e1; }
-    .list-area { flex: 1; overflow-y: auto; padding: 10px; background-color: #f8fafc; }
-    
-    .house-card { background: white; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .info-bar { background-color: #ffffff; padding: 8px 12px; font-weight: bold; font-size: 13px; color: #0f172a; border-bottom: 1px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; }
+    .prog-text { font-size: 12px; color: #10b981; font-weight: 800; }
+
+    .list-area { flex: 1; overflow-y: auto; padding: 8px; background-color: #f8fafc; }
+    .house-card { background: white; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
     .house-card.completed { background: #d1fae5; border-color: #10b981; }
     .house-card.completed .address-text { text-decoration: line-through; color: #065f46; }
     
-    .address-text { font-size: 14px; font-weight: bold; color: #1e293b; }
-    
-    .btn-wrap { display: flex; gap: 5px; }
-    .btn-navi { background: #fde047; color: #854d0e; text-decoration: none; padding: 6px 10px; border-radius: 5px; font-size: 12px; font-weight: bold; }
-    .btn-check { background: #64748b; color: white; border: none; padding: 6px 10px; border-radius: 5px; font-size: 12px; font-weight: bold; cursor: pointer; }
+    .address-text { font-size: 13px; font-weight: bold; color: #1e293b; }
+    .btn-wrap { display: flex; gap: 5px; align-items: center; }
+    .btn-navi { background: #fde047; color: #854d0e; text-decoration: none; padding: 5px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+    .btn-check { background: #64748b; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
     .btn-check.completed { background: #10b981; }
   </style>
 </head>
 <body>
 
   <div class="header">
-    <div class="title">안면도 스마트 구역카드 (에러 방어형)</div>
+    <div class="header-top">
+      <div class="title">안면도 스마트 구역카드</div>
+      <button class="btn-gps" onclick="locateUser()">내 위치 📍</button>
+    </div>
     <div class="dropdown-group">
-      <select id="selTown" class="select-btn"><option value="안면읍">안면읍</option></select>
-      <select id="selVillage" class="select-btn"><option value="승언리">승언리</option></select>
-      <select id="selZone" class="select-btn" onchange="drawListAndMap()"></select>
+      <select id="selTown" class="select-btn" onchange="onTownChange()">
+        <option value="안면읍" selected>안면읍</option>
+        <option value="고남면">고남면</option>
+        <option value="남면">남면</option>
+      </select>
+      <select id="selVillage" class="select-btn" onchange="onVillageChange()"></select>
+      <select id="selZone" class="select-btn" onchange="onZoneChange()"></select>
     </div>
   </div>
 
-  <div id="map"><span style="color:#64748b; font-weight:bold; font-size:14px;" id="map-msg">지도를 불러오고 있습니다...</span></div>
-  <div class="info-bar" id="zoneTitle">구역을 선택하세요</div>
+  <div id="map-wrapper">
+    <div id="map"></div>
+    <div id="map-status">카카오 지도 모듈 초기화 중...</div>
+  </div>
+
+  <div class="info-bar">
+    <span id="zoneTitle">구역 로딩중...</span>
+    <span class="prog-text" id="progRatio">0 / 0 (0%)</span>
+  </div>
+
   <div class="list-area" id="listArea"></div>
 
   <script>
-    // 35개 구역 데이터 전체 탑재
+    const VILLAGE_MAP = {
+      "안면읍": ["승언리", "창기리", "중장리", "정당리", "신야리", "황도리"],
+      "고남면": ["고남리", "장곡리", "누동리"],
+      "남면": ["신온리", "달산리", "몽산리", "신장리", "진산리", "양잠리", "원청리", "당암리"]
+    };
+
     const SEUNGEON_ZONES = {
       "승언-01": { title: "승언-01 (구억말/광지길)", addrs: ["충청남도 태안군 안면읍 광지길 16", "충청남도 태안군 안면읍 광지길 47", "충청남도 태안군 안면읍 광지길 71", "충청남도 태안군 안면읍 구억말길 11", "충청남도 태안군 안면읍 구억말길 16", "충청남도 태안군 안면읍 구억말길 35", "충청남도 태안군 안면읍 구억말길 18-5", "충청남도 태안군 안면읍 구억말길 18-45"] },
       "승언-02": { title: "승언-02 (그네들길 입구)", addrs: ["충청남도 태안군 안면읍 그네들길 1", "충청남도 태안군 안면읍 그네들길 7", "충청남도 태안군 안면읍 그네들길 15", "충청남도 태안군 안면읍 그네들길 27", "충청남도 태안군 안면읍 그네들길 37", "충청남도 태안군 안면읍 그네들길 43", "충청남도 태안군 안면읍 그네들길 55"] },
@@ -74,120 +98,195 @@
       };
     }
 
-    let map = null;
-    let geocoder = null;
+    let map = null, geocoder = null, userMarker = null;
     let markers = [];
-    let savedData = JSON.parse(localStorage.getItem('volunteer_check') || '{}');
-    let isMapReady = false;
+    let curTown = "안면읍", curVillage = "승언리", curZoneKey = "승언-01";
+    let doneMap = JSON.parse(localStorage.getItem('volunteer_done_v7') || '{}');
 
-    // 1. 드롭다운 목록 채우기 (가장 먼저 실행)
-    const zSelect = document.getElementById('selZone');
-    for (let key in SEUNGEON_ZONES) {
-      let opt = document.createElement('option');
-      opt.value = key;
-      opt.innerText = SEUNGEON_ZONES[key].title;
-      zSelect.appendChild(opt);
-    }
+    // 초기 드롭다운 설정
+    updateVillageDropdown();
+    updateZoneDropdown();
+    renderCurrentList();
 
+    // 화면 준비 완료 시 카카오맵 정식 로드
     window.onload = function() {
-      // 2. 카카오 지도가 튕기더라도 리스트는 무조건 먼저 그립니다!
-      drawListAndMap();
-
-      // 3. 지도를 안전하게 연결 시도합니다.
-      try {
-        if (typeof kakao === 'undefined' || !kakao.maps) {
-          throw new Error("카카오 서버 차단됨 (캐시 문제)");
-        }
-        
-        kakao.maps.load(function() {
-          const mapContainer = document.getElementById('map');
-          document.getElementById('map-msg').style.display = 'none'; // 에러 메시지 숨김
-          mapContainer.style.display = 'block'; // flex 속성 해제
-
-          map = new kakao.maps.Map(mapContainer, { center: new kakao.maps.LatLng(36.5268, 126.3533), level: 5 });
-          geocoder = new kakao.maps.services.Geocoder();
-          isMapReady = true;
-
-          // 지도가 켜졌으니 핀을 꽂으러 다시 실행합니다.
-          drawListAndMap();
-        });
-      } catch (e) {
-        document.getElementById('map-msg').innerHTML = "<span style='color:#ef4444;'>카카오 지도 로드 실패 (새로고침 해주세요)</span>";
+      if (typeof kakao === 'undefined') {
+        document.getElementById('map-status').innerHTML = 
+          "<span style='color:#ef4444; font-size:14px;'>[카카오 지도 모듈 차단됨]</span><br><br>" +
+          "카카오 디벨로퍼스 왼쪽 메뉴의<br><b>[제품 설정] > [카카오맵]</b>에 들어가서<br>" +
+          "<b style='color:#dc2626;'>상태: 활성화(ON)</b>를 켜주세요!";
+        return;
       }
+
+      // autoload=false 규격 로딩
+      kakao.maps.load(function() {
+        try {
+          const container = document.getElementById('map');
+          const options = { center: new kakao.maps.LatLng(36.5268, 126.3533), level: 5 };
+          map = new kakao.maps.Map(container, options);
+          geocoder = new kakao.maps.services.Geocoder();
+
+          document.getElementById('map-status').style.display = 'none';
+          drawPinsForCurrentZone();
+        } catch (err) {
+          document.getElementById('map-status').innerHTML = 
+            "<span style='color:#ef4444;'>지도 생성 오류: " + err.message + "</span>";
+        }
+      });
     };
 
-    function drawListAndMap() {
-      const curZone = document.getElementById('selZone').value;
-      const zoneInfo = SEUNGEON_ZONES[curZone];
-      
-      document.getElementById('zoneTitle').innerText = zoneInfo.title;
+    function onTownChange() {
+      curTown = document.getElementById('selTown').value;
+      updateVillageDropdown();
+      onVillageChange();
+    }
 
-      const listArea = document.getElementById('listArea');
-      listArea.innerHTML = '';
+    function updateVillageDropdown() {
+      const vSelect = document.getElementById('selVillage');
+      vSelect.innerHTML = '';
+      (VILLAGE_MAP[curTown] || []).forEach(v => {
+        const opt = document.createElement('option');
+        opt.value = v;
+        opt.innerText = v;
+        vSelect.appendChild(opt);
+      });
+      curVillage = (VILLAGE_MAP[curTown] || [])[0] || '';
+    }
 
-      // 마커 초기화 (지도가 켜져 있을 때만)
-      if (isMapReady && markers.length > 0) {
-        markers.forEach(m => m.setMap(null));
-        markers = [];
+    function onVillageChange() {
+      curVillage = document.getElementById('selVillage').value;
+      updateZoneDropdown();
+      onZoneChange();
+    }
+
+    function updateZoneDropdown() {
+      const zSelect = document.getElementById('selZone');
+      zSelect.innerHTML = '';
+
+      if (curTown === '안면읍' && curVillage === '승언리') {
+        Object.keys(SEUNGEON_ZONES).forEach(k => {
+          const opt = document.createElement('option');
+          opt.value = k;
+          opt.innerText = SEUNGEON_ZONES[k].title;
+          zSelect.appendChild(opt);
+        });
+        curZoneKey = "승언-01";
+      } else {
+        const opt = document.createElement('option');
+        opt.value = "";
+        opt.innerText = "데이터 준비중";
+        zSelect.appendChild(opt);
+        curZoneKey = "";
+      }
+    }
+
+    function onZoneChange() {
+      curZoneKey = document.getElementById('selZone').value;
+      renderCurrentList();
+      if (map && geocoder) {
+        drawPinsForCurrentZone();
+      }
+    }
+
+    function renderCurrentList() {
+      const zone = SEUNGEON_ZONES[curZoneKey];
+      const listEl = document.getElementById('listArea');
+      listEl.innerHTML = '';
+
+      if (!zone) {
+        document.getElementById('zoneTitle').innerText = `${curVillage} (준비 중)`;
+        document.getElementById('progRatio').innerText = '0 / 0 (0%)';
+        return;
       }
 
-      const bounds = isMapReady ? new kakao.maps.LatLngBounds() : null;
-      let isAnyPinAdded = false;
+      document.getElementById('zoneTitle').innerText = zone.title;
+      let doneCnt = 0;
 
-      // 주소 목록 생성 (무조건 실행됨)
-      zoneInfo.addrs.forEach(function(addr, index) {
-        const isDone = savedData[addr] === true;
+      zone.addrs.forEach((addr, idx) => {
+        const isDone = !!doneMap[addr];
+        if (isDone) doneCnt++;
 
         const card = document.createElement('div');
         card.className = 'house-card' + (isDone ? ' completed' : '');
         card.innerHTML = `
-          <div class="address-text">#${index + 1}. ${addr.replace('충청남도 태안군 안면읍 ', '')}</div>
+          <div class="address-text">#${idx + 1}. ${addr.replace('충청남도 태안군 안면읍 ', '')}</div>
           <div class="btn-wrap">
-            <a href="https://map.kakao.com/link/search/${encodeURIComponent(addr)}" target="_blank" class="btn-navi">길안내</a>
-            <button class="btn-check ${isDone ? 'completed' : ''}" onclick="clickCheck('${addr}')">
+            <a class="btn-navi" href="https://map.kakao.com/link/search/${encodeURIComponent(addr)}" target="_blank">길안내</a>
+            <button class="btn-check ${isDone ? 'completed' : ''}" onclick="toggleDone('${addr}')">
               ${isDone ? '완료' : '미방문'}
             </button>
           </div>
         `;
-        listArea.appendChild(card);
+        listEl.appendChild(card);
+      });
 
-        // 지도가 켜져 있으면 핀 꽂기 실행
-        if (isMapReady && geocoder) {
-          geocoder.addressSearch(addr, function(result, status) {
-            if (status === kakao.maps.services.Status.OK) {
-              const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
-              
-              const imgSrc = isDone 
-                ? 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_green.png' 
-                : 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png';
-              
-              const marker = new kakao.maps.Marker({
-                map: map,
-                position: coords,
-                image: new kakao.maps.MarkerImage(imgSrc, new kakao.maps.Size(24, 35))
-              });
+      const pct = zone.addrs.length > 0 ? Math.round((doneCnt / zone.addrs.length) * 100) : 0;
+      document.getElementById('progRatio').innerText = `${doneCnt} / ${zone.addrs.length} (${pct}%)`;
+    }
 
-              kakao.maps.event.addListener(marker, 'click', function() {
-                clickCheck(addr);
-              });
+    function drawPinsForCurrentZone() {
+      markers.forEach(m => m.setMap(null));
+      markers = [];
 
-              markers.push(marker);
-              bounds.extend(coords);
-              isAnyPinAdded = true;
+      const zone = SEUNGEON_ZONES[curZoneKey];
+      if (!zone || !geocoder) return;
 
-              if (isAnyPinAdded) {
-                map.setBounds(bounds);
-              }
+      const bounds = new kakao.maps.LatLngBounds();
+      let count = 0;
+
+      zone.addrs.forEach(addr => {
+        geocoder.addressSearch(addr, function(result, status) {
+          if (status === kakao.maps.services.Status.OK) {
+            const pos = new kakao.maps.LatLng(result[0].y, result[0].x);
+            const isDone = !!doneMap[addr];
+
+            const imgUrl = isDone
+              ? 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_green.png'
+              : 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png';
+
+            const marker = new kakao.maps.Marker({
+              map: map,
+              position: pos,
+              image: new kakao.maps.MarkerImage(imgUrl, new kakao.maps.Size(24, 35))
+            });
+
+            kakao.maps.event.addListener(marker, 'click', function() {
+              toggleDone(addr);
+            });
+
+            markers.push(marker);
+            bounds.extend(pos);
+            count++;
+
+            if (count > 0) {
+              map.setBounds(bounds);
             }
-          });
-        }
+          }
+        });
       });
     }
 
-    function clickCheck(addr) {
-      savedData[addr] = !savedData[addr];
-      localStorage.setItem('volunteer_check', JSON.stringify(savedData));
-      drawListAndMap();
+    function toggleDone(addr) {
+      doneMap[addr] = !doneMap[addr];
+      localStorage.setItem('volunteer_done_v7', JSON.stringify(doneMap));
+      renderCurrentList();
+      if (map && geocoder) {
+        drawPinsForCurrentZone();
+      }
+    }
+
+    function locateUser() {
+      if (!navigator.geolocation || !map) {
+        alert("GPS 위치 서비스를 사용할 수 없습니다.");
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(pos => {
+        const latLng = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+        if (userMarker) userMarker.setMap(null);
+        userMarker = new kakao.maps.Marker({ map: map, position: latLng });
+        map.setCenter(latLng);
+        map.setLevel(3);
+      });
     }
   </script>
 </body>
