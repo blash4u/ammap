@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>안면도 봉사활동 구역카드</title>
+  <title>안면도 구역카드</title>
 
   <!-- 카카오 지도 API -->
   <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=e41e9b55de02ad81ebeb00e3721d52e2&libraries=services&autoload=false"></script>
@@ -23,7 +23,6 @@
     #selVillage { flex: 2.5; background: #334155; color: white; }
     #selZone { flex: 5; background: #0ea5e9; color: white; border: none; }
 
-    /* 지도 컨테이너 */
     #map-wrapper { position: relative; width: 100%; height: 42vh; background-color: #cbd5e1; }
     #map { width: 100%; height: 100%; }
     #map-status { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #e2e8f0; color: #475569; font-size: 13px; font-weight: bold; z-index: 10; padding: 15px; text-align: center; }
@@ -51,7 +50,6 @@
     .btn-check { background: #64748b; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; min-width: 58px; }
     .btn-check.completed { background: #10b981; }
 
-    /* 전체보기 주소 라벨 */
     .map-addr-tag {
       background: rgba(15, 23, 42, 0.88);
       color: #f8fafc;
@@ -72,7 +70,6 @@
       text-decoration: line-through;
     }
 
-    /* 단독 확인용 말풍선 */
     .custom-speech-bubble {
       position: relative;
       background: #ffffff;
@@ -108,7 +105,7 @@
 
   <div class="header">
     <div class="header-top">
-      <div class="title">안면도 스마트 구역카드</div>
+      <div class="title">안면도 구역카드</div>
       <button class="btn-gps" onclick="locateUser()">내 위치 📍</button>
     </div>
     <div class="dropdown-group">
@@ -137,46 +134,62 @@
   <div class="list-area" id="listArea"></div>
 
   <script>
+    // ========================================================
+    // 10번 구역: 고남면 고남리 (영목항 일대) 38개 소구역 정식 DB
+    // ========================================================
     const ZONE_DATABASE = {
-      "안면읍": {
-        "승언리": {
-          "승언-01": { title: "승언-01 (구억말/광지길)", addrs: ["충청남도 태안군 안면읍 광지길 16", "충청남도 태안군 안면읍 광지길 47", "충청남도 태안군 안면읍 광지길 71", "충청남도 태안군 안면읍 구억말길 11", "충청남도 태안군 안면읍 구억말길 16", "충청남도 태안군 안면읍 구억말길 35", "충청남도 태안군 안면읍 구억말길 18-5", "충청남도 태안군 안면읍 구억말길 18-45"] },
-          "승언-02": { title: "승언-02 (그네들길 입구)", addrs: ["충청남도 태안군 안면읍 그네들길 1", "충청남도 태안군 안면읍 그네들길 7", "충청남도 태안군 안면읍 그네들길 15", "충청남도 태안군 안면읍 그네들길 27", "충청남도 태안군 안면읍 그네들길 37", "충청남도 태안군 안면읍 그네들길 43", "충청남도 태안군 안면읍 그네들길 55"] },
-          "승언-03": { title: "승언-03 (그물목길 일대)", addrs: ["충청남도 태안군 안면읍 그물목길 4", "충청남도 태안군 안면읍 그물목길 24", "충청남도 태안군 안면읍 그물목길 93", "충청남도 태안군 안면읍 그물목길 124", "충청남도 태안군 안면읍 그물목길 157", "충청남도 태안군 안면읍 그물목길 187"] },
-          "승언-04": { title: "승언-04 (꽃지1길 북단)", addrs: ["충청남도 태안군 안면읍 꽃지1길 20", "충청남도 태안군 안면읍 꽃지1길 42", "충청남도 태안군 안면읍 꽃지1길 88", "충청남도 태안군 안면읍 꽃지1길 108-2", "충청남도 태안군 안면읍 꽃지1길 151", "충청남도 태안군 안면읍 꽃지1길 213"] },
-          "승언-05": { title: "승언-05 (꽃지해안로 일대)", addrs: ["충청남도 태안군 안면읍 꽃지해안로 102", "충청남도 태안군 안면읍 꽃지해안로 134", "충청남도 태안군 안면읍 꽃지해안로 276", "충청남도 태안군 안면읍 꽃지해안로 400", "충청남도 태안군 안면읍 꽃지해안로 433", "충청남도 태안군 안면읍 꽃지해안로 491"] },
-          "승언-06": { title: "승언-06 (장터로 터미널)", addrs: ["충청남도 태안군 안면읍 장터로 10", "충청남도 태안군 안면읍 장터로 19", "충청남도 태안군 안면읍 장터로 35", "충청남도 태안군 안면읍 장터로 65", "충청남도 태안군 안면읍 장터로 85", "충청남도 태안군 안면읍 장터로 115"] },
-          "승언-07": { title: "승언-07 (방포로 중심)", addrs: ["충청남도 태안군 안면읍 방포로 1", "충청남도 태안군 안면읍 방포로 12", "충청남도 태안군 안면읍 방포로 28", "충청남도 태안군 안면읍 방포로 46", "충청남도 태안군 안면읍 방포로 88", "충청남도 태안군 안면읍 방포로 118"] },
-          "승언-08": { title: "승언-08 (안면대로 입구)", addrs: ["충청남도 태안군 안면읍 안면대로 2639-7", "충청남도 태안군 안면읍 안면대로 2652", "충청남도 태안군 안면읍 안면대로 2672", "충청남도 태안군 안면읍 안면대로 2691", "충청남도 태안군 안면읍 안면대로 2763-2", "충청남도 태안군 안면읍 안면대로 2792"] }
-        },
-        "창기리": {
-          "창기-01": { title: "창기-01 (창기삼거리 일대)", addrs: ["충청남도 태안군 안면읍 창기리 12-3", "충청남도 태안군 안면읍 백사장1길 15", "충청남도 태안군 안면읍 백사장2길 8"] }
-        },
-        "중장리": {
-          "중장-01": { title: "중장-01 (대야도 일대)", addrs: ["충청남도 태안군 안면읍 대야도길 12", "충청남도 태안군 안면읍 중장길 45"] }
-        },
-        "정당리": {},
-        "신야리": {},
-        "황도리": {}
-      },
       "고남면": {
         "고남리": {
-          "고남-01": { title: "고남-01 (영목항 입구)", addrs: ["충청남도 태안군 고남면 안면대로 4268", "충청남도 태안군 고남면 영목항길 19"] }
+          "10-가경주-01": { title: "10-가경주-01 (가경주길 1~47번 / 21가구)", addrs: ["가경주길 1", "가경주길 4", "가경주길 11", "가경주길 20", "가경주길 23-8", "가경주길 23-15", "가경주길 39", "가경주길 42-1", "가경주길 42-4", "가경주길 42-7", "가경주길 42-16", "가경주길 44", "가경주길 46", "가경주길 46-1", "가경주길 46-2", "가경주길 46-3", "가경주길 46-4", "가경주길 46-5", "가경주길 46-6", "가경주길 47", "가경주길 47-2"] },
+          "10-가경주-02": { title: "10-가경주-02 (가경주길 47~62번 / 21가구)", addrs: ["가경주길 47-4", "가경주길 47-5", "가경주길 47-6", "가경주길 47-7", "가경주길 47-9", "가경주길 47-10", "가경주길 47-11", "가경주길 47-12", "가경주길 47-13", "가경주길 47-14", "가경주길 47-15", "가경주길 47-16", "가경주길 47-17", "가경주길 47-18", "가경주길 47-20", "가경주길 47-21", "가경주길 47-22", "가경주길 47-23", "가경주길 50-1", "가경주길 54", "가경주길 62-1"] },
+          "10-가경주-03": { title: "10-가경주-03 (가경주길 62~69번 / 21가구)", addrs: ["가경주길 62-4", "가경주길 62-13", "가경주길 62-14", "가경주길 62-16", "가경주길 62-17", "가경주길 62-18", "가경주길 62-19", "가경주길 62-21", "가경주길 62-22", "가경주길 62-23", "가경주길 62-24", "가경주길 62-26", "가경주길 62-27", "가경주길 62-28", "가경주길 62-31", "가경주길 62-32", "가경주길 62-33", "가경주길 62-34", "가경주길 65", "가경주길 67-6", "가경주길 69-1"] },
+          "10-가경주-04": { title: "10-가경주-04 (가경주길 69~87번 / 21가구)", addrs: ["가경주길 69-2", "가경주길 69-3", "가경주길 69-4", "가경주길 69-5", "가경주길 69-7", "가경주길 69-8", "가경주길 69-10", "가경주길 69-11", "가경주길 69-12", "가경주길 69-13", "가경주길 69-14", "가경주길 69-15", "가경주길 69-16", "가경주길 69-17", "가경주길 69-18", "가경주길 69-19", "가경주길 71-3", "가경주길 71-4", "가경주길 71-5", "가경주길 87", "가경주길 87-2"] },
+          "10-가경주-05": { title: "10-가경주-05 (가경주길 88~148번 / 21가구)", addrs: ["가경주길 88", "가경주길 89", "가경주길 90", "가경주길 92", "가경주길 94", "가경주길 97-4", "가경주길 103", "가경주길 108", "가경주길 109", "가경주길 110", "가경주길 111", "가경주길 113", "가경주길 114", "가경주길 115", "가경주길 117", "가경주길 124", "가경주길 132-7", "가경주길 132-9", "가경주길 144", "가경주길 146", "가경주길 148"] },
+          "10-구매-01": { title: "10-구매-01 (구매길 입구 1~54번 / 16가구)", addrs: ["구매길 1", "구매길 3", "구매길 7", "구매길 15", "구매길 21", "구매길 24-9", "구매길 37", "구매길 41-1", "구매길 41-36", "구매길 43", "구매길 48", "구매길 50", "구매길 51", "구매길 52", "구매길 53", "구매길 54"] },
+          "10-구매-02": { title: "10-구매-02 (구매길 안쪽 56~96번 / 21가구)", addrs: ["구매길 56", "구매길 57", "구매길 58", "구매길 59", "구매길 61", "구매길 63", "구매길 64", "구매길 65", "구매길 66", "구매길 67", "구매길 68", "구매길 69", "구매길 71", "구매길 73", "구매길 74", "구매길 75", "구매길 76", "구매길 78", "구매길 82", "구매길 94", "구매길 96"] },
+          "10-누동-01": { title: "10-누동-01 (누동로 일대 / 20가구)", addrs: ["누동로 13", "누동로 13-3", "누동로 13-4", "누동로 19", "누동로 21-9", "누동로 21-15", "누동로 21-16", "누동로 21-18", "누동로 21-19", "누동로 21-23", "누동로 21-37", "누동로 30-15", "누동로 30-16", "누동로 30-20", "누동로 37", "누동로 39", "누동로 41", "누동로 43", "누동로 58", "누동로 62"] },
+          "10-만수-01": { title: "10-만수-01 (만수길 초입 3~25번 / 25가구)", addrs: ["만수길 3", "만수길 7", "만수길 8", "만수길 9", "만수길 10", "만수길 11-1", "만수길 11-3", "만수길 11-6", "만수길 14-18", "만수길 14-19", "만수길 14-20", "만수길 20", "만수길 20-1", "만수길 21", "만수길 22-2", "만수길 22-3", "만수길 22-4", "만수길 22-5", "만수길 22-6", "만수길 22-7", "만수길 22-8", "만수길 23", "만수길 24", "만수길 24-2", "만수길 25"] },
+          "10-만수-02": { title: "10-만수-02 (만수길 종점 26~81번 / 24가구)", addrs: ["만수길 26", "만수길 27", "만수길 28", "만수길 31", "만수길 32", "만수길 33", "만수길 34", "만수길 34-1", "만수길 34-2", "만수길 36", "만수길 36-1", "만수길 37", "만수길 38", "만수길 41", "만수길 42", "만수길 44", "만수길 46", "만수길 48", "만수길 50", "만수길 56", "만수길 60", "만수길 62", "만수길 64", "만수길 81"] },
+          "10-발화지-01": { title: "10-발화지-01 (발화지길 일대 / 8가구)", addrs: ["발화지길 12", "발화지길 16-1", "발화지길 36", "발화지길 52-3", "발화지길 52-4", "발화지길 63-5", "발화지길 74", "발화지길 76-16"] },
+          "10-빗독1-01": { title: "10-빗독1-01 (빗독1길 마을앞 2~23번 / 16가구)", addrs: ["빗독1길 2", "빗독1길 11", "빗독1길 12", "빗독1길 14", "빗독1길 17-2", "빗독1길 17-6", "빗독1길 20-1", "빗독1길 20-8", "빗독1길 21", "빗독1길 22", "빗독1길 23", "빗독1길 23-1", "빗독1길 23-3", "빗독1길 23-5", "빗독1길 23-9", "빗독1길 23-11"] },
+          "10-빗독1-02": { title: "10-빗독1-02 (빗독1길 안길 24~48번 / 26가구)", addrs: ["빗독1길 24", "빗독1길 24-2", "빗독1길 24-4", "빗독1길 25", "빗독1길 26", "빗독1길 27", "빗독1길 28", "빗독1길 29", "빗독1길 30", "빗독1길 31", "빗독1길 32", "빗독1길 33", "빗독1길 34", "빗독1길 35", "빗독1길 37", "빗독1길 38", "빗독1길 39", "빗독1길 40", "빗독1길 41", "빗독1길 42", "빗독1길 43", "빗독1길 44", "빗독1길 45", "빗독1길 46", "빗독1길 47", "빗독1길 48"] },
+          "10-빗독2-01": { title: "10-빗독2-01 (빗독2길 1구역 2~26번 / 23가구)", addrs: ["빗독2길 2", "빗독2길 4", "빗독2길 4-2", "빗독2길 4-6", "빗독2길 4-7", "빗독2길 4-13", "빗독2길 6", "빗독2길 6-1", "빗독2길 7", "빗독2길 7-1", "빗독2길 7-2", "빗독2길 8", "빗독2길 8-1", "빗독2길 10", "빗독2길 11", "빗독2길 12", "빗독2길 13", "빗독2길 14", "빗독2길 17", "빗독2길 19", "빗독2길 22", "빗독2길 24", "빗독2길 26"] },
+          "10-빗독2-02": { title: "10-빗독2-02 (빗독2길 2구역 28~44번 / 22가구)", addrs: ["빗독2길 28", "빗독2길 29", "빗독2길 30", "빗독2길 31", "빗독2길 32", "빗독2길 33", "빗독2길 34", "빗독2길 35", "빗독2길 35-1", "빗독2길 35-2", "빗독2길 36", "빗독2길 37", "빗독2길 38", "빗독2길 39", "빗독2길 40", "빗독2길 41", "빗독2길 41-1", "빗독2길 41-2", "빗독2길 42", "빗독2길 42-1", "빗독2길 43", "빗독2길 44"] },
+          "10-안면대로-01": { title: "10-안면대로-01 (안면대로 고남구간 4153~4219번 / 21가구)", addrs: ["안면대로 4153-19", "안면대로 4153-22", "안면대로 4153-30", "안면대로 4187-6", "안면대로 4189", "안면대로 4199-8", "안면대로 4199-10", "안면대로 4199-47", "안면대로 4199-57", "안면대로 4199-59", "안면대로 4199-67", "안면대로 4201-2", "안면대로 4201-12", "안면대로 4201-16", "안면대로 4201-22", "안면대로 4201-26", "안면대로 4201-34", "안면대로 4201-36", "안면대로 4203", "안면대로 4218", "안면대로 4219-5"] },
+          "10-안면대로-02": { title: "10-안면대로-02 (안면대로 고남구간 4220~4254번 / 21가구)", addrs: ["안면대로 4220", "안면대로 4223", "안면대로 4225", "안면대로 4227", "안면대로 4229", "안면대로 4231", "안면대로 4233", "안면대로 4235", "안면대로 4237", "안면대로 4239", "안면대로 4241", "안면대로 4243", "안면대로 4245", "안면대로 4247", "안면대로 4249", "안면대로 4251", "안면대로 4253", "안면대로 4254", "안면대로 4254-1", "안면대로 4254-2", "안면대로 4254-3"] },
+          "10-안면대로-03": { title: "10-안면대로-03 (안면대로 고남구간 4254~4301번 / 21가구)", addrs: ["안면대로 4254-4", "안면대로 4254-5", "안면대로 4254-6", "안면대로 4254-7", "안면대로 4254-8", "안면대로 4254-9", "안면대로 4254-10", "안면대로 4254-11", "안면대로 4254-12", "안면대로 4254-13", "안면대로 4254-14", "안면대로 4254-15", "안면대로 4254-16", "안면대로 4254-17", "안면대로 4254-18", "안면대로 4254-19", "안면대로 4255", "안면대로 4257", "안면대로 4268", "안면대로 4297", "안면대로 4301"] },
+          "10-안면대로-04": { title: "10-안면대로-04 (안면대로 고남구간 4301~4407번 / 21가구)", addrs: ["안면대로 4301-1", "안면대로 4301-2", "안면대로 4301-3", "안면대로 4301-4", "안면대로 4301-5", "안면대로 4301-6", "안면대로 4301-7", "안면대로 4301-8", "안면대로 4301-9", "안면대로 4301-10", "안면대로 4301-11", "안면대로 4301-12", "안면대로 4301-13", "안면대로 4301-14", "안면대로 4301-15", "안면대로 4301-16", "안면대로 4303", "안면대로 4337", "안면대로 4353", "안면대로 4381", "안면대로 4407"] },
+          "10-안면대로-05": { title: "10-안면대로-05 (안면대로 고남구간 4407~4514번 / 22가구)", addrs: ["안면대로 4407-3", "안면대로 4407-4", "안면대로 4407-5", "안면대로 4407-6", "안면대로 4407-7", "안면대로 4407-8", "안면대로 4407-9", "안면대로 4407-10", "안면대로 4407-11", "안면대로 4407-12", "안면대로 4407-13", "안면대로 4407-14", "안면대로 4407-15", "안면대로 4407-16", "안면대로 4407-17", "안면대로 4407-18", "안면대로 4407-19", "안면대로 4407-20", "안면대로 4407-21", "안면대로 4435", "안면대로 4471", "안면대로 4514"] },
+          "10-영목항-01": { title: "10-영목항-01 (영목항로 입구 30~49번 / 20가구)", addrs: ["영목항로 30-2", "영목항로 30-8", "영목항로 30-16", "영목항로 30-18", "영목항로 30-20", "영목항로 30-23", "영목항로 30-25", "영목항로 30-40", "영목항로 30-41", "영목항로 30-42", "영목항로 30-48", "영목항로 30-49", "영목항로 30-51", "영목항로 30-52", "영목항로 30-54", "영목항로 30-55", "영목항로 30-56", "영목항로 30-57", "영목항로 31", "영목항로 49"] },
+          "10-영목항-02": { title: "10-영목항-02 (영목항로 중심상가 49~82번 / 20가구)", addrs: ["영목항로 49-2", "영목항로 49-3", "영목항로 49-4", "영목항로 49-5", "영목항로 49-6", "영목항로 49-7", "영목항로 49-8", "영목항로 49-9", "영목항로 49-10", "영목항로 49-11", "영목항로 49-12", "영목항로 49-13", "영목항로 49-14", "영목항로 49-15", "영목항로 49-16", "영목항로 49-17", "영목항로 49-18", "영목항로 49-19", "영목항로 49-20", "영목항로 82-2"] },
+          "10-영목항-03": { title: "10-영목항-03 (영목항 부두/방파제 82~106번 / 19가구)", addrs: ["영목항로 82-3", "영목항로 82-4", "영목항로 82-5", "영목항로 82-6", "영목항로 82-7", "영목항로 82-8", "영목항로 82-9", "영목항로 82-10", "영목항로 82-11", "영목항로 82-12", "영목항로 82-13", "영목항로 82-14", "영목항로 82-15", "영목항로 82-16", "영목항로 82-17", "영목항로 82-18", "영목항로 82-19", "영목항로 82-20", "영목항로 106"] },
+          "10-영항-01": { title: "10-영항-01 (영항로 해안길 11~42번 / 16가구)", addrs: ["영항로 11-8", "영항로 17", "영항로 17-5", "영항로 17-37", "영항로 17-40", "영항로 22", "영항로 25", "영항로 27", "영항로 28", "영항로 36", "영항로 42-4", "영항로 42-6", "영항로 42-12", "영항로 42-16", "영항로 42-18", "영항로 42-20"] },
+          "10-영항-02": { title: "10-영항-02 (영항로 안동네 42~94번 / 16가구)", addrs: ["영항로 42-23", "영항로 42-25", "영항로 42-28", "영항로 42-30", "영항로 42-33", "영항로 42-36", "영항로 42-38", "영항로 42-40", "영항로 42-41", "영항로 42-42", "영항로 42-44", "영항로 42-46", "영항로 42-48", "영항로 52", "영항로 76", "영항로 94"] },
+          "10-옷점-01": { title: "10-옷점-01 (옷점길 3~115번 일대 / 20가구)", addrs: ["옷점길 3", "옷점길 11", "옷점길 13-2", "옷점길 13-4", "옷점길 15", "옷점길 23-9", "옷점길 28", "옷점길 33", "옷점길 74", "옷점길 76", "옷점길 79", "옷점길 81", "옷점길 83", "옷점길 83-7", "옷점길 105-21", "옷점길 111", "옷점길 113", "옷점길 115", "옷점길 115-1", "옷점길 115-2"] },
+          "10-옷점-02": { title: "10-옷점-02 (옷점길 117~143번 일대 / 20가구)", addrs: ["옷점길 117", "옷점길 117-1", "옷점길 119", "옷점길 121", "옷점길 121-1", "옷점길 123", "옷점길 125", "옷점길 127", "옷점길 129", "옷점길 131", "옷점길 133", "옷점길 135", "옷점길 137", "옷점길 139", "옷점길 141", "옷점길 141-1", "옷점길 141-2", "옷점길 143", "옷점길 143-1", "옷점길 143-2"] },
+          "10-옷점-03": { title: "10-옷점-03 (옷점길 145~147번 일대 / 20가구)", addrs: ["옷점길 145", "옷점길 147", "옷점길 147-1", "옷점길 147-2", "옷점길 147-3", "옷점길 147-4", "옷점길 147-5", "옷점길 147-6", "옷점길 147-7", "옷점길 147-8", "옷점길 147-9", "옷점길 147-10", "옷점길 147-11", "옷점길 147-12", "옷점길 147-13", "옷점길 147-14", "옷점길 147-15", "옷점길 147-16", "옷점길 147-17", "옷점길 147-18"] },
+          "10-옷점-04": { title: "10-옷점-04 (옷점길 147~163번 일대 / 20가구)", addrs: ["옷점길 147-19", "옷점길 147-20", "옷점길 147-21", "옷점길 147-22", "옷점길 147-23", "옷점길 147-24", "옷점길 147-25", "옷점길 147-26", "옷점길 147-27", "옷점길 147-28", "옷점길 147-29", "옷점길 147-30", "옷점길 149", "옷점길 151", "옷점길 153", "옷점길 155", "옷점길 157", "옷점길 159", "옷점길 161", "옷점길 163"] },
+          "10-옷점-05": { title: "10-옷점-05 (옷점길 165~178번 일대 / 20가구)", addrs: ["옷점길 165", "옷점길 167", "옷점길 169", "옷점길 171", "옷점길 173", "옷점길 175", "옷점길 177", "옷점길 178", "옷점길 178-1", "옷점길 178-2", "옷점길 178-3", "옷점길 178-4", "옷점길 178-5", "옷점길 178-6", "옷점길 178-7", "옷점길 178-8", "옷점길 178-9", "옷점길 178-10", "옷점길 178-11", "옷점길 178-12"] },
+          "10-옷점-06": { title: "10-옷점-06 (옷점길 179~307번 일대 / 21가구)", addrs: ["옷점길 179", "옷점길 181", "옷점길 183", "옷점길 185", "옷점길 187", "옷점길 189", "옷점길 191", "옷점길 193", "옷점길 195", "옷점길 197", "옷점길 199", "옷점길 201", "옷점길 203", "옷점길 205", "옷점길 207", "옷점길 209", "옷점길 211", "옷점길 213", "옷점길 215", "옷점길 259", "옷점길 307"] },
+          "10-월고지-01": { title: "10-월고지-01 (월고지길 1구역 / 15가구)", addrs: ["월고지길 8-2", "월고지길 8-4", "월고지길 8-6", "월고지길 8-8", "월고지길 8-9", "월고지길 8-10", "월고지길 8-12", "월고지길 8-15", "월고지길 8-17", "월고지길 8-23", "월고지길 8-24", "월고지길 8-25", "월고지길 8-26", "월고지길 8-56", "월고지길 8-58"] },
+          "10-월고지-02": { title: "10-월고지-02 (월고지길 2구역 / 13가구)", addrs: ["월고지길 8-60", "월고지길 8-64", "월고지길 8-65", "월고지길 8-66", "월고지길 9", "월고지길 11", "월고지길 13", "월고지길 14", "월고지길 27", "월고지길 28-1", "월고지길 28-2", "월고지길 28-3", "월고지길 34"] },
+          "10-젓개-01": { title: "10-젓개-01 (젓개길 일대 / 21가구)", addrs: ["젓개길 2", "젓개길 30", "젓개길 31", "젓개길 35-3", "젓개길 42-10", "젓개길 42-28", "젓개길 42-82", "젓개길 42-118", "젓개길 55-4", "젓개길 55-10", "젓개길 70-9", "젓개길 70-15", "젓개길 72-9", "젓개길 73", "젓개길 100", "젓개길 105", "젓개길 110", "젓개길 120", "젓개길 135", "젓개길 170", "젓개길 208"] },
+          "10-큰고장-01": { title: "10-큰고장-01 (큰고장길 2~5번 마을 / 20가구)", addrs: ["큰고장길 2", "큰고장길 2-1", "큰고장길 4", "큰고장길 5", "큰고장길 5-5", "큰고장길 5-7", "큰고장길 5-11", "큰고장길 5-12", "큰고장길 5-13", "큰고장길 5-16", "큰고장길 5-19", "큰고장길 5-20", "큰고장길 5-22", "큰고장길 5-23", "큰고장길 5-25", "큰고장길 5-27", "큰고장길 5-28", "큰고장길 5-30", "큰고장길 5-31", "큰고장길 5-33"] },
+          "10-큰고장-02": { title: "10-큰고장-02 (큰고장길 8~55번 길목 / 19가구)", addrs: ["큰고장길 8", "큰고장길 9", "큰고장길 10", "큰고장길 11", "큰고장길 13", "큰고장길 13-1", "큰고장길 14", "큰고장길 14-1", "큰고장길 25", "큰고장길 32", "큰고장길 32-1", "큰고장길 32-2", "큰고장길 32-3", "큰고장길 39", "큰고장길 51", "큰고장길 55", "큰고장길 55-1", "큰고장길 55-2", "큰고장길 55-3"] },
+          "10-탄개-01": { title: "10-탄개-01 (탄개길 입구 3~21번 / 18가구)", addrs: ["탄개길 3", "탄개길 4", "탄개길 6-6", "탄개길 6-10", "탄개길 6-14", "탄개길 6-16", "탄개길 7", "탄개길 11", "탄개길 12-1", "탄개길 12-2", "탄개길 13", "탄개길 15", "탄개길 17-4", "탄개길 17-8", "탄개길 18", "탄개길 19", "탄개길 20", "탄개길 21"] },
+          "10-탄개-02": { title: "10-탄개-02 (탄개길 안길 21~54번 / 19가구)", addrs: ["탄개길 21-1", "탄개길 21-2", "탄개길 23", "탄개길 25", "탄개길 27", "탄개길 29", "탄개길 31", "탄개길 33", "탄개길 35", "탄개길 37", "탄개길 39", "탄개길 41", "탄개길 43", "탄개길 45", "탄개길 47", "탄개길 49", "탄개길 51", "탄개길 53", "탄개길 54"] }
         },
         "장곡리": {},
         "누동리": {}
       },
+      "안면읍": {
+        "승언리": {},
+        "창기리": {},
+        "중장리": {}
+      },
       "남면": {
-        "신온리": {
-          "신온-01": { title: "신온-01 (드르니항 일대)", addrs: ["충청남도 태안군 남면 드르니길 38", "충청남도 태안군 남면 안면대로 1685"] }
-        },
-        "몽산리": {},
-        "달산리": {},
-        "신장리": {},
-        "진산리": {},
-        "양잠리": {},
-        "원청리": {},
-        "당암리": {}
+        "신온리": {},
+        "몽산리": {}
       }
     };
 
@@ -186,9 +199,14 @@
     let singleMarker = null;
     let activeOverlay = null;
     let addrCoordCache = {};
-    let curTown = "안면읍", curVillage = "승언리", curZoneKey = "승언-01";
+    let curTown = "고남면", curVillage = "고남리", curZoneKey = "10-가경주-01";
     let focusedAddr = null;
-    let doneMap = JSON.parse(localStorage.getItem('volunteer_done_v9') || '{}');
+    let doneMap = JSON.parse(localStorage.getItem('volunteer_done_v10') || '{}');
+
+    function getFullAddr(shortAddr) {
+      if (shortAddr.startsWith("충청남도")) return shortAddr;
+      return `충청남도 태안군 ${curTown} ${shortAddr}`;
+    }
 
     function getMarkerImage(isDone, isLarge = false) {
       const w = isLarge ? 34 : 26;
@@ -224,7 +242,7 @@
 
       kakao.maps.load(function() {
         const container = document.getElementById('map');
-        map = new kakao.maps.Map(container, { center: new kakao.maps.LatLng(36.5268, 126.3533), level: 5 });
+        map = new kakao.maps.Map(container, { center: new kakao.maps.LatLng(36.4178, 126.3985), level: 5 });
         geocoder = new kakao.maps.services.Geocoder();
 
         document.getElementById('map-status').style.display = 'none';
@@ -241,7 +259,7 @@
         opt.innerText = town;
         tSelect.appendChild(opt);
       });
-      curTown = Object.keys(ZONE_DATABASE)[0] || '안면읍';
+      curTown = "고남면";
       tSelect.value = curTown;
 
       updateVillageDropdown();
@@ -264,7 +282,7 @@
         vSelect.appendChild(opt);
       });
 
-      curVillage = villages[0] || '';
+      curVillage = villages.includes("고남리") ? "고남리" : (villages[0] || '');
       vSelect.value = curVillage;
       updateZoneDropdown();
     }
@@ -330,20 +348,21 @@
       document.getElementById('btnAllPins').style.display = focusedAddr ? 'inline-block' : 'none';
       let doneCnt = 0;
 
-      zone.addrs.forEach((addr, idx) => {
-        const isDone = !!doneMap[addr];
-        const isFocused = (focusedAddr === addr);
+      zone.addrs.forEach((shortAddr, idx) => {
+        const fullAddr = getFullAddr(shortAddr);
+        const isDone = !!doneMap[fullAddr];
+        const isFocused = (focusedAddr === shortAddr);
         if (isDone) doneCnt++;
 
         const card = document.createElement('div');
         card.className = 'house-card' + (isDone ? ' completed' : '') + (isFocused ? ' focused' : '');
         card.innerHTML = `
-          <div class="address-text" onclick="focusSingleAddress('${addr}')">
-            #${idx + 1}. ${addr.replace(/충청남도 태안군 (안면읍|고남면|남면) /, '')}
+          <div class="address-text" onclick="focusSingleAddress('${shortAddr}')">
+            #${idx + 1}. ${shortAddr}
           </div>
           <div class="btn-wrap">
-            <a class="btn-navi" href="https://map.kakao.com/link/search/${encodeURIComponent(addr)}" target="_blank">길안내</a>
-            <button class="btn-check ${isDone ? 'completed' : ''}" onclick="toggleDone('${addr}')">
+            <a class="btn-navi" href="https://map.kakao.com/link/search/${encodeURIComponent(fullAddr)}" target="_blank">길안내</a>
+            <button class="btn-check ${isDone ? 'completed' : ''}" onclick="toggleDone('${shortAddr}')">
               ${isDone ? '완료' : '미방문'}
             </button>
           </div>
@@ -364,23 +383,23 @@
       const bounds = new kakao.maps.LatLngBounds();
       let count = 0;
 
-      zone.addrs.forEach((addr, idx) => {
-        const shortAddr = addr.replace(/충청남도 태안군 (안면읍|고남면|남면) /, '');
+      zone.addrs.forEach((shortAddr, idx) => {
+        const fullAddr = getFullAddr(shortAddr);
         const labelText = `#${idx + 1} ${shortAddr}`;
 
-        if (addrCoordCache[addr]) {
-          addMarkerWithLabel(addr, addrCoordCache[addr], labelText);
-          bounds.extend(addrCoordCache[addr]);
+        if (addrCoordCache[fullAddr]) {
+          addMarkerWithLabel(shortAddr, fullAddr, addrCoordCache[fullAddr], labelText);
+          bounds.extend(addrCoordCache[fullAddr]);
           count++;
           if (count > 0 && fitBounds && !focusedAddr) map.setBounds(bounds);
           return;
         }
 
-        geocoder.addressSearch(addr, function(result, status) {
+        geocoder.addressSearch(fullAddr, function(result, status) {
           if (status === kakao.maps.services.Status.OK) {
             const pos = new kakao.maps.LatLng(result[0].y, result[0].x);
-            addrCoordCache[addr] = pos;
-            addMarkerWithLabel(addr, pos, labelText);
+            addrCoordCache[fullAddr] = pos;
+            addMarkerWithLabel(shortAddr, fullAddr, pos, labelText);
             bounds.extend(pos);
             count++;
             if (count > 0 && fitBounds && !focusedAddr) map.setBounds(bounds);
@@ -389,8 +408,8 @@
       });
     }
 
-    function addMarkerWithLabel(addr, pos, labelText) {
-      const isDone = !!doneMap[addr];
+    function addMarkerWithLabel(shortAddr, fullAddr, pos, labelText) {
+      const isDone = !!doneMap[fullAddr];
 
       const marker = new kakao.maps.Marker({
         map: map,
@@ -399,7 +418,7 @@
       });
 
       kakao.maps.event.addListener(marker, 'click', function() {
-        focusSingleAddress(addr);
+        focusSingleAddress(shortAddr);
       });
 
       const labelOverlay = new kakao.maps.CustomOverlay({
@@ -410,18 +429,20 @@
         map: map
       });
 
-      markersMap[addr] = marker;
+      markersMap[shortAddr] = marker;
       overlaysList.push(labelOverlay);
     }
 
-    function focusSingleAddress(addr) {
+    function focusSingleAddress(shortAddr) {
       if (!map) return;
-      focusedAddr = addr;
+      focusedAddr = shortAddr;
       renderCurrentList();
       clearAllMapMarkers();
 
+      const fullAddr = getFullAddr(shortAddr);
+
       const showPin = (pos) => {
-        const isDone = !!doneMap[addr];
+        const isDone = !!doneMap[fullAddr];
 
         singleMarker = new kakao.maps.Marker({
           map: map,
@@ -429,7 +450,6 @@
           image: getMarkerImage(isDone, true)
         });
 
-        const shortAddr = addr.replace(/충청남도 태안군 (안면읍|고남면|남면) /, '');
         const bubbleHtml = `
           <div class="custom-speech-bubble ${isDone ? 'done' : ''}">
             <div class="bubble-status ${isDone ? 'visited' : 'unvisited'}">
@@ -451,13 +471,13 @@
         map.setLevel(2);
       };
 
-      if (addrCoordCache[addr]) {
-        showPin(addrCoordCache[addr]);
+      if (addrCoordCache[fullAddr]) {
+        showPin(addrCoordCache[fullAddr]);
       } else if (geocoder) {
-        geocoder.addressSearch(addr, function(result, status) {
+        geocoder.addressSearch(fullAddr, function(result, status) {
           if (status === kakao.maps.services.Status.OK) {
             const pos = new kakao.maps.LatLng(result[0].y, result[0].x);
-            addrCoordCache[addr] = pos;
+            addrCoordCache[fullAddr] = pos;
             showPin(pos);
           }
         });
@@ -485,23 +505,22 @@
       }
     }
 
-    // 방문 여부 토글 + 100% 달성 알림
-    function toggleDone(addr) {
-      doneMap[addr] = !doneMap[addr];
-      localStorage.setItem('volunteer_done_v9', JSON.stringify(doneMap));
+    function toggleDone(shortAddr) {
+      const fullAddr = getFullAddr(shortAddr);
+      doneMap[fullAddr] = !doneMap[fullAddr];
+      localStorage.setItem('volunteer_done_v10', JSON.stringify(doneMap));
 
       renderCurrentList();
 
-      if (focusedAddr === addr && singleMarker) {
-        focusSingleAddress(addr);
+      if (focusedAddr === shortAddr && singleMarker) {
+        focusSingleAddress(shortAddr);
       } else if (!focusedAddr && map) {
         drawPinsForCurrentZone(false);
       }
 
-      // 100% 완료 달성 체크
       const zone = getCurrentZoneObject();
-      if (zone && zone.addrs && doneMap[addr]) {
-        const completedCount = zone.addrs.filter(a => !!doneMap[a]).length;
+      if (zone && zone.addrs && doneMap[fullAddr]) {
+        const completedCount = zone.addrs.filter(a => !!doneMap[getFullAddr(a)]).length;
         if (completedCount === zone.addrs.length) {
           setTimeout(() => {
             alert(`🎉 축하합니다!\n\n[${zone.title}] 구역의 모든 가구 방문을 완료했습니다.\n수고 많으셨습니다!`);
@@ -510,7 +529,6 @@
       }
     }
 
-    // ★ 구역 방문 기록 초기화(리셋) 함수
     function resetCurrentZone() {
       const zone = getCurrentZoneObject();
       if (!zone || !zone.addrs || zone.addrs.length === 0) return;
@@ -518,11 +536,11 @@
       const confirmed = confirm(`[${zone.title}]\n\n이 구역의 방문 기록을 모두 '미방문'으로 초기화하시겠습니까?`);
       if (!confirmed) return;
 
-      zone.addrs.forEach(addr => {
-        delete doneMap[addr];
+      zone.addrs.forEach(shortAddr => {
+        delete doneMap[getFullAddr(shortAddr)];
       });
 
-      localStorage.setItem('volunteer_done_v9', JSON.stringify(doneMap));
+      localStorage.setItem('volunteer_done_v10', JSON.stringify(doneMap));
 
       renderCurrentList();
       if (focusedAddr) {
