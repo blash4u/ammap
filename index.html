@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>안면도 구역카드</title>
 
-  <!-- 외부 주소 데이터 파일 로드 -->
+  <!-- 분리된 주소 데이터 로드 -->
   <script type="text/javascript" src="data.js"></script>
 
-  <!-- 카카오 지도 API (https 고정으로 로컬/웹 환경 호환성 확보) -->
+  <!-- 카카오 지도 API -->
   <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=e41e9b55de02ad81ebeb00e3721d52e2&libraries=services&autoload=false"></script>
 
   <style>
@@ -146,20 +146,20 @@
     let singleMarker = null;
     let activeOverlay = null;
     let addrCoordCache = {};
-    let curTown = "고남면", curVillage = "고남리", curZoneKey = "10-가경주길-01";
+    let curTown = "고남면", curVillage = "고남리", curZoneKey = "";
     let focusedAddr = null;
-    let currentDrawSession = 0; // 빠른 구역 변경 시 핀 꼬임 방지 세션 키
+    let currentDrawSession = 0;
 
     let doneMap = {};
     try {
-      doneMap = JSON.parse(localStorage.getItem('volunteer_done_v11') || '{}');
+      doneMap = JSON.parse(localStorage.getItem('volunteer_done_final') || '{}');
     } catch(e) {
       doneMap = {};
     }
 
     function saveDoneMap() {
       try {
-        localStorage.setItem('volunteer_done_v11', JSON.stringify(doneMap));
+        localStorage.setItem('volunteer_done_final', JSON.stringify(doneMap));
       } catch(e) {}
     }
 
@@ -201,7 +201,7 @@
       renderCurrentList();
 
       if (typeof kakao === 'undefined') {
-        document.getElementById('map-status').innerText = "카카오 지도 모듈 로드 실패 (네트워크 연결을 확인하세요)";
+        document.getElementById('map-status').innerText = "카카오 지도 모듈 로드 실패 (네트워크를 확인하세요)";
         return;
       }
 
@@ -352,7 +352,6 @@
       updateProgressUI();
     }
 
-    // 골든 앵글 스파이럴(황금비 나선 분산) 및 비동기 수렴 단일 바운드 처리
     function drawPinsForCurrentZone(fitBounds = false) {
       clearAllMapMarkers();
 
@@ -375,12 +374,11 @@
         const placePin = (coords) => {
           if (session !== currentDrawSession) return;
 
-          // 동일 좌표 발생 시 황금각(Golden Angle ~137.5도) 나선형 확산 알고리즘 적용
           const key = `${coords.getLat().toFixed(5)},${coords.getLng().toFixed(5)}`;
           let pos = coords;
           if (coordBuckets[key]) {
             const c = coordBuckets[key];
-            const angle = c * 2.39996; // 137.5° in rad
+            const angle = c * 2.39996;
             const dist = 0.000045 * Math.sqrt(c);
             pos = new kakao.maps.LatLng(coords.getLat() + Math.sin(angle) * dist, coords.getLng() + Math.cos(angle) * dist);
             coordBuckets[key]++;
@@ -394,7 +392,6 @@
           document.getElementById('pinCount').innerText = `핀: ${pinnedCount} / ${totalCount}개`;
 
           processedCount++;
-          // 모든 주소가 지오코딩 완료된 시점에 딱 1번만 지도 화면 중앙/배율 설정 (화면 떨림 방지)
           if (processedCount === totalCount && fitBounds && !focusedAddr && pinnedCount > 0) {
             if (pinnedCount === 1) {
               map.setCenter(pos);
@@ -414,7 +411,6 @@
               addrCoordCache[fullAddr] = coords;
               placePin(coords);
             } else {
-              // 부번 실패 시 모번으로 안전 폴백 검색 시도
               const fallbackAddr = fullAddr.replace(/-\d+$/, '');
               if (fallbackAddr !== fullAddr) {
                 geocoder.addressSearch(fallbackAddr, function(fResult, fStatus) {
@@ -463,9 +459,8 @@
     function focusSingleAddress(shortAddr, idx) {
       if (!map) return;
       focusedAddr = shortAddr;
-      currentDrawSession++; // 단일 포커스 전환 시 전체 핀 비동기 유입 중단
+      currentDrawSession++;
 
-      // 리스트 선택 카드 하이라이트 및 부드러운 스크롤 이동
       document.querySelectorAll('.house-card').forEach(c => c.classList.remove('focused'));
       const targetCard = document.getElementById(`card-addr-${idx}`);
       if (targetCard) {
@@ -544,7 +539,6 @@
       }
     }
 
-    // 재로딩 없는 즉각적인 인메모리 UI/마커 업데이트
     function toggleDone(shortAddr, idx) {
       const fullAddr = getFullAddr(shortAddr);
       doneMap[fullAddr] = !doneMap[fullAddr];
@@ -552,7 +546,6 @@
 
       const isDone = !!doneMap[fullAddr];
 
-      // 1. 카드 UI 즉시 갱신
       const card = document.getElementById(`card-addr-${idx}`);
       const btn = document.getElementById(`btn-check-${idx}`);
       if (card && btn) {
@@ -567,10 +560,8 @@
         }
       }
 
-      // 2. 전체 진행률 UI 갱신
       updateProgressUI();
 
-      // 3. 지도 마커/태그 깜빡임 없이 즉시 스위칭
       if (focusedAddr === shortAddr) {
         focusSingleAddress(shortAddr, idx);
       } else {
@@ -584,7 +575,6 @@
         }
       }
 
-      // 4. 전 가구 완료 축하 피드백
       const zone = getCurrentZoneObject();
       if (zone && zone.addrs && isDone) {
         const completedCount = zone.addrs.filter(a => !!doneMap[getFullAddr(a)]).length;
