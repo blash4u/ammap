@@ -15,42 +15,66 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Malgun Gothic", -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { display: flex; flex-direction: column; height: 100vh; background-color: #f1f5f9; overflow: hidden; }
 
-    .header { background-color: #1e293b; padding: 12px 10px; flex-shrink: 0; }
-    .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .header { background-color: #1e293b; padding: 10px 10px; flex-shrink: 0; }
+    .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
     .title { color: #38bdf8; font-size: 15px; font-weight: bold; }
-    .btn-gps { background: #0284c7; color: #fff; border: none; padding: 5px 9px; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; }
+    .btn-gps { background: #0284c7; color: #fff; border: none; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; }
 
     .dropdown-group { display: flex; gap: 5px; width: 100%; }
-    .select-btn { height: 38px; padding: 4px; border-radius: 5px; font-size: 12px; font-weight: bold; border: 1px solid #475569; outline: none; }
+    .select-btn { height: 36px; padding: 4px; border-radius: 5px; font-size: 12px; font-weight: bold; border: 1px solid #475569; outline: none; }
     #selTown { flex: 2.5; background: #334155; color: white; }
     #selVillage { flex: 2.5; background: #334155; color: white; }
     #selZone { flex: 5; background: #0ea5e9; color: white; border: none; }
 
-    #map-wrapper { position: relative; width: 100%; height: 42vh; background-color: #cbd5e1; flex-shrink: 0; }
+    /* 지도 영역: 남은 화면 전체를 채우도록 확장 */
+    #map-wrapper { position: relative; width: 100%; flex: 1; min-height: 0; background-color: #cbd5e1; }
     #map { width: 100%; height: 100%; }
     #map-status { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #e2e8f0; color: #475569; font-size: 13px; font-weight: bold; z-index: 10; padding: 15px; text-align: center; }
 
-    .info-bar { background-color: #ffffff; padding: 8px 12px; font-weight: bold; font-size: 13px; color: #0f172a; border-bottom: 1px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+    .info-bar { background-color: #ffffff; padding: 6px 12px; font-weight: bold; font-size: 12px; color: #0f172a; border-top: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
     .zone-actions { display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .btn-all-pins { background: #0284c7; color: #ffffff; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; display: none; }
+    .btn-all-pins { background: #0284c7; color: #ffffff; border: none; padding: 3px 7px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; display: none; }
     
     .status-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
     .pin-counter { font-size: 11px; color: #0284c7; font-weight: 700; }
     .prog-text { font-size: 12px; color: #10b981; font-weight: 800; }
-    .btn-reset-zone { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 3px 7px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
+    .btn-reset-zone { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
 
-    .list-area { flex: 1; overflow-y: auto; padding: 8px; background-color: #f8fafc; -webkit-overflow-scrolling: touch; }
-    .house-card { background: white; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s, background-color 0.2s; }
+    /* 주소 영역: 정확히 5줄 높이(약 290px)로 고정 */
+    .list-area { 
+      height: 290px; 
+      max-height: 290px; 
+      flex-shrink: 0; 
+      overflow-y: auto; 
+      padding: 6px 8px; 
+      background-color: #f8fafc; 
+      -webkit-overflow-scrolling: touch; 
+    }
+    
+    .house-card { 
+      height: 50px; 
+      background: white; 
+      border: 1px solid #cbd5e1; 
+      border-radius: 6px; 
+      padding: 6px 10px; 
+      margin-bottom: 5px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05); 
+      transition: border-color 0.2s, background-color 0.2s; 
+    }
+    .house-card:last-child { margin-bottom: 0; }
     .house-card.completed { background: #d1fae5; border-color: #10b981; }
     .house-card.completed .address-text { text-decoration: line-through; color: #065f46; }
     .house-card.focused { border: 2px solid #0284c7; background-color: #f0f9ff; }
     
-    .address-text { font-size: 13px; font-weight: bold; color: #0369a1; cursor: pointer; flex: 1; padding-right: 8px; user-select: none; }
+    .address-text { font-size: 13px; font-weight: bold; color: #0369a1; cursor: pointer; flex: 1; padding-right: 8px; user-select: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .address-text:hover { text-decoration: underline; }
 
-    .btn-wrap { display: flex; gap: 5px; align-items: center; }
-    .btn-navi { background: #fde047; color: #854d0e; text-decoration: none; padding: 6px 9px; border-radius: 4px; font-size: 11px; font-weight: bold; }
-    .btn-check { background: #64748b; color: white; border: none; padding: 6px 11px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; min-width: 58px; }
+    .btn-wrap { display: flex; gap: 5px; align-items: center; flex-shrink: 0; }
+    .btn-navi { background: #fde047; color: #854d0e; text-decoration: none; padding: 5px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+    .btn-check { background: #64748b; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; min-width: 54px; }
     .btn-check.completed { background: #10b981; }
 
     .map-addr-tag {
