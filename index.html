@@ -5,8 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>안면도 구역카드</title>
 
-  <!-- 분리된 주소 데이터 로드 -->
-  <script type="text/javascript" src="data.js"></script>
+  <!-- 행정구역별 분할 주소 데이터 로드 (총 5개) -->
+  <script type="text/javascript" src="data_anmyeon_north.js"></script>
+  <script type="text/javascript" src="data_anmyeon_central.js"></script>
+  <script type="text/javascript" src="data_anmyeon_south.js"></script>
+  <script type="text/javascript" src="data_gonam.js"></script>
+  <script type="text/javascript" src="data_nam.js"></script>
 
   <!-- 카카오 지도 API -->
   <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=e41e9b55de02ad81ebeb00e3721d52e2&libraries=services&autoload=false"></script>
@@ -26,7 +30,7 @@
     #selVillage { flex: 2.5; background: #334155; color: white; }
     #selZone { flex: 5; background: #0ea5e9; color: white; border: none; }
 
-    /* 지도 영역: 남은 화면 전체를 채우도록 확장 */
+    /* 지도 영역: 화면 잔여 공간 전체 차지 */
     #map-wrapper { position: relative; width: 100%; flex: 1; min-height: 0; background-color: #cbd5e1; }
     #map { width: 100%; height: 100%; }
     #map-status { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #e2e8f0; color: #475569; font-size: 13px; font-weight: bold; z-index: 10; padding: 15px; text-align: center; }
@@ -40,7 +44,7 @@
     .prog-text { font-size: 12px; color: #10b981; font-weight: 800; }
     .btn-reset-zone { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
 
-    /* 주소 영역: 정확히 5줄 높이(약 290px)로 고정 */
+    /* 주소 영역: 정확히 5줄 높이(290px) 고정 */
     .list-area { 
       height: 290px; 
       max-height: 290px; 
@@ -176,14 +180,14 @@
 
     let doneMap = {};
     try {
-      doneMap = JSON.parse(localStorage.getItem('volunteer_done_final') || '{}');
+      doneMap = JSON.parse(localStorage.getItem('volunteer_done_v12') || '{}');
     } catch(e) {
       doneMap = {};
     }
 
     function saveDoneMap() {
       try {
-        localStorage.setItem('volunteer_done_final', JSON.stringify(doneMap));
+        localStorage.setItem('volunteer_done_v12', JSON.stringify(doneMap));
       } catch(e) {}
     }
 
@@ -217,7 +221,7 @@
 
     window.onload = function() {
       if (typeof ZONE_DATABASE === 'undefined') {
-        document.getElementById('map-status').innerText = "data.js 파일을 찾을 수 없습니다.";
+        document.getElementById('map-status').innerText = "데이터 파일을 찾을 수 없습니다.";
         return;
       }
 
@@ -242,13 +246,14 @@
     function initDropdowns() {
       const tSelect = document.getElementById('selTown');
       tSelect.innerHTML = '';
-      Object.keys(ZONE_DATABASE).forEach(town => {
+      const towns = Object.keys(ZONE_DATABASE).filter(t => Object.keys(ZONE_DATABASE[t] || {}).length > 0);
+      towns.forEach(town => {
         const opt = document.createElement('option');
         opt.value = town;
         opt.innerText = town;
         tSelect.appendChild(opt);
       });
-      curTown = "고남면";
+      curTown = towns.includes("고남면") ? "고남면" : (towns[0] || "안면읍");
       tSelect.value = curTown;
 
       updateVillageDropdown();
@@ -271,7 +276,7 @@
         vSelect.appendChild(opt);
       });
 
-      curVillage = villages.includes("고남리") ? "고남리" : (villages[0] || '');
+      curVillage = villages[0] || '';
       vSelect.value = curVillage;
       updateZoneDropdown();
     }
