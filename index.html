@@ -5,20 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>안면도 구역카드</title>
 
-  <!-- 외부 주소 데이터 분리 로드 -->
+  <!-- 외부 주소 데이터 파일 로드 -->
   <script type="text/javascript" src="data.js"></script>
 
-  <!-- 카카오 지도 API -->
-  <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=e41e9b55de02ad81ebeb00e3721d52e2&libraries=services&autoload=false"></script>
+  <!-- 카카오 지도 API (https 고정으로 로컬/웹 환경 호환성 확보) -->
+  <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=e41e9b55de02ad81ebeb00e3721d52e2&libraries=services&autoload=false"></script>
 
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Malgun Gothic", -apple-system, sans-serif; }
-    body { display: flex; flex-direction: column; height: 100vh; background-color: #f1f5f9; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Malgun Gothic", -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { display: flex; flex-direction: column; height: 100vh; background-color: #f1f5f9; overflow: hidden; }
 
-    .header { background-color: #1e293b; padding: 12px 10px; }
+    .header { background-color: #1e293b; padding: 12px 10px; flex-shrink: 0; }
     .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
     .title { color: #38bdf8; font-size: 15px; font-weight: bold; }
-    .btn-gps { background: #0284c7; color: #fff; border: none; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; }
+    .btn-gps { background: #0284c7; color: #fff; border: none; padding: 5px 9px; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; }
 
     .dropdown-group { display: flex; gap: 5px; width: 100%; }
     .select-btn { height: 38px; padding: 4px; border-radius: 5px; font-size: 12px; font-weight: bold; border: 1px solid #475569; outline: none; }
@@ -26,31 +26,31 @@
     #selVillage { flex: 2.5; background: #334155; color: white; }
     #selZone { flex: 5; background: #0ea5e9; color: white; border: none; }
 
-    #map-wrapper { position: relative; width: 100%; height: 42vh; background-color: #cbd5e1; }
+    #map-wrapper { position: relative; width: 100%; height: 42vh; background-color: #cbd5e1; flex-shrink: 0; }
     #map { width: 100%; height: 100%; }
     #map-status { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #e2e8f0; color: #475569; font-size: 13px; font-weight: bold; z-index: 10; padding: 15px; text-align: center; }
 
-    .info-bar { background-color: #ffffff; padding: 8px 12px; font-weight: bold; font-size: 13px; color: #0f172a; border-bottom: 1px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; }
-    .zone-actions { display: flex; align-items: center; gap: 6px; }
+    .info-bar { background-color: #ffffff; padding: 8px 12px; font-weight: bold; font-size: 13px; color: #0f172a; border-bottom: 1px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+    .zone-actions { display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .btn-all-pins { background: #0284c7; color: #ffffff; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; display: none; }
     
-    .status-actions { display: flex; align-items: center; gap: 8px; }
+    .status-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
     .pin-counter { font-size: 11px; color: #0284c7; font-weight: 700; }
     .prog-text { font-size: 12px; color: #10b981; font-weight: 800; }
     .btn-reset-zone { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 3px 7px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
 
-    .list-area { flex: 1; overflow-y: auto; padding: 8px; background-color: #f8fafc; }
-    .house-card { background: white; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .list-area { flex: 1; overflow-y: auto; padding: 8px; background-color: #f8fafc; -webkit-overflow-scrolling: touch; }
+    .house-card { background: white; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s, background-color 0.2s; }
     .house-card.completed { background: #d1fae5; border-color: #10b981; }
     .house-card.completed .address-text { text-decoration: line-through; color: #065f46; }
     .house-card.focused { border: 2px solid #0284c7; background-color: #f0f9ff; }
     
-    .address-text { font-size: 13px; font-weight: bold; color: #0369a1; cursor: pointer; flex: 1; padding-right: 8px; }
+    .address-text { font-size: 13px; font-weight: bold; color: #0369a1; cursor: pointer; flex: 1; padding-right: 8px; user-select: none; }
     .address-text:hover { text-decoration: underline; }
 
     .btn-wrap { display: flex; gap: 5px; align-items: center; }
-    .btn-navi { background: #fde047; color: #854d0e; text-decoration: none; padding: 5px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
-    .btn-check { background: #64748b; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; min-width: 58px; }
+    .btn-navi { background: #fde047; color: #854d0e; text-decoration: none; padding: 6px 9px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+    .btn-check { background: #64748b; color: white; border: none; padding: 6px 11px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; min-width: 58px; }
     .btn-check.completed { background: #10b981; }
 
     .map-addr-tag {
@@ -65,6 +65,7 @@
       box-shadow: 0 2px 5px rgba(0,0,0,0.3);
       transform: translateY(-38px);
       pointer-events: none;
+      user-select: none;
     }
     .map-addr-tag.done {
       background: rgba(16, 185, 129, 0.95);
@@ -83,6 +84,7 @@
       text-align: center;
       white-space: nowrap;
       pointer-events: none;
+      user-select: none;
     }
     .custom-speech-bubble.done { border-color: #10b981; }
     .bubble-status { font-size: 10px; font-weight: 800; margin-bottom: 2px; }
@@ -140,13 +142,26 @@
   <script>
     let map = null, geocoder = null, userMarker = null;
     let markersMap = {};
-    let overlaysList = [];
+    let overlaysMap = {};
     let singleMarker = null;
     let activeOverlay = null;
     let addrCoordCache = {};
     let curTown = "고남면", curVillage = "고남리", curZoneKey = "10-가경주길-01";
     let focusedAddr = null;
-    let doneMap = JSON.parse(localStorage.getItem('volunteer_done_v11') || '{}');
+    let currentDrawSession = 0; // 빠른 구역 변경 시 핀 꼬임 방지 세션 키
+
+    let doneMap = {};
+    try {
+      doneMap = JSON.parse(localStorage.getItem('volunteer_done_v11') || '{}');
+    } catch(e) {
+      doneMap = {};
+    }
+
+    function saveDoneMap() {
+      try {
+        localStorage.setItem('volunteer_done_v11', JSON.stringify(doneMap));
+      } catch(e) {}
+    }
 
     function getFullAddr(shortAddr) {
       if (shortAddr.startsWith("충청남도")) return shortAddr;
@@ -186,7 +201,7 @@
       renderCurrentList();
 
       if (typeof kakao === 'undefined') {
-        document.getElementById('map-status').innerText = "카카오 지도 모듈 로드 실패";
+        document.getElementById('map-status').innerText = "카카오 지도 모듈 로드 실패 (네트워크 연결을 확인하세요)";
         return;
       }
 
@@ -281,6 +296,20 @@
       return ZONE_DATABASE[curTown]?.[curVillage]?.[curZoneKey] || null;
     }
 
+    function updateProgressUI() {
+      const zone = getCurrentZoneObject();
+      if (!zone || !zone.addrs || zone.addrs.length === 0) {
+        document.getElementById('progRatio').innerText = '0 / 0 (0%)';
+        return;
+      }
+      let doneCnt = 0;
+      zone.addrs.forEach(addr => {
+        if (doneMap[getFullAddr(addr)]) doneCnt++;
+      });
+      const pct = Math.round((doneCnt / zone.addrs.length) * 100);
+      document.getElementById('progRatio').innerText = `${doneCnt} / ${zone.addrs.length} (${pct}%)`;
+    }
+
     function renderCurrentList() {
       const zone = getCurrentZoneObject();
       const listEl = document.getElementById('listArea');
@@ -297,23 +326,22 @@
 
       document.getElementById('zoneTitle').innerText = zone.title;
       document.getElementById('btnAllPins').style.display = focusedAddr ? 'inline-block' : 'none';
-      let doneCnt = 0;
 
       zone.addrs.forEach((shortAddr, idx) => {
         const fullAddr = getFullAddr(shortAddr);
         const isDone = !!doneMap[fullAddr];
         const isFocused = (focusedAddr === shortAddr);
-        if (isDone) doneCnt++;
 
         const card = document.createElement('div');
+        card.id = `card-addr-${idx}`;
         card.className = 'house-card' + (isDone ? ' completed' : '') + (isFocused ? ' focused' : '');
         card.innerHTML = `
-          <div class="address-text" onclick="focusSingleAddress('${shortAddr}')">
+          <div class="address-text" onclick="focusSingleAddress('${shortAddr}', ${idx})">
             #${idx + 1}. ${shortAddr}
           </div>
           <div class="btn-wrap">
             <a class="btn-navi" href="https://map.kakao.com/link/search/${encodeURIComponent(fullAddr)}" target="_blank">길안내</a>
-            <button class="btn-check ${isDone ? 'completed' : ''}" onclick="toggleDone('${shortAddr}')">
+            <button id="btn-check-${idx}" class="btn-check ${isDone ? 'completed' : ''}" onclick="toggleDone('${shortAddr}', ${idx})">
               ${isDone ? '완료' : '미방문'}
             </button>
           </div>
@@ -321,20 +349,21 @@
         listEl.appendChild(card);
       });
 
-      const pct = Math.round((doneCnt / zone.addrs.length) * 100);
-      document.getElementById('progRatio').innerText = `${doneCnt} / ${zone.addrs.length} (${pct}%)`;
+      updateProgressUI();
     }
 
-    // ★ 핀 중복 분산(Jitter) 알고리즘 탑재 및 정확한 핀 카운트 반영
+    // 골든 앵글 스파이럴(황금비 나선 분산) 및 비동기 수렴 단일 바운드 처리
     function drawPinsForCurrentZone(fitBounds = false) {
       clearAllMapMarkers();
 
       const zone = getCurrentZoneObject();
       if (!zone || !zone.addrs || !geocoder) return;
 
+      const session = ++currentDrawSession;
       const bounds = new kakao.maps.LatLngBounds();
-      const coordBuckets = {}; // 좌표 중복 탐지용 버킷
+      const coordBuckets = {}; 
       let pinnedCount = 0;
+      let processedCount = 0;
       const totalCount = zone.addrs.length;
 
       document.getElementById('pinCount').innerText = `핀: 0 / ${totalCount}개`;
@@ -344,27 +373,35 @@
         const labelText = `#${idx + 1} ${shortAddr}`;
 
         const placePin = (coords) => {
-          // 동일 좌표가 발생하면 원형으로 반경 3~5m 살짝 띄워 겹침 방지
+          if (session !== currentDrawSession) return;
+
+          // 동일 좌표 발생 시 황금각(Golden Angle ~137.5도) 나선형 확산 알고리즘 적용
           const key = `${coords.getLat().toFixed(5)},${coords.getLng().toFixed(5)}`;
           let pos = coords;
           if (coordBuckets[key]) {
-            const count = coordBuckets[key];
-            const angle = (count * 90) * (Math.PI / 180);
-            const offsetLat = Math.sin(angle) * 0.00004;
-            const offsetLng = Math.cos(angle) * 0.00004;
-            pos = new kakao.maps.LatLng(coords.getLat() + offsetLat, coords.getLng() + offsetLng);
+            const c = coordBuckets[key];
+            const angle = c * 2.39996; // 137.5° in rad
+            const dist = 0.000045 * Math.sqrt(c);
+            pos = new kakao.maps.LatLng(coords.getLat() + Math.sin(angle) * dist, coords.getLng() + Math.cos(angle) * dist);
             coordBuckets[key]++;
           } else {
             coordBuckets[key] = 1;
           }
 
-          addMarkerWithLabel(shortAddr, fullAddr, pos, labelText);
+          addMarkerWithLabel(shortAddr, fullAddr, pos, labelText, idx);
           bounds.extend(pos);
           pinnedCount++;
           document.getElementById('pinCount').innerText = `핀: ${pinnedCount} / ${totalCount}개`;
 
-          if (pinnedCount > 0 && fitBounds && !focusedAddr) {
-            map.setBounds(bounds);
+          processedCount++;
+          // 모든 주소가 지오코딩 완료된 시점에 딱 1번만 지도 화면 중앙/배율 설정 (화면 떨림 방지)
+          if (processedCount === totalCount && fitBounds && !focusedAddr && pinnedCount > 0) {
+            if (pinnedCount === 1) {
+              map.setCenter(pos);
+              map.setLevel(4);
+            } else {
+              map.setBounds(bounds, 30);
+            }
           }
         };
 
@@ -376,13 +413,29 @@
               const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
               addrCoordCache[fullAddr] = coords;
               placePin(coords);
+            } else {
+              // 부번 실패 시 모번으로 안전 폴백 검색 시도
+              const fallbackAddr = fullAddr.replace(/-\d+$/, '');
+              if (fallbackAddr !== fullAddr) {
+                geocoder.addressSearch(fallbackAddr, function(fResult, fStatus) {
+                  if (fStatus === kakao.maps.services.Status.OK) {
+                    const fCoords = new kakao.maps.LatLng(fResult[0].y, fResult[0].x);
+                    addrCoordCache[fullAddr] = fCoords;
+                    placePin(fCoords);
+                  } else {
+                    processedCount++;
+                  }
+                });
+              } else {
+                processedCount++;
+              }
             }
           });
         }
       });
     }
 
-    function addMarkerWithLabel(shortAddr, fullAddr, pos, labelText) {
+    function addMarkerWithLabel(shortAddr, fullAddr, pos, labelText, idx) {
       const isDone = !!doneMap[fullAddr];
 
       const marker = new kakao.maps.Marker({
@@ -392,25 +445,35 @@
       });
 
       kakao.maps.event.addListener(marker, 'click', function() {
-        focusSingleAddress(shortAddr);
+        focusSingleAddress(shortAddr, idx);
       });
 
       const labelOverlay = new kakao.maps.CustomOverlay({
         position: pos,
-        content: `<div class="map-addr-tag ${isDone ? 'done' : ''}">${labelText}</div>`,
+        content: `<div id="map-tag-${idx}" class="map-addr-tag ${isDone ? 'done' : ''}">${labelText}</div>`,
         xAnchor: 0.5,
         yAnchor: 0.5,
         map: map
       });
 
       markersMap[shortAddr] = marker;
-      overlaysList.push(labelOverlay);
+      overlaysMap[shortAddr] = labelOverlay;
     }
 
-    function focusSingleAddress(shortAddr) {
+    function focusSingleAddress(shortAddr, idx) {
       if (!map) return;
       focusedAddr = shortAddr;
-      renderCurrentList();
+      currentDrawSession++; // 단일 포커스 전환 시 전체 핀 비동기 유입 중단
+
+      // 리스트 선택 카드 하이라이트 및 부드러운 스크롤 이동
+      document.querySelectorAll('.house-card').forEach(c => c.classList.remove('focused'));
+      const targetCard = document.getElementById(`card-addr-${idx}`);
+      if (targetCard) {
+        targetCard.classList.add('focused');
+        targetCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      document.getElementById('btnAllPins').style.display = 'inline-block';
       clearAllMapMarkers();
 
       const fullAddr = getFullAddr(shortAddr);
@@ -460,15 +523,17 @@
 
     function showAllPins() {
       focusedAddr = null;
-      renderCurrentList();
+      document.getElementById('btnAllPins').style.display = 'none';
+      document.querySelectorAll('.house-card').forEach(c => c.classList.remove('focused'));
       drawPinsForCurrentZone(true);
     }
 
     function clearAllMapMarkers() {
       Object.values(markersMap).forEach(m => m.setMap(null));
       markersMap = {};
-      overlaysList.forEach(o => o.setMap(null));
-      overlaysList = [];
+      Object.values(overlaysMap).forEach(o => o.setMap(null));
+      overlaysMap = {};
+
       if (singleMarker) {
         singleMarker.setMap(null);
         singleMarker = null;
@@ -479,21 +544,49 @@
       }
     }
 
-    function toggleDone(shortAddr) {
+    // 재로딩 없는 즉각적인 인메모리 UI/마커 업데이트
+    function toggleDone(shortAddr, idx) {
       const fullAddr = getFullAddr(shortAddr);
       doneMap[fullAddr] = !doneMap[fullAddr];
-      localStorage.setItem('volunteer_done_v11', JSON.stringify(doneMap));
+      saveDoneMap();
 
-      renderCurrentList();
+      const isDone = !!doneMap[fullAddr];
 
-      if (focusedAddr === shortAddr && singleMarker) {
-        focusSingleAddress(shortAddr);
-      } else if (!focusedAddr && map) {
-        drawPinsForCurrentZone(false);
+      // 1. 카드 UI 즉시 갱신
+      const card = document.getElementById(`card-addr-${idx}`);
+      const btn = document.getElementById(`btn-check-${idx}`);
+      if (card && btn) {
+        if (isDone) {
+          card.classList.add('completed');
+          btn.classList.add('completed');
+          btn.innerText = '완료';
+        } else {
+          card.classList.remove('completed');
+          btn.classList.remove('completed');
+          btn.innerText = '미방문';
+        }
       }
 
+      // 2. 전체 진행률 UI 갱신
+      updateProgressUI();
+
+      // 3. 지도 마커/태그 깜빡임 없이 즉시 스위칭
+      if (focusedAddr === shortAddr) {
+        focusSingleAddress(shortAddr, idx);
+      } else {
+        if (markersMap[shortAddr]) {
+          markersMap[shortAddr].setImage(getMarkerImage(isDone, false));
+        }
+        const tagEl = document.getElementById(`map-tag-${idx}`);
+        if (tagEl) {
+          if (isDone) tagEl.classList.add('done');
+          else tagEl.classList.remove('done');
+        }
+      }
+
+      // 4. 전 가구 완료 축하 피드백
       const zone = getCurrentZoneObject();
-      if (zone && zone.addrs && doneMap[fullAddr]) {
+      if (zone && zone.addrs && isDone) {
         const completedCount = zone.addrs.filter(a => !!doneMap[getFullAddr(a)]).length;
         if (completedCount === zone.addrs.length) {
           setTimeout(() => {
@@ -513,12 +606,12 @@
       zone.addrs.forEach(shortAddr => {
         delete doneMap[getFullAddr(shortAddr)];
       });
-
-      localStorage.setItem('volunteer_done_v11', JSON.stringify(doneMap));
+      saveDoneMap();
 
       renderCurrentList();
       if (focusedAddr) {
-        focusSingleAddress(focusedAddr);
+        const idx = zone.addrs.indexOf(focusedAddr);
+        focusSingleAddress(focusedAddr, idx >= 0 ? idx : 0);
       } else if (map) {
         drawPinsForCurrentZone(false);
       }
@@ -529,13 +622,22 @@
         alert("GPS 위치 서비스를 사용할 수 없습니다.");
         return;
       }
-      navigator.geolocation.getCurrentPosition(pos => {
-        const latLng = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
-        if (userMarker) userMarker.setMap(null);
-        userMarker = new kakao.maps.Marker({ map: map, position: latLng });
-        map.setCenter(latLng);
-        map.setLevel(3);
-      });
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          const latLng = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+          if (userMarker) userMarker.setMap(null);
+          userMarker = new kakao.maps.Marker({
+            map: map,
+            position: latLng
+          });
+          map.setCenter(latLng);
+          map.setLevel(3);
+        },
+        () => {
+          alert("현재 위치 정보를 가져올 수 없습니다. 위치 권한을 확인해주세요.");
+        },
+        { enableHighAccuracy: true, timeout: 5000 }
+      );
     }
   </script>
 </body>
