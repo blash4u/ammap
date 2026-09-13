@@ -3,19 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>안면도 구역카드</title>
+  <title>안면도 구역카드 (실시간 동기화)</title>
 
-  <!-- 파비콘 404 에러 차단용 Data URI -->
-  <link rel="icon" href="data:,">
-
-  <!-- 행정구역별 주소 데이터 로드 (총 5개) -->
+  <!-- 행정구역별 분할 주소 데이터 로드 -->
   <script type="text/javascript" src="data_anmyeon_north.js"></script>
   <script type="text/javascript" src="data_anmyeon_central.js"></script>
   <script type="text/javascript" src="data_anmyeon_south.js"></script>
   <script type="text/javascript" src="data_gonam.js"></script>
   <script type="text/javascript" src="data_nam.js"></script>
 
+  <!-- Firebase v8 로드 (순수 HTML/JS 환경에 최적화) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script>
+
   <!-- 카카오 지도 API -->
+  <!-- 주의: 호스팅 배포 후 접속할 도메인(예: anmyeon-map.web.app)을 카카오 개발자 콘솔의 '웹 플랫폼 도메인'에 반드시 추가해야 지도가 뜹니다. -->
   <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=e41e9b55de02ad81ebeb00e3721d52e2&libraries=services&autoload=false"></script>
 
   <style>
@@ -33,107 +36,47 @@
     #selVillage { flex: 2.5; background: #334155; color: white; }
     #selZone { flex: 5; background: #0ea5e9; color: white; border: none; }
 
-    /* 지도 영역 */
     #map-wrapper { position: relative; width: 100%; flex: 1; min-height: 0; background-color: #cbd5e1; }
     #map { width: 100%; height: 100%; }
     #map-status { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #e2e8f0; color: #475569; font-size: 13px; font-weight: bold; z-index: 10; padding: 15px; text-align: center; }
 
-    .info-bar { background-color: #ffffff; padding: 6px 12px; font-weight: bold; font-size: 12px; color: #0f172a; border-top: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
-    .zone-actions { display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .btn-all-pins { background: #0284c7; color: #ffffff; border: none; padding: 3px 7px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; display: none; }
+    /* 개선된 중앙 Info Bar UI */
+    .info-bar { background-color: #ffffff; padding: 8px 12px; border-top: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1; display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+    .info-bar-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+    .btn-all-pins { flex: 1; background: #0284c7; color: #ffffff; border: none; padding: 6px 0; margin-right: 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .btn-all-pins:active { transform: scale(0.98); }
     
     .status-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
     .pin-counter { font-size: 11px; color: #0284c7; font-weight: 700; }
     .prog-text { font-size: 12px; color: #10b981; font-weight: 800; }
-    .btn-reset-zone { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
+    .btn-reset-zone { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
 
-    /* 주소 목록 영역 */
-    .list-area { 
-      height: 290px; 
-      max-height: 290px; 
-      flex-shrink: 0; 
-      overflow-y: auto; 
-      padding: 6px 8px; 
-      background-color: #f8fafc; 
-      -webkit-overflow-scrolling: touch; 
-    }
+    .sub-zone-title { text-align: center; font-size: 12px; color: #475569; font-weight: 700; background: #f1f5f9; padding: 4px; border-radius: 4px; }
+
+    .list-area { height: 290px; max-height: 290px; flex-shrink: 0; overflow-y: auto; padding: 6px 8px; background-color: #f8fafc; -webkit-overflow-scrolling: touch; }
     
-    .house-card { 
-      height: 50px; 
-      background: white; 
-      border: 1px solid #cbd5e1; 
-      border-radius: 6px; 
-      padding: 6px 10px; 
-      margin-bottom: 5px; 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      box-shadow: 0 1px 2px rgba(0,0,0,0.05); 
-      transition: border-color 0.2s, background-color 0.2s; 
-    }
+    .house-card { height: 50px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 10px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s, background-color 0.2s; }
     .house-card:last-child { margin-bottom: 0; }
     .house-card.completed { background: #d1fae5; border-color: #10b981; }
     .house-card.completed .address-text { text-decoration: line-through; color: #065f46; }
     .house-card.focused { border: 2px solid #0284c7; background-color: #f0f9ff; }
     
     .address-text { font-size: 13px; font-weight: bold; color: #0369a1; cursor: pointer; flex: 1; padding-right: 8px; user-select: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .address-text:hover { text-decoration: underline; }
 
     .btn-wrap { display: flex; gap: 5px; align-items: center; flex-shrink: 0; }
     .btn-navi { background: #fde047; color: #854d0e; text-decoration: none; padding: 5px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
-    .btn-check { background: #64748b; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; min-width: 54px; }
+    .btn-check { background: #64748b; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; min-width: 54px; transition: background-color 0.2s; }
     .btn-check.completed { background: #10b981; }
 
-    .map-addr-tag {
-      background: rgba(15, 23, 42, 0.88);
-      color: #f8fafc;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 3px 6px;
-      border-radius: 4px;
-      border: 1px solid #475569;
-      white-space: nowrap;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-      transform: translateY(-38px);
-      pointer-events: none;
-      user-select: none;
-    }
-    .map-addr-tag.done {
-      background: rgba(16, 185, 129, 0.95);
-      border-color: #059669;
-      color: #ffffff;
-      text-decoration: line-through;
-    }
-
-    .custom-speech-bubble {
-      position: relative;
-      background: #ffffff;
-      border: 2px solid #0284c7;
-      border-radius: 8px;
-      padding: 6px 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-      text-align: center;
-      white-space: nowrap;
-      pointer-events: none;
-      user-select: none;
-    }
+    .map-addr-tag { background: rgba(15, 23, 42, 0.88); color: #f8fafc; font-size: 11px; font-weight: 700; padding: 3px 6px; border-radius: 4px; border: 1px solid #475569; white-space: nowrap; box-shadow: 0 2px 5px rgba(0,0,0,0.3); transform: translateY(-38px); pointer-events: none; }
+    .map-addr-tag.done { background: rgba(16, 185, 129, 0.95); border-color: #059669; color: #ffffff; text-decoration: line-through; }
+    .custom-speech-bubble { position: relative; background: #ffffff; border: 2px solid #0284c7; border-radius: 8px; padding: 6px 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25); text-align: center; white-space: nowrap; pointer-events: none; }
     .custom-speech-bubble.done { border-color: #10b981; }
     .bubble-status { font-size: 10px; font-weight: 800; margin-bottom: 2px; }
     .bubble-status.unvisited { color: #ef4444; }
     .bubble-status.visited { color: #10b981; }
     .bubble-title { font-size: 12px; font-weight: 700; color: #0f172a; }
-    .custom-speech-bubble::after {
-      content: '';
-      position: absolute;
-      bottom: -8px;
-      left: 50%;
-      margin-left: -7px;
-      width: 0;
-      height: 0;
-      border-left: 7px solid transparent;
-      border-right: 7px solid transparent;
-      border-top: 8px solid #0284c7;
-    }
+    .custom-speech-bubble::after { content: ''; position: absolute; bottom: -8px; left: 50%; margin-left: -7px; width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-top: 8px solid #0284c7; }
     .custom-speech-bubble.done::after { border-top-color: #10b981; }
   </style>
 </head>
@@ -153,166 +96,184 @@
 
   <div id="map-wrapper">
     <div id="map"></div>
-    <div id="map-status">카카오 지도 모듈 초기화 중...</div>
+    <div id="map-status">카카오 지도 모듈 로드 중...</div>
   </div>
 
   <div class="info-bar">
-    <div class="zone-actions">
-      <span id="zoneTitle">구역 로딩중...</span>
-      <button id="btnAllPins" class="btn-all-pins" onclick="showAllPins()">전체 핀 ↺</button>
+    <div class="info-bar-top">
+      <button id="btnAllPins" class="btn-all-pins" onclick="showAllPins()">전체 핀 한눈에 보기 📍</button>
+      <div class="status-actions">
+        <span class="pin-counter" id="pinCount">핀: 0개</span>
+        <span class="prog-text" id="progRatio">0 / 0 (0%)</span>
+        <button class="btn-reset-zone" onclick="resetCurrentZone()">리셋 ↺</button>
+      </div>
     </div>
-    <div class="status-actions">
-      <span class="pin-counter" id="pinCount">핀: 0개</span>
-      <span class="prog-text" id="progRatio">0 / 0 (0%)</span>
-      <button class="btn-reset-zone" onclick="resetCurrentZone()">리셋 ↺</button>
-    </div>
+    <div id="subZoneTitle" class="sub-zone-title">구역을 선택해주세요</div>
   </div>
 
   <div class="list-area" id="listArea"></div>
 
   <script>
+    // ==========================================
+    // 1. Firebase 실시간 데이터베이스 설정 (사용자 제공값 적용)
+    // ==========================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyD3N7SPoV6Z4qsCs3S0vrQ9Tko4Z62ZCfQ",
+      authDomain: "anmyeon-map.firebaseapp.com",
+      databaseURL: "https://anmyeon-map-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "anmyeon-map",
+      storageBucket: "anmyeon-map.firebasestorage.app",
+      messagingSenderId: "109632266942",
+      appId: "1:109632266942:web:5f832f087625ee5c9374ef",
+      measurementId: "G-EVR0XR2TVM"
+    };
+    
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.database();
+    firebase.analytics();
+
+    // ==========================================
+    // 2. 상태 변수 및 공통 로직
+    // ==========================================
     let map = null, geocoder = null, userMarker = null;
-    let markersMap = {};
-    let overlaysMap = {};
-    let singleMarker = null;
-    let activeOverlay = null;
+    let markersMap = {}, overlaysMap = {};
+    let singleMarker = null, activeOverlay = null;
     let addrCoordCache = {};
-    let curTown = "안면읍", curVillage = "승언리", curZoneKey = "";
-    let focusedAddr = null;
-    let currentDrawSession = 0;
+    let curTown = "", curVillage = "", curZoneKey = "";
+    let focusedAddr = null, currentDrawSession = 0;
+    
+    let doneMap = {}; // Firebase와 동기화되는 방문 데이터
 
-    let doneMap = {};
-    try {
-      doneMap = JSON.parse(localStorage.getItem('volunteer_done_v12') || '{}');
-    } catch(e) {
-      doneMap = {};
-    }
+    // ==========================================
+    // 3. 구역 데이터 명칭 자동 변환 로직 (요청 3)
+    // ==========================================
+    function formatZoneData() {
+      const regions = ["안면읍", "남면", "고남면"];
+      const prefixMap = { "안면읍": "안면", "남면": "남면", "고남면": "고남" };
 
-    function saveDoneMap() {
-      try {
-        localStorage.setItem('volunteer_done_v12', JSON.stringify(doneMap));
-      } catch(e) {}
-    }
+      regions.forEach(region => {
+        let counter = 1;
+        const villages = window.ZONE_DATABASE[region] || {};
 
-    function getFullAddr(shortAddr) {
-      if (shortAddr.indexOf("충청남도") === 0) return shortAddr;
-      return "충청남도 태안군 " + curTown + " " + shortAddr;
-    }
+        Object.keys(villages).forEach(village => {
+          const zones = villages[village];
+          const newZones = {};
 
-    function getMarkerImage(isDone, isLarge) {
-      if (typeof isLarge === 'undefined') isLarge = false;
-      const w = isLarge ? 34 : 26;
-      const h = isLarge ? 44 : 34;
-      const fillColor = isDone ? '#10b981' : '#ef4444';
-      const strokeColor = isDone ? '#047857' : '#b91c1c';
+          Object.keys(zones).forEach(oldKey => {
+            const zoneData = zones[oldKey];
+            const parts = oldKey.split('-');
+            const streetName = parts.length > 1 ? parts[1] : "기타";
+            const zoneNum = parts.length > 2 ? parts[2] : "00";
 
-      const svgInner = isDone
-        ? '<path fill="#ffffff" d="M11 17.5l-3-3 1.4-1.4 1.6 1.6 4.6-4.6 1.4 1.4z"/>'
-        : '<circle cx="13" cy="14" r="4" fill="#ffffff"/>';
+            const match = zoneData.title.match(/\((.*?)\)/);
+            let detailInfo = match ? match[1] : "";
+            detailInfo = detailInfo.replace(streetName, "").trim();
 
-      const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="0 0 26 34">'
-        + '<path fill="' + fillColor + '" stroke="' + strokeColor + '" stroke-width="1.5" d="M13 1C6.4 1 1 6.4 1 13c0 8.5 12 20 12 20s12-11.5 12-20c0-6.6-5.4-12-12-12z"/>'
-        + svgInner
-        + '</svg>';
+            const paddedCounter = String(counter).padStart(3, '0');
 
-      const dataUri = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
-      return new kakao.maps.MarkerImage(dataUri, new kakao.maps.Size(w, h), {
-        offset: new kakao.maps.Point(w / 2, h)
+            zoneData.newTopTitle = `${prefixMap[region]} ${paddedCounter} - ${streetName} - ${zoneNum}`;
+            zoneData.newSubTitle = `${streetName}-${zoneNum} (${detailInfo})`;
+
+            newZones[oldKey] = zoneData;
+            counter++;
+          });
+          window.ZONE_DATABASE[region][village] = newZones;
+        });
       });
     }
 
+    // ==========================================
+    // 4. 앱 초기화 (Window OnLoad)
+    // ==========================================
     window.onload = function() {
       if (typeof ZONE_DATABASE === 'undefined') {
-        document.getElementById('map-status').innerText = "데이터 파일을 찾을 수 없습니다. (JS 파일 로드 확인 필요)";
+        document.getElementById('map-status').innerText = "데이터 파일을 찾을 수 없습니다.";
         return;
       }
 
+      formatZoneData();
       initDropdowns();
-      renderCurrentList();
+      initFirebaseSync(); 
 
       if (typeof kakao === 'undefined') {
-        document.getElementById('map-status').innerText = "카카오 지도 모듈 로드 실패 (네트워크를 확인하세요)";
+        document.getElementById('map-status').innerText = "카카오 지도 모듈 로드 실패";
         return;
       }
 
       kakao.maps.load(function() {
         const container = document.getElementById('map');
-        map = new kakao.maps.Map(container, { center: new kakao.maps.LatLng(36.5273, 126.3533), level: 5 });
+        map = new kakao.maps.Map(container, { center: new kakao.maps.LatLng(36.4178, 126.3985), level: 5 });
         geocoder = new kakao.maps.services.Geocoder();
 
         document.getElementById('map-status').style.display = 'none';
-        drawPinsForCurrentZone(true);
+        onZoneChange(); 
       });
     };
 
+    function initFirebaseSync() {
+      db.ref('visits').on('value', (snapshot) => {
+        doneMap = snapshot.val() || {};
+        updateProgressUI();
+        refreshSoftUI(); 
+      });
+    }
+
+    // ==========================================
+    // 5. 드롭다운 및 UI 업데이트 로직
+    // ==========================================
     function initDropdowns() {
       const tSelect = document.getElementById('selTown');
       tSelect.innerHTML = '';
-      const towns = Object.keys(ZONE_DATABASE).filter(function(t) {
-        return Object.keys(ZONE_DATABASE[t] || {}).length > 0;
-      });
-      towns.forEach(function(town) {
+      const towns = Object.keys(ZONE_DATABASE).filter(t => Object.keys(ZONE_DATABASE[t] || {}).length > 0);
+      towns.forEach(town => {
         const opt = document.createElement('option');
         opt.value = town;
         opt.innerText = town;
         tSelect.appendChild(opt);
       });
-      curTown = towns.indexOf("안면읍") !== -1 ? "안면읍" : (towns[0] || "");
+      curTown = towns.includes("안면읍") ? "안면읍" : (towns[0] || "안면읍");
       tSelect.value = curTown;
-
       updateVillageDropdown();
     }
 
-    function onTownChange() {
-      curTown = document.getElementById('selTown').value;
-      updateVillageDropdown();
-    }
+    function onTownChange() { curTown = document.getElementById('selTown').value; updateVillageDropdown(); }
+    function onVillageChange() { curVillage = document.getElementById('selVillage').value; updateZoneDropdown(); }
 
     function updateVillageDropdown() {
       const vSelect = document.getElementById('selVillage');
       vSelect.innerHTML = '';
       const villages = Object.keys(ZONE_DATABASE[curTown] || {});
-      
-      villages.forEach(function(v) {
+      villages.forEach(v => {
         const opt = document.createElement('option');
         opt.value = v;
         opt.innerText = v;
         vSelect.appendChild(opt);
       });
-
       curVillage = villages[0] || '';
       vSelect.value = curVillage;
-      updateZoneDropdown();
-    }
-
-    function onVillageChange() {
-      curVillage = document.getElementById('selVillage').value;
       updateZoneDropdown();
     }
 
     function updateZoneDropdown() {
       const zSelect = document.getElementById('selZone');
       zSelect.innerHTML = '';
-      const townObj = ZONE_DATABASE[curTown] || {};
-      const zones = townObj[curVillage] || {};
+      const zones = ZONE_DATABASE[curTown]?.[curVillage] || {};
       const zoneKeys = Object.keys(zones);
 
       if (zoneKeys.length > 0) {
-        zoneKeys.forEach(function(k) {
+        zoneKeys.forEach(k => {
           const opt = document.createElement('option');
           opt.value = k;
-          opt.innerText = zones[k].title;
+          opt.innerText = zones[k].newTopTitle; 
           zSelect.appendChild(opt);
         });
         curZoneKey = zoneKeys[0];
       } else {
-        const opt = document.createElement('option');
-        opt.value = "";
-        opt.innerText = "구역 준비중";
-        zSelect.appendChild(opt);
+        zSelect.innerHTML = '<option value="">구역 준비중</option>';
         curZoneKey = "";
       }
-
       onZoneChange();
     }
 
@@ -320,20 +281,22 @@
       curZoneKey = document.getElementById('selZone').value;
       focusedAddr = null;
       renderCurrentList();
-      if (map && geocoder) {
-        drawPinsForCurrentZone(true);
-      }
+      if (map && geocoder) drawPinsForCurrentZone(true);
     }
 
     function getCurrentZoneObject() {
       if (!curTown || !curVillage || !curZoneKey) return null;
-      var townObj = ZONE_DATABASE[curTown];
-      if (!townObj) return null;
-      var villageObj = townObj[curVillage];
-      if (!villageObj) return null;
-      return villageObj[curZoneKey] || null;
+      return ZONE_DATABASE[curTown]?.[curVillage]?.[curZoneKey] || null;
     }
 
+    function getFullAddr(shortAddr) {
+      if (shortAddr.startsWith("충청남도")) return shortAddr;
+      return `충청남도 태안군 ${curTown} ${shortAddr}`;
+    }
+
+    // ==========================================
+    // 6. 데이터 렌더링 및 동기화 UI 반영
+    // ==========================================
     function updateProgressUI() {
       const zone = getCurrentZoneObject();
       if (!zone || !zone.addrs || zone.addrs.length === 0) {
@@ -341,11 +304,12 @@
         return;
       }
       let doneCnt = 0;
-      zone.addrs.forEach(function(addr) {
-        if (doneMap[getFullAddr(addr)]) doneCnt++;
+      zone.addrs.forEach(addr => {
+        const safeKey = getFullAddr(addr).replace(/[.#$[\]]/g, '_');
+        if (doneMap[safeKey]) doneCnt++;
       });
       const pct = Math.round((doneCnt / zone.addrs.length) * 100);
-      document.getElementById('progRatio').innerText = doneCnt + ' / ' + zone.addrs.length + ' (' + pct + '%)';
+      document.getElementById('progRatio').innerText = `${doneCnt} / ${zone.addrs.length} (${pct}%)`;
     }
 
     function renderCurrentList() {
@@ -354,283 +318,90 @@
       listEl.innerHTML = '';
 
       if (!zone || !zone.addrs || zone.addrs.length === 0) {
-        document.getElementById('zoneTitle').innerText = curVillage + ' (준비 중)';
+        document.getElementById('subZoneTitle').innerText = `주소 데이터 준비 중`;
         document.getElementById('pinCount').innerText = '핀: 0개';
-        document.getElementById('progRatio').innerText = '0 / 0 (0%)';
-        document.getElementById('btnAllPins').style.display = 'none';
-        listEl.innerHTML = '<div style="color:#94a3b8; text-align:center; padding:30px; font-size:13px;">선택한 구역의 주소 데이터가 등록되지 않았습니다.</div>';
+        updateProgressUI();
         return;
       }
 
-      document.getElementById('zoneTitle').innerText = zone.title;
-      document.getElementById('btnAllPins').style.display = focusedAddr ? 'inline-block' : 'none';
+      document.getElementById('subZoneTitle').innerText = zone.newSubTitle;
 
-      zone.addrs.forEach(function(shortAddr, idx) {
+      zone.addrs.forEach((shortAddr, idx) => {
         const fullAddr = getFullAddr(shortAddr);
-        const isDone = !!doneMap[fullAddr];
+        const safeKey = fullAddr.replace(/[.#$[\]]/g, '_');
+        const isDone = !!doneMap[safeKey];
         const isFocused = (focusedAddr === shortAddr);
 
         const card = document.createElement('div');
-        card.id = 'card-addr-' + idx;
+        card.id = `card-addr-${idx}`;
         card.className = 'house-card' + (isDone ? ' completed' : '') + (isFocused ? ' focused' : '');
-        card.innerHTML = 
-          '<div class="address-text" onclick="focusSingleAddress(\'' + shortAddr + '\', ' + idx + ')">'
-            + '#' + (idx + 1) + '. ' + shortAddr
-          + '</div>'
-          + '<div class="btn-wrap">'
-            + '<a class="btn-navi" href="https://map.kakao.com/link/search/' + encodeURIComponent(fullAddr) + '" target="_blank">길안내</a>'
-            + '<button id="btn-check-' + idx + '" class="btn-check ' + (isDone ? 'completed' : '') + '" onclick="toggleDone(\'' + shortAddr + '\', ' + idx + ')">'
-              + (isDone ? '완료' : '미방문')
-            + '</button>'
-          + '</div>';
+        card.innerHTML = `
+          <div class="address-text" onclick="focusSingleAddress('${shortAddr}', ${idx})">
+            #${idx + 1}. ${shortAddr}
+          </div>
+          <div class="btn-wrap">
+            <a class="btn-navi" href="https://map.kakao.com/link/search/${encodeURIComponent(fullAddr)}" target="_blank">안내</a>
+            <button id="btn-check-${idx}" class="btn-check ${isDone ? 'completed' : ''}" onclick="toggleDone('${shortAddr}', ${idx})">
+              ${isDone ? '완료' : '미방문'}
+            </button>
+          </div>
+        `;
         listEl.appendChild(card);
       });
-
       updateProgressUI();
     }
 
-    function drawPinsForCurrentZone(fitBounds) {
-      if (typeof fitBounds === 'undefined') fitBounds = false;
-      clearAllMapMarkers();
-
+    function refreshSoftUI() {
       const zone = getCurrentZoneObject();
-      if (!zone || !zone.addrs || !geocoder) return;
+      if (!zone || !zone.addrs) return;
 
-      const session = ++currentDrawSession;
-      const bounds = new kakao.maps.LatLngBounds();
-      const coordBuckets = {}; 
-      let pinnedCount = 0;
-      let processedCount = 0;
-      const totalCount = zone.addrs.length;
-
-      document.getElementById('pinCount').innerText = '핀: 0 / ' + totalCount + '개';
-
-      zone.addrs.forEach(function(shortAddr, idx) {
+      zone.addrs.forEach((shortAddr, idx) => {
         const fullAddr = getFullAddr(shortAddr);
-        const labelText = '#' + (idx + 1) + ' ' + shortAddr;
-
-        const placePin = function(coords) {
-          if (session !== currentDrawSession) return;
-
-          const key = coords.getLat().toFixed(5) + ',' + coords.getLng().toFixed(5);
-          let pos = coords;
-          if (coordBuckets[key]) {
-            const c = coordBuckets[key];
-            const angle = c * 2.39996;
-            const dist = 0.000045 * Math.sqrt(c);
-            pos = new kakao.maps.LatLng(coords.getLat() + Math.sin(angle) * dist, coords.getLng() + Math.cos(angle) * dist);
-            coordBuckets[key]++;
+        const safeKey = fullAddr.replace(/[.#$[\]]/g, '_');
+        const isDone = !!doneMap[safeKey];
+        
+        const card = document.getElementById(`card-addr-${idx}`);
+        const btn = document.getElementById(`btn-check-${idx}`);
+        
+        if (card && btn) {
+          if (isDone) {
+            card.classList.add('completed');
+            btn.classList.add('completed');
+            btn.innerText = '완료';
           } else {
-            coordBuckets[key] = 1;
+            card.classList.remove('completed');
+            btn.classList.remove('completed');
+            btn.innerText = '미방문';
           }
-
-          addMarkerWithLabel(shortAddr, fullAddr, pos, labelText, idx);
-          bounds.extend(pos);
-          pinnedCount++;
-          document.getElementById('pinCount').innerText = '핀: ' + pinnedCount + ' / ' + totalCount + '개';
-
-          processedCount++;
-          if (processedCount === totalCount && fitBounds && !focusedAddr && pinnedCount > 0) {
-            if (pinnedCount === 1) {
-              map.setCenter(pos);
-              map.setLevel(4);
-            } else {
-              map.setBounds(bounds, 30);
-            }
-          }
-        };
-
-        if (addrCoordCache[fullAddr]) {
-          placePin(addrCoordCache[fullAddr]);
-        } else {
-          geocoder.addressSearch(fullAddr, function(result, status) {
-            if (status === kakao.maps.services.Status.OK) {
-              const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
-              addrCoordCache[fullAddr] = coords;
-              placePin(coords);
-            } else {
-              const fallbackAddr = fullAddr.replace(/-\d+$/, '');
-              if (fallbackAddr !== fullAddr) {
-                geocoder.addressSearch(fallbackAddr, function(fResult, fStatus) {
-                  if (fStatus === kakao.maps.services.Status.OK) {
-                    const fCoords = new kakao.maps.LatLng(fResult[0].y, fResult[0].x);
-                    addrCoordCache[fullAddr] = fCoords;
-                    placePin(fCoords);
-                  } else {
-                    processedCount++;
-                  }
-                });
-              } else {
-                processedCount++;
-              }
-            }
-          });
         }
-      });
-    }
-
-    function addMarkerWithLabel(shortAddr, fullAddr, pos, labelText, idx) {
-      const isDone = !!doneMap[fullAddr];
-
-      const marker = new kakao.maps.Marker({
-        map: map,
-        position: pos,
-        image: getMarkerImage(isDone, false)
-      });
-
-      kakao.maps.event.addListener(marker, 'click', function() {
-        focusSingleAddress(shortAddr, idx);
-      });
-
-      const labelOverlay = new kakao.maps.CustomOverlay({
-        position: pos,
-        content: '<div id="map-tag-' + idx + '" class="map-addr-tag ' + (isDone ? 'done' : '') + '">' + labelText + '</div>',
-        xAnchor: 0.5,
-        yAnchor: 0.5,
-        map: map
-      });
-
-      markersMap[shortAddr] = marker;
-      overlaysMap[shortAddr] = labelOverlay;
-    }
-
-    function focusSingleAddress(shortAddr, idx) {
-      if (!map) return;
-      focusedAddr = shortAddr;
-      currentDrawSession++;
-
-      const cards = document.querySelectorAll('.house-card');
-      for (let i = 0; i < cards.length; i++) {
-        cards[i].classList.remove('focused');
-      }
-      const targetCard = document.getElementById('card-addr-' + idx);
-      if (targetCard) {
-        targetCard.classList.add('focused');
-        targetCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
-
-      document.getElementById('btnAllPins').style.display = 'inline-block';
-      clearAllMapMarkers();
-
-      const fullAddr = getFullAddr(shortAddr);
-
-      const showPin = function(pos) {
-        const isDone = !!doneMap[fullAddr];
-
-        singleMarker = new kakao.maps.Marker({
-          map: map,
-          position: pos,
-          image: getMarkerImage(isDone, true)
-        });
-
-        const bubbleHtml = 
-          '<div class="custom-speech-bubble ' + (isDone ? 'done' : '') + '">'
-            + '<div class="bubble-status ' + (isDone ? 'visited' : 'unvisited') + '">'
-              + (isDone ? '✓ 방문완료' : '● 미방문')
-            + '</div>'
-            + '<div class="bubble-title">' + shortAddr + '</div>'
-          + '</div>';
-
-        activeOverlay = new kakao.maps.CustomOverlay({
-          position: pos,
-          content: bubbleHtml,
-          yAnchor: 1.35,
-          xAnchor: 0.5,
-          map: map
-        });
-
-        map.setCenter(pos);
-        map.setLevel(2);
-      };
-
-      if (addrCoordCache[fullAddr]) {
-        showPin(addrCoordCache[fullAddr]);
-      } else if (geocoder) {
-        geocoder.addressSearch(fullAddr, function(result, status) {
-          if (status === kakao.maps.services.Status.OK) {
-            const pos = new kakao.maps.LatLng(result[0].y, result[0].x);
-            addrCoordCache[fullAddr] = pos;
-            showPin(pos);
-          }
-        });
-      }
-    }
-
-    function showAllPins() {
-      focusedAddr = null;
-      document.getElementById('btnAllPins').style.display = 'none';
-      const cards = document.querySelectorAll('.house-card');
-      for (let i = 0; i < cards.length; i++) {
-        cards[i].classList.remove('focused');
-      }
-      drawPinsForCurrentZone(true);
-    }
-
-    function clearAllMapMarkers() {
-      Object.keys(markersMap).forEach(function(k) {
-        markersMap[k].setMap(null);
-      });
-      markersMap = {};
-      Object.keys(overlaysMap).forEach(function(k) {
-        overlaysMap[k].setMap(null);
-      });
-      overlaysMap = {};
-
-      if (singleMarker) {
-        singleMarker.setMap(null);
-        singleMarker = null;
-      }
-      if (activeOverlay) {
-        activeOverlay.setMap(null);
-        activeOverlay = null;
-      }
-    }
-
-    function toggleDone(shortAddr, idx) {
-      const fullAddr = getFullAddr(shortAddr);
-      doneMap[fullAddr] = !doneMap[fullAddr];
-      saveDoneMap();
-
-      const isDone = !!doneMap[fullAddr];
-
-      const card = document.getElementById('card-addr-' + idx);
-      const btn = document.getElementById('btn-check-' + idx);
-      if (card && btn) {
-        if (isDone) {
-          card.classList.add('completed');
-          btn.classList.add('completed');
-          btn.innerText = '완료';
-        } else {
-          card.classList.remove('completed');
-          btn.classList.remove('completed');
-          btn.innerText = '미방문';
-        }
-      }
-
-      updateProgressUI();
-
-      if (focusedAddr === shortAddr) {
-        focusSingleAddress(shortAddr, idx);
-      } else {
+        
         if (markersMap[shortAddr]) {
           markersMap[shortAddr].setImage(getMarkerImage(isDone, false));
         }
-        const tagEl = document.getElementById('map-tag-' + idx);
+        const tagEl = document.getElementById(`map-tag-${idx}`);
         if (tagEl) {
           if (isDone) tagEl.classList.add('done');
           else tagEl.classList.remove('done');
         }
-      }
+      });
+    }
 
+    // ==========================================
+    // 7. 방문 처리 및 Firebase 업로드
+    // ==========================================
+    function toggleDone(shortAddr, idx) {
+      const fullAddr = getFullAddr(shortAddr);
+      const safeKey = fullAddr.replace(/[.#$[\]]/g, '_'); 
+      const isCurrentlyDone = !!doneMap[safeKey];
+      const newState = !isCurrentlyDone;
+
+      db.ref('visits/' + safeKey).set(newState);
+      
       const zone = getCurrentZoneObject();
-      if (zone && zone.addrs && isDone) {
-        const completedCount = zone.addrs.filter(function(a) {
-          return !!doneMap[getFullAddr(a)];
-        }).length;
+      if (zone && zone.addrs && newState) {
+        const completedCount = zone.addrs.filter(a => !!doneMap[getFullAddr(a).replace(/[.#$[\]]/g, '_')]).length + 1;
         if (completedCount === zone.addrs.length) {
-          setTimeout(function() {
-            alert('🎉 축하합니다!\n\n[' + zone.title + '] 구역의 모든 가구 방문을 완료했습니다.\n수고 많으셨습니다!');
-          }, 200);
+          setTimeout(() => alert(`🎉 축하합니다!\n\n해당 구역의 모든 방문을 완료했습니다.`), 300);
         }
       }
     }
@@ -639,42 +410,159 @@
       const zone = getCurrentZoneObject();
       if (!zone || !zone.addrs || zone.addrs.length === 0) return;
 
-      const confirmed = confirm('[' + zone.title + ']\n\n이 구역의 방문 기록을 모두 \'미방문\'으로 초기화하시겠습니까?');
-      if (!confirmed) return;
+      if (!confirm(`이 구역의 방문 기록을 '미방문'으로 초기화하시겠습니까?\n(모든 기기에서 즉시 초기화됩니다)`)) return;
 
-      zone.addrs.forEach(function(shortAddr) {
-        delete doneMap[getFullAddr(shortAddr)];
+      zone.addrs.forEach(shortAddr => {
+        const safeKey = getFullAddr(shortAddr).replace(/[.#$[\]]/g, '_');
+        db.ref('visits/' + safeKey).remove(); 
       });
-      saveDoneMap();
+    }
 
-      renderCurrentList();
-      if (focusedAddr) {
-        const idx = zone.addrs.indexOf(focusedAddr);
-        focusSingleAddress(focusedAddr, idx >= 0 ? idx : 0);
-      } else if (map) {
-        drawPinsForCurrentZone(false);
+    // ==========================================
+    // 8. 지도 핀 관리 로직
+    // ==========================================
+    function getMarkerImage(isDone, isLarge = false) {
+      const w = isLarge ? 34 : 26, h = isLarge ? 44 : 34;
+      const fillColor = isDone ? '#10b981' : '#ef4444';
+      const strokeColor = isDone ? '#047857' : '#b91c1c';
+      const svgInner = isDone ? `<path fill="#ffffff" d="M11 17.5l-3-3 1.4-1.4 1.6 1.6 4.6-4.6 1.4 1.4z"/>` : `<circle cx="13" cy="14" r="4" fill="#ffffff"/>`;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 26 34"><path fill="${fillColor}" stroke="${strokeColor}" stroke-width="1.5" d="M13 1C6.4 1 1 6.4 1 13c0 8.5 12 20 12 20s12-11.5 12-20c0-6.6-5.4-12-12-12z"/>${svgInner}</svg>`;
+      return new kakao.maps.MarkerImage('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg), new kakao.maps.Size(w, h), { offset: new kakao.maps.Point(w / 2, h) });
+    }
+
+    function clearAllMapMarkers() {
+      Object.values(markersMap).forEach(m => m.setMap(null)); markersMap = {};
+      Object.values(overlaysMap).forEach(o => o.setMap(null)); overlaysMap = {};
+      if (singleMarker) { singleMarker.setMap(null); singleMarker = null; }
+      if (activeOverlay) { activeOverlay.setMap(null); activeOverlay = null; }
+    }
+
+    function drawPinsForCurrentZone(fitBounds = false) {
+      clearAllMapMarkers();
+      const zone = getCurrentZoneObject();
+      if (!zone || !zone.addrs || !geocoder) return;
+
+      const session = ++currentDrawSession;
+      const bounds = new kakao.maps.LatLngBounds();
+      const coordBuckets = {}; 
+      let pinnedCount = 0, processedCount = 0;
+      const totalCount = zone.addrs.length;
+
+      document.getElementById('pinCount').innerText = `핀: 0 / ${totalCount}개`;
+
+      zone.addrs.forEach((shortAddr, idx) => {
+        const fullAddr = getFullAddr(shortAddr);
+        const labelText = `#${idx + 1} ${shortAddr}`;
+
+        const placePin = (coords) => {
+          if (session !== currentDrawSession) return;
+          const key = `${coords.getLat().toFixed(5)},${coords.getLng().toFixed(5)}`;
+          let pos = coords;
+          if (coordBuckets[key]) {
+            const c = coordBuckets[key];
+            const angle = c * 2.39996, dist = 0.000045 * Math.sqrt(c);
+            pos = new kakao.maps.LatLng(coords.getLat() + Math.sin(angle) * dist, coords.getLng() + Math.cos(angle) * dist);
+            coordBuckets[key]++;
+          } else { coordBuckets[key] = 1; }
+
+          addMarkerWithLabel(shortAddr, fullAddr, pos, labelText, idx);
+          bounds.extend(pos);
+          pinnedCount++;
+          document.getElementById('pinCount').innerText = `핀: ${pinnedCount} / ${totalCount}개`;
+
+          processedCount++;
+          if (processedCount === totalCount && fitBounds && !focusedAddr && pinnedCount > 0) {
+            pinnedCount === 1 ? (map.setCenter(pos), map.setLevel(4)) : map.setBounds(bounds, 30);
+          }
+        };
+
+        if (addrCoordCache[fullAddr]) placePin(addrCoordCache[fullAddr]);
+        else {
+          geocoder.addressSearch(fullAddr, function(result, status) {
+            if (status === kakao.maps.services.Status.OK) {
+              const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+              addrCoordCache[fullAddr] = coords; placePin(coords);
+            } else {
+              const fallbackAddr = fullAddr.replace(/-\d+$/, '');
+              if (fallbackAddr !== fullAddr) {
+                geocoder.addressSearch(fallbackAddr, function(fRes, fStat) {
+                  if (fStat === kakao.maps.services.Status.OK) {
+                    const fCoords = new kakao.maps.LatLng(fRes[0].y, fRes[0].x);
+                    addrCoordCache[fullAddr] = fCoords; placePin(fCoords);
+                  } else { processedCount++; }
+                });
+              } else { processedCount++; }
+            }
+          });
+        }
+      });
+    }
+
+    function addMarkerWithLabel(shortAddr, fullAddr, pos, labelText, idx) {
+      const safeKey = fullAddr.replace(/[.#$[\]]/g, '_');
+      const isDone = !!doneMap[safeKey];
+      const marker = new kakao.maps.Marker({ map: map, position: pos, image: getMarkerImage(isDone, false) });
+      kakao.maps.event.addListener(marker, 'click', () => focusSingleAddress(shortAddr, idx));
+      const labelOverlay = new kakao.maps.CustomOverlay({
+        position: pos, content: `<div id="map-tag-${idx}" class="map-addr-tag ${isDone ? 'done' : ''}">${labelText}</div>`, xAnchor: 0.5, yAnchor: 0.5, map: map
+      });
+      markersMap[shortAddr] = marker; overlaysMap[shortAddr] = labelOverlay;
+    }
+
+    function focusSingleAddress(shortAddr, idx) {
+      if (!map) return;
+      focusedAddr = shortAddr;
+      currentDrawSession++;
+
+      document.querySelectorAll('.house-card').forEach(c => c.classList.remove('focused'));
+      const targetCard = document.getElementById(`card-addr-${idx}`);
+      if (targetCard) {
+        targetCard.classList.add('focused');
+        targetCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      clearAllMapMarkers();
+      const fullAddr = getFullAddr(shortAddr);
+
+      const showPin = (pos) => {
+        const safeKey = fullAddr.replace(/[.#$[\]]/g, '_');
+        const isDone = !!doneMap[safeKey];
+        singleMarker = new kakao.maps.Marker({ map: map, position: pos, image: getMarkerImage(isDone, true) });
+        activeOverlay = new kakao.maps.CustomOverlay({
+          position: pos,
+          content: `<div class="custom-speech-bubble ${isDone ? 'done' : ''}"><div class="bubble-status ${isDone ? 'visited' : 'unvisited'}">${isDone ? '✓ 방문완료' : '● 미방문'}</div><div class="bubble-title">${shortAddr}</div></div>`,
+          yAnchor: 1.35, xAnchor: 0.5, map: map
+        });
+        map.setCenter(pos); map.setLevel(2);
+      };
+
+      if (addrCoordCache[fullAddr]) showPin(addrCoordCache[fullAddr]);
+      else if (geocoder) {
+        geocoder.addressSearch(fullAddr, (result, status) => {
+          if (status === kakao.maps.services.Status.OK) {
+            const pos = new kakao.maps.LatLng(result[0].y, result[0].x);
+            addrCoordCache[fullAddr] = pos; showPin(pos);
+          }
+        });
       }
     }
 
+    function showAllPins() {
+      focusedAddr = null;
+      document.querySelectorAll('.house-card').forEach(c => c.classList.remove('focused'));
+      drawPinsForCurrentZone(true);
+    }
+
     function locateUser() {
-      if (!navigator.geolocation || !map) {
-        alert("GPS 위치 서비스를 사용할 수 없습니다.");
-        return;
-      }
+      if (!navigator.geolocation || !map) { alert("GPS 위치 서비스를 사용할 수 없습니다."); return; }
       navigator.geolocation.getCurrentPosition(
-        function(pos) {
+        pos => {
           const latLng = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
           if (userMarker) userMarker.setMap(null);
-          userMarker = new kakao.maps.Marker({
-            map: map,
-            position: latLng
-          });
-          map.setCenter(latLng);
-          map.setLevel(3);
+          userMarker = new kakao.maps.Marker({ map: map, position: latLng });
+          map.setCenter(latLng); map.setLevel(3);
         },
-        function() {
-          alert("현재 위치 정보를 가져올 수 없습니다. 위치 권한을 확인해주세요.");
-        },
+        () => alert("위치 권한을 확인해주세요."),
         { enableHighAccuracy: true, timeout: 5000 }
       );
     }
