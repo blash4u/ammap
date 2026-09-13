@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>안면도 구역카드</title>
 
-  <!-- 행정구역별 데이터 파일 로드 (파일명 표준화) -->
+  <!-- 행정구역별 분할 주소 데이터 로드 (총 5개 파일) -->
   <script type="text/javascript" src="data_anmyeon_north.js"></script>
   <script type="text/javascript" src="data_anmyeon_central.js"></script>
   <script type="text/javascript" src="data_anmyeon_south.js"></script>
@@ -21,30 +21,79 @@
 
     .header { background-color: #1e293b; padding: 10px 10px; flex-shrink: 0; }
     .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .title-wrap { display: flex; align-items: center; gap: 6px; }
     .title { color: #38bdf8; font-size: 15px; font-weight: bold; }
-    .btn-gps { background: #0284c7; color: #fff; border: none; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; }
+    .header-btns { display: flex; gap: 5px; align-items: center; }
+    .btn-hdr { background: #0284c7; color: #fff; border: none; padding: 5px 9px; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; }
+    .btn-hdr:active { background: #0369a1; }
 
     .dropdown-group { display: flex; gap: 5px; width: 100%; }
     .select-btn { height: 36px; padding: 4px; border-radius: 5px; font-size: 12px; font-weight: bold; border: 1px solid #475569; outline: none; }
-    #selTown { flex: 2.5; background: #334155; color: white; }
-    #selVillage { flex: 2.5; background: #334155; color: white; }
-    #selZone { flex: 5; background: #0ea5e9; color: white; border: none; }
+    #selTown { flex: 2.3; background: #334155; color: white; }
+    #selVillage { flex: 2.3; background: #334155; color: white; }
+    #selZone { flex: 5.4; background: #0ea5e9; color: white; border: none; }
 
-    /* 지도 영역: 화면 잔여 공간 전체 차지 */
+    /* 지도 영역 */
     #map-wrapper { position: relative; width: 100%; flex: 1; min-height: 0; background-color: #cbd5e1; }
     #map { width: 100%; height: 100%; }
     #map-status { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #e2e8f0; color: #475569; font-size: 13px; font-weight: bold; z-index: 10; padding: 15px; text-align: center; }
 
-    .info-bar { background-color: #ffffff; padding: 6px 12px; font-weight: bold; font-size: 12px; color: #0f172a; border-top: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
-    .zone-actions { display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .btn-all-pins { background: #0284c7; color: #ffffff; border: none; padding: 3px 7px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; display: none; }
+    /* [지시사항 1] 지도 하단: 주소 텍스트 삭제 및 전체 핀 버튼 좌측 영구 고정 */
+    .info-bar { 
+      background-color: #ffffff; 
+      padding: 6px 10px; 
+      border-top: 1px solid #cbd5e1; 
+      border-bottom: 1px solid #cbd5e1; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      flex-shrink: 0; 
+    }
+    .btn-all-pins { 
+      background: #0284c7; 
+      color: #ffffff; 
+      border: none; 
+      padding: 5px 10px; 
+      border-radius: 5px; 
+      font-size: 11px; 
+      font-weight: bold; 
+      cursor: pointer; 
+      display: inline-flex; 
+      align-items: center; 
+      gap: 3px; 
+      flex-shrink: 0;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    .btn-all-pins:active { background: #0369a1; }
     
     .status-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
     .pin-counter { font-size: 11px; color: #0284c7; font-weight: 700; }
     .prog-text { font-size: 12px; color: #10b981; font-weight: 800; }
-    .btn-reset-zone { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
+    .btn-reset-zone { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 4px 7px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
 
-    /* 주소 영역: 정확히 5줄 높이(290px) 고정 */
+    /* [지시사항 3] 하단 세부 주소 전용 배너: 00길-00 (00번~00번 / 00가구) */
+    .zone-detail-bar {
+      background-color: #f1f5f9;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: bold;
+      color: #334155;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .zone-detail-badge {
+      background-color: #0284c7;
+      color: #ffffff;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      letter-spacing: -0.5px;
+    }
+
+    /* 주소 목록 영역: 정확히 5줄 고정 (290px) */
     .list-area { 
       height: 290px; 
       max-height: 290px; 
@@ -132,14 +181,48 @@
       border-top: 8px solid #0284c7;
     }
     .custom-speech-bubble.done::after { border-top-color: #10b981; }
+
+    /* [지시사항 2] 다기기 동기화 팝업 모달 */
+    #syncModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.7);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .modal-box {
+      background: #ffffff;
+      width: 100%;
+      max-width: 400px;
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+    .modal-title { font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .modal-section { margin-bottom: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; }
+    .modal-sec-title { font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px; }
+    .modal-input { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 11px; outline: none; margin-bottom: 6px; }
+    .modal-btn-row { display: flex; gap: 6px; }
+    .btn-action { flex: 1; padding: 7px 0; border: none; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; text-align: center; }
+    .btn-primary { background: #0284c7; color: #ffffff; }
+    .btn-secondary { background: #e2e8f0; color: #334155; }
+    .btn-success { background: #10b981; color: #ffffff; }
   </style>
 </head>
 <body>
 
   <div class="header">
     <div class="header-top">
-      <div class="title">안면도 구역카드</div>
-      <button class="btn-gps" onclick="locateUser()">내 위치 📍</button>
+      <div class="title-wrap">
+        <div class="title">안면도 구역카드</div>
+      </div>
+      <div class="header-btns">
+        <button class="btn-hdr" id="btnSyncState" onclick="openSyncModal()">☁️ 동기화</button>
+        <button class="btn-hdr" onclick="locateUser()">내 위치 📍</button>
+      </div>
     </div>
     <div class="dropdown-group">
       <select id="selTown" class="select-btn" onchange="onTownChange()"></select>
@@ -153,11 +236,9 @@
     <div id="map-status">카카오 지도 모듈 초기화 중...</div>
   </div>
 
+  <!-- [지시사항 1] 지도 하단: 주소 삭제 후 전체 핀 버튼 좌측 상시 고정 -->
   <div class="info-bar">
-    <div class="zone-actions">
-      <span id="zoneTitle">구역 로딩중...</span>
-      <button id="btnAllPins" class="btn-all-pins" onclick="showAllPins()">전체 핀 ↺</button>
-    </div>
+    <button id="btnAllPins" class="btn-all-pins" onclick="showAllPins()">📍 전체 핀 ↺</button>
     <div class="status-actions">
       <span class="pin-counter" id="pinCount">핀: 0개</span>
       <span class="prog-text" id="progRatio">0 / 0 (0%)</span>
@@ -165,7 +246,47 @@
     </div>
   </div>
 
+  <!-- [지시사항 3] 하단 세부 주소 표기 영역: 00길-00 (00번~00번 / 00가구) -->
+  <div class="zone-detail-bar" id="zoneDetailBar">
+    <span class="zone-detail-badge">세부주소</span>
+    <span id="zoneDetailText">구역 로딩중...</span>
+  </div>
+
   <div class="list-area" id="listArea"></div>
+
+  <!-- [지시사항 2] 다기기 방문 기록 공유/동기화 모달 -->
+  <div id="syncModal">
+    <div class="modal-box">
+      <div class="modal-title">
+        <span>☁️ 다기기 방문 기록 동기화</span>
+        <span style="cursor:pointer; font-size:18px;" onclick="closeSyncModal()">✕</span>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-sec-title">1. 카톡 간편 공유 (원클릭 링크 복사)</div>
+        <div class="modal-btn-row" style="margin-bottom:6px;">
+          <button class="btn-action btn-success" onclick="copyShareUrl()">🔗 구역 공유링크 복사</button>
+          <button class="btn-action btn-primary" onclick="copyShareCode()">📋 기록 코드 복사</button>
+        </div>
+        <input type="text" id="inpShareCode" class="modal-input" placeholder="전달받은 공유 코드를 여기에 붙여넣기">
+        <div class="modal-btn-row">
+          <button class="btn-action btn-primary" onclick="applyShareCode()">📥 기록 이어받기 적용</button>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-sec-title">2. 실시간 클라우드 DB 연동 (Firebase)</div>
+        <input type="text" id="inpCloudUrl" class="modal-input" placeholder="Firebase DB 주소 (https://...firebaseio.com)">
+        <div class="modal-btn-row">
+          <button class="btn-action btn-primary" onclick="saveCloudUrl()">클라우드 저장 및 연결</button>
+        </div>
+      </div>
+
+      <div style="text-align:right;">
+        <button class="btn-action btn-secondary" style="max-width:80px; padding:6px 10px;" onclick="closeSyncModal()">닫기</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     let map = null, geocoder = null, userMarker = null;
@@ -178,22 +299,83 @@
     let focusedAddr = null;
     let currentDrawSession = 0;
 
+    // 방문 기록 로컬 저장소
     let doneMap = {};
     try {
-      doneMap = JSON.parse(localStorage.getItem('volunteer_done_v12') || '{}');
+      doneMap = JSON.parse(localStorage.getItem('volunteer_done_v14') || '{}');
     } catch(e) {
       doneMap = {};
     }
 
+    // 클라우드 동기화 설정 (Firebase REST API)
+    let cloudDbUrl = localStorage.getItem('volunteer_cloud_url') || '';
+
     function saveDoneMap() {
       try {
-        localStorage.setItem('volunteer_done_v12', JSON.stringify(doneMap));
+        localStorage.setItem('volunteer_done_v14', JSON.stringify(doneMap));
       } catch(e) {}
     }
 
     function getFullAddr(shortAddr) {
       if (shortAddr.startsWith("충청남도")) return shortAddr;
       return `충청남도 태안군 ${curTown} ${shortAddr}`;
+    }
+
+    // ==============================================================
+    // [지시사항 3] 구역 번호 자동 정규화 및 상단/하단 표기 분리 엔진
+    // 안면읍 001~999, 남면 001~999, 고남도 001~999
+    // 상단 타이틀: "안면 001- 00길 - 00"
+    // 하단 세부 주소: "00길-00 (00번~00번 / 00가구)"
+    // ==============================================================
+    let normalizedZoneDB = {};
+
+    function normalizeZoneDatabase() {
+      if (typeof ZONE_DATABASE === 'undefined') return;
+      normalizedZoneDB = {};
+
+      const townOrder = ["고남면", "안면읍", "남면"];
+      townOrder.forEach(town => {
+        if (!ZONE_DATABASE[town]) return;
+        normalizedZoneDB[town] = {};
+
+        const prefix = (town === "안면읍") ? "안면" : ((town === "고남면") ? "고남" : "남면");
+        let seq = 1;
+
+        const villages = Object.keys(ZONE_DATABASE[town]);
+        villages.forEach(v => {
+          normalizedZoneDB[town][v] = {};
+          const zones = ZONE_DATABASE[town][v];
+          const zoneKeys = Object.keys(zones);
+
+          zoneKeys.forEach(origKey => {
+            const zObj = zones[origKey];
+            const paddedNum = String(seq).padStart(3, '0');
+
+            // 도로명 및 순번 추출 (예: "10고남-가경주길-01" -> road: "가경주길", subSeq: "01")
+            const m = origKey.match(/([가-힣0-9]+(?:로|길))[-_ ]*(\d+)/);
+            const road = m ? m[1] : origKey;
+            const subSeq = m ? String(parseInt(m[2])).padStart(2, '0') : "01";
+
+            // 상단 타이틀 포맷: "안면 001- 00길 - 00"
+            const topTitle = `${prefix} ${paddedNum}- ${road} - ${subSeq}`;
+
+            // 상세 주소 범위 및 가구 수 추출
+            const origTitle = zObj.title || "";
+            const detM = origTitle.match(/\\((.+)\\)/);
+            const det = detM ? detM[1] : `${road} ${zObj.addrs.length}가구`;
+
+            // 하단 세부 주소 포맷: "00길-00 (00번~00번 / 00가구)"
+            const bottomDetail = `${road}-${subSeq} (${det})`;
+
+            normalizedZoneDB[town][v][origKey] = {
+              topTitle: topTitle,
+              bottomDetail: bottomDetail,
+              addrs: zObj.addrs
+            };
+            seq++;
+          });
+        });
+      });
     }
 
     function getMarkerImage(isDone, isLarge = false) {
@@ -220,16 +402,23 @@
     }
 
     window.onload = function() {
-      if (typeof ZONE_DATABASE === 'undefined') {
-        document.getElementById('map-status').innerText = "데이터 파일을 찾을 수 없습니다. (스크립트 경로를 확인하세요)";
+      // 1. URL 해시를 통한 자동 방문기록 동기화 확인 (#sync=...)
+      checkHashSync();
+
+      // 2. 주소 데이터베이스 정규화 실행
+      normalizeZoneDatabase();
+
+      if (Object.keys(normalizedZoneDB).length === 0) {
+        document.getElementById('map-status').innerText = "데이터 파일을 찾을 수 없습니다.";
         return;
       }
 
       initDropdowns();
       renderCurrentList();
+      updateSyncButtonState();
 
       if (typeof kakao === 'undefined') {
-        document.getElementById('map-status').innerText = "카카오 지도 모듈 로드 실패 (인터넷 연결을 확인하세요)";
+        document.getElementById('map-status').innerText = "카카오 지도 모듈 로드 실패 (네트워크를 확인하세요)";
         return;
       }
 
@@ -240,13 +429,20 @@
 
         document.getElementById('map-status').style.display = 'none';
         drawPinsForCurrentZone(true);
+
+        // 클라우드 실시간 동기화
+        syncFromCloud();
       });
+
+      // 탭 활성화 시 자동 갱신
+      window.addEventListener('focus', syncFromCloud);
+      setInterval(syncFromCloud, 20000);
     };
 
     function initDropdowns() {
       const tSelect = document.getElementById('selTown');
       tSelect.innerHTML = '';
-      const towns = Object.keys(ZONE_DATABASE).filter(t => Object.keys(ZONE_DATABASE[t] || {}).length > 0);
+      const towns = Object.keys(normalizedZoneDB).filter(t => Object.keys(normalizedZoneDB[t] || {}).length > 0);
       towns.forEach(town => {
         const opt = document.createElement('option');
         opt.value = town;
@@ -267,7 +463,7 @@
     function updateVillageDropdown() {
       const vSelect = document.getElementById('selVillage');
       vSelect.innerHTML = '';
-      const villages = Object.keys(ZONE_DATABASE[curTown] || {});
+      const villages = Object.keys(normalizedZoneDB[curTown] || {});
       
       villages.forEach(v => {
         const opt = document.createElement('option');
@@ -289,14 +485,15 @@
     function updateZoneDropdown() {
       const zSelect = document.getElementById('selZone');
       zSelect.innerHTML = '';
-      const zones = ZONE_DATABASE[curTown]?.[curVillage] || {};
+      const zones = normalizedZoneDB[curTown]?.[curVillage] || {};
       const zoneKeys = Object.keys(zones);
 
       if (zoneKeys.length > 0) {
         zoneKeys.forEach(k => {
           const opt = document.createElement('option');
           opt.value = k;
-          opt.innerText = zones[k].title;
+          // [지시사항 3] 상단 드롭다운 타이틀: "안면 001- 00길 - 00"
+          opt.innerText = zones[k].topTitle;
           zSelect.appendChild(opt);
         });
         curZoneKey = zoneKeys[0];
@@ -322,7 +519,7 @@
 
     function getCurrentZoneObject() {
       if (!curTown || !curVillage || !curZoneKey) return null;
-      return ZONE_DATABASE[curTown]?.[curVillage]?.[curZoneKey] || null;
+      return normalizedZoneDB[curTown]?.[curVillage]?.[curZoneKey] || null;
     }
 
     function updateProgressUI() {
@@ -342,19 +539,19 @@
     function renderCurrentList() {
       const zone = getCurrentZoneObject();
       const listEl = document.getElementById('listArea');
+      const detailTextEl = document.getElementById('zoneDetailText');
       listEl.innerHTML = '';
 
       if (!zone || !zone.addrs || zone.addrs.length === 0) {
-        document.getElementById('zoneTitle').innerText = `${curVillage} (준비 중)`;
         document.getElementById('pinCount').innerText = '핀: 0개';
         document.getElementById('progRatio').innerText = '0 / 0 (0%)';
-        document.getElementById('btnAllPins').style.display = 'none';
+        detailTextEl.innerText = `${curVillage} (준비 중)`;
         listEl.innerHTML = '<div style="color:#94a3b8; text-align:center; padding:30px; font-size:13px;">선택한 구역의 주소 데이터가 등록되지 않았습니다.</div>';
         return;
       }
 
-      document.getElementById('zoneTitle').innerText = zone.title;
-      document.getElementById('btnAllPins').style.display = focusedAddr ? 'inline-block' : 'none';
+      // [지시사항 3] 하단 세부 주소 표기: "00길-00 (00번~00번 / 00가구)"
+      detailTextEl.innerText = zone.bottomDetail;
 
       zone.addrs.forEach((shortAddr, idx) => {
         const fullAddr = getFullAddr(shortAddr);
@@ -440,7 +637,7 @@
               addrCoordCache[fullAddr] = coords;
               placePin(coords);
             } else {
-              const fallbackAddr = fullAddr.replace(/-\d+$/, '');
+              const fallbackAddr = fullAddr.replace(/-\\d+$/, '');
               if (fallbackAddr !== fullAddr) {
                 geocoder.addressSearch(fallbackAddr, function(fResult, fStatus) {
                   if (fStatus === kakao.maps.services.Status.OK) {
@@ -497,7 +694,6 @@
         targetCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
 
-      document.getElementById('btnAllPins').style.display = 'inline-block';
       clearAllMapMarkers();
 
       const fullAddr = getFullAddr(shortAddr);
@@ -547,7 +743,6 @@
 
     function showAllPins() {
       focusedAddr = null;
-      document.getElementById('btnAllPins').style.display = 'none';
       document.querySelectorAll('.house-card').forEach(c => c.classList.remove('focused'));
       drawPinsForCurrentZone(true);
     }
@@ -568,6 +763,9 @@
       }
     }
 
+    // ==============================================================
+    // [지시사항 2] 방문/미방문 토글 및 타 디바이스 즉각 동기화 로직
+    // ==============================================================
     function toggleDone(shortAddr, idx) {
       const fullAddr = getFullAddr(shortAddr);
       doneMap[fullAddr] = !doneMap[fullAddr];
@@ -575,6 +773,7 @@
 
       const isDone = !!doneMap[fullAddr];
 
+      // UI 갱신
       const card = document.getElementById(`card-addr-${idx}`);
       const btn = document.getElementById(`btn-check-${idx}`);
       if (card && btn) {
@@ -604,12 +803,15 @@
         }
       }
 
+      // 클라우드 실시간 전송
+      pushSingleToCloud(fullAddr, isDone);
+
       const zone = getCurrentZoneObject();
       if (zone && zone.addrs && isDone) {
         const completedCount = zone.addrs.filter(a => !!doneMap[getFullAddr(a)]).length;
         if (completedCount === zone.addrs.length) {
           setTimeout(() => {
-            alert(`🎉 축하합니다!\n\n[${zone.title}] 구역의 모든 가구 방문을 완료했습니다.\n수고 많으셨습니다!`);
+            alert(`🎉 축하합니다!\\n\\n[${zone.topTitle}] 구역의 모든 가구 방문을 완료했습니다.\\n수고 많으셨습니다!`);
           }, 200);
         }
       }
@@ -619,11 +821,13 @@
       const zone = getCurrentZoneObject();
       if (!zone || !zone.addrs || zone.addrs.length === 0) return;
 
-      const confirmed = confirm(`[${zone.title}]\n\n이 구역의 방문 기록을 모두 '미방문'으로 초기화하시겠습니까?`);
+      const confirmed = confirm(`[${zone.topTitle}]\\n\\n이 구역의 방문 기록을 모두 '미방문'으로 초기화하시겠습니까?`);
       if (!confirmed) return;
 
       zone.addrs.forEach(shortAddr => {
-        delete doneMap[getFullAddr(shortAddr)];
+        const full = getFullAddr(shortAddr);
+        delete doneMap[full];
+        pushSingleToCloud(full, false);
       });
       saveDoneMap();
 
@@ -633,6 +837,178 @@
         focusSingleAddress(focusedAddr, idx >= 0 ? idx : 0);
       } else if (map) {
         drawPinsForCurrentZone(false);
+      }
+    }
+
+    // ==============================================================
+    // [지시사항 2] 실시간 클라우드 DB 및 카톡 공유링크/코드 동기화
+    // ==============================================================
+    function encodeFbKey(key) {
+      return encodeURIComponent(key).replace(/\\./g, '%2E');
+    }
+    function decodeFbKey(key) {
+      return decodeURIComponent(key.replace(/%2E/g, '.'));
+    }
+
+    function pushSingleToCloud(fullAddr, isDone) {
+      if (!cloudDbUrl) return;
+      const cleanUrl = cloudDbUrl.replace(/\\/+$/, '');
+      const encKey = encodeFbKey(fullAddr);
+      fetch(`${cleanUrl}/volunteer_done/${encKey}.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(isDone ? true : null)
+      }).catch(() => {});
+    }
+
+    function syncFromCloud() {
+      if (!cloudDbUrl) return;
+      const cleanUrl = cloudDbUrl.replace(/\\/+$/, '');
+      fetch(`${cleanUrl}/volunteer_done.json`)
+        .then(r => r.json())
+        .then(data => {
+          if (data && typeof data === 'object') {
+            let changed = false;
+            Object.keys(data).forEach(encKey => {
+              const full = decodeFbKey(encKey);
+              if (data[encKey] && !doneMap[full]) {
+                doneMap[full] = true;
+                changed = true;
+              }
+            });
+            if (changed) {
+              saveDoneMap();
+              renderCurrentList();
+              if (map && !focusedAddr) drawPinsForCurrentZone(false);
+            }
+            updateSyncButtonState(true);
+          }
+        })
+        .catch(() => updateSyncButtonState(false));
+    }
+
+    function updateSyncButtonState(isOnline = null) {
+      const btn = document.getElementById('btnSyncState');
+      if (!btn) return;
+      if (!cloudDbUrl) {
+        btn.innerText = "☁️ 동기화";
+        btn.style.background = "#0284c7";
+      } else if (isOnline === true) {
+        btn.innerText = "☁️ 실시간";
+        btn.style.background = "#10b981";
+      } else if (isOnline === false) {
+        btn.innerText = "☁️ 연결확인";
+        btn.style.background = "#f59e0b";
+      } else {
+        btn.innerText = "☁️ 동기화";
+        btn.style.background = "#0284c7";
+      }
+    }
+
+    function openSyncModal() {
+      document.getElementById('inpCloudUrl').value = cloudDbUrl;
+      document.getElementById('inpShareCode').value = '';
+      document.getElementById('syncModal').style.display = 'flex';
+    }
+
+    function closeSyncModal() {
+      document.getElementById('syncModal').style.display = 'none';
+    }
+
+    function saveCloudUrl() {
+      const url = document.getElementById('inpCloudUrl').value.trim();
+      cloudDbUrl = url;
+      localStorage.setItem('volunteer_cloud_url', url);
+      updateSyncButtonState();
+      if (url) {
+        alert("클라우드 DB가 연결되었습니다. 다른 디바이스와 실시간 방문 상태가 자동 연동됩니다.");
+        syncFromCloud();
+      } else {
+        alert("클라우드 DB 연결이 해제되었습니다.");
+      }
+      closeSyncModal();
+    }
+
+    function getCompressedShareCode() {
+      const keys = Object.keys(doneMap).filter(k => !!doneMap[k]);
+      if (keys.length === 0) return null;
+      const jsonStr = JSON.stringify(keys);
+      return btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (m, p) => String.fromCharCode('0x' + p)));
+    }
+
+    function copyShareUrl() {
+      const code = getCompressedShareCode();
+      if (!code) {
+        alert("현재 기록된 '방문 완료' 가구가 없습니다.");
+        return;
+      }
+      const shareUrl = window.location.origin + window.location.pathname + "#sync=" + code;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+          alert("방문 현황이 담긴 '공유 링크'가 복사되었습니다!\\n다음 봉사자의 카카오톡으로 전송하면 링크 클릭 한 번으로 방문 기록을 이어받습니다.");
+        });
+      } else {
+        prompt("아래 공유 링크를 복사하여 카톡으로 전달하세요:", shareUrl);
+      }
+    }
+
+    function copyShareCode() {
+      const code = getCompressedShareCode();
+      if (!code) {
+        alert("현재 기록된 '방문 완료' 가구가 없습니다.");
+        return;
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code).then(() => {
+          alert("방문 기록 코드가 복사되었습니다!\\n다른 기기에서 [이어받기]에 붙여넣으세요.");
+        });
+      } else {
+        prompt("아래 코드를 복사하세요:", code);
+      }
+    }
+
+    function applyShareCode() {
+      const code = document.getElementById('inpShareCode').value.trim();
+      if (!code) {
+        alert("공유 코드를 입력해주세요.");
+        return;
+      }
+      applyCodeString(code);
+    }
+
+    function applyCodeString(code) {
+      try {
+        const jsonStr = decodeURIComponent(atob(code).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+        const keys = JSON.parse(jsonStr);
+        if (Array.isArray(keys)) {
+          let added = 0;
+          keys.forEach(k => {
+            if (!doneMap[k]) {
+              doneMap[k] = true;
+              added++;
+              pushSingleToCloud(k, true);
+            }
+          });
+          saveDoneMap();
+          renderCurrentList();
+          if (map) drawPinsForCurrentZone(false);
+          alert(`성공! ${added}가구의 방문 기록을 이어받았습니다. (총 ${Object.keys(doneMap).length}가구 완료)`);
+          closeSyncModal();
+        } else {
+          alert("유효하지 않은 코드 형식입니다.");
+        }
+      } catch(e) {
+        alert("코드 해독에 실패했습니다. 코드를 확인해주세요.");
+      }
+    }
+
+    function checkHashSync() {
+      if (window.location.hash && window.location.hash.startsWith('#sync=')) {
+        const code = window.location.hash.replace('#sync=', '');
+        window.location.hash = ''; // 해시 초기화
+        setTimeout(() => {
+          applyCodeString(code);
+        }, 500);
       }
     }
 
