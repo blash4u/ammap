@@ -125,7 +125,7 @@
         <input type="number" id="inputZoneNum" placeholder="예: 1 또는 001">
       </div>
       
-      <button class="btn-start" onclick="startApp()">시작</button>
+      <button class="btn-start" onclick="startApp()">시작버튼</button>
       
       <div class="recent-visit" id="recentVisitDisplay">
         최근 방문 기록이 없습니다.
@@ -133,7 +133,7 @@
     </div>
   </div>
 
-  <!-- 2. 메인 애플리케이션 영역 (기본 숨김) -->
+  <!-- 2. 메인 애플리케이션 영역 -->
   <div id="main-app">
     <div class="header">
       <div class="header-top">
@@ -199,17 +199,18 @@
     let focusedAddr = null, currentDrawSession = 0;
     
     let doneMap = {}; 
-    let currentUser = ""; // 접속한 전도인 이름
+    let currentUser = ""; 
 
     // ==========================================
-    // 3. 구역 데이터 명칭 포맷 변환
+    // 3. 구역 데이터 명칭 포맷 변환 (글로벌 카운터 적용)
     // ==========================================
     function formatZoneData() {
       const regions = ["안면읍", "남면", "고남면"];
       const prefixMap = { "안면읍": "안면", "남면": "남면", "고남면": "고남" };
 
+      let counter = 1; // 모든 지역을 관통하는 글로벌 카운터
+
       regions.forEach(region => {
-        let counter = 1;
         const villages = window.ZONE_DATABASE[region] || {};
 
         Object.keys(villages).forEach(village => {
@@ -232,7 +233,7 @@
             zoneData.newSubTitle = `${streetName}-${zoneNum} (${detailInfo})`;
 
             newZones[oldKey] = zoneData;
-            counter++;
+            counter++; // 번호 누적 증가
           });
           window.ZONE_DATABASE[region][village] = newZones;
         });
@@ -249,7 +250,6 @@
       }
       formatZoneData();
       
-      // 저장된 사용자 정보 불러오기
       const savedName = localStorage.getItem('ammap_username') || "";
       const savedZone = localStorage.getItem('ammap_recentzone') || "";
       
@@ -268,20 +268,16 @@
         return;
       }
 
-      // 정보 저장
       currentUser = nameVal;
       localStorage.setItem('ammap_username', currentUser);
       document.getElementById('mainHeaderTitle').innerText = `전도인: ${currentUser}`;
 
-      // 화면 전환
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('main-app').style.display = 'flex';
 
-      // 드롭다운 및 데이터베이스 연동 준비
       initDropdowns();
       initFirebaseSync(); 
 
-      // 맵 모듈 초기화 (한 번만)
       if (!map) {
         kakao.maps.load(function() {
           const container = document.getElementById('map');
@@ -289,7 +285,6 @@
           geocoder = new kakao.maps.services.Geocoder();
           document.getElementById('map-status').style.display = 'none';
 
-          // 구역 번호가 입력되었다면 자동 검색 및 선택
           if (zoneNumVal) {
              const searchTarget = String(zoneNumVal).padStart(3, '0');
              const found = searchZoneByNumber(searchTarget);
@@ -313,13 +308,12 @@
       }
     }
 
-    // 번호로 구역을 찾는 스마트 검색 함수
     function searchZoneByNumber(targetNumStr) {
       for (const town in ZONE_DATABASE) {
         for (const village in ZONE_DATABASE[town]) {
           const zones = ZONE_DATABASE[town][village];
           for (const key in zones) {
-            const title = zones[key].newTopTitle; // 예: "안면 001 - 광지길 - 01"
+            const title = zones[key].newTopTitle; 
             if (title.includes(` ${targetNumStr} -`)) {
               return { town, village, zoneKey: key };
             }
@@ -340,7 +334,6 @@
       });
     }
 
-    // 방문 여부 확인용 헬퍼 함수 (기존 Boolean 방식과 새 Object 방식 모두 호환)
     function isAddressDone(safeKey) {
       const data = doneMap[safeKey];
       if (!data) return false;
@@ -402,7 +395,6 @@
         curZoneKey = "";
       }
       
-      // 시작화면에서 넘어올 때는 onZoneChange를 밖에서 호출하므로 여기서 자동 호출 생략방어
       if (map) onZoneChange();
     }
 
@@ -412,7 +404,6 @@
       renderCurrentList();
       if (map && geocoder) drawPinsForCurrentZone(true);
       
-      // 현재 선택된 구역 번호를 최근 방문 기록으로 저장
       const zone = getCurrentZoneObject();
       if (zone) {
         const match = zone.newTopTitle.match(/\d{3}/);
@@ -532,20 +523,17 @@
       const newState = !isCurrentlyDone;
 
       if (newState) {
-        // 방문 완료 시, 사용자 이름과 시간을 함께 저장
         db.ref('visits/' + safeKey).set({
           done: true,
           user: currentUser,
           timestamp: firebase.database.ServerValue.TIMESTAMP
         });
       } else {
-        // 미방문 처리 시 기록 삭제
         db.ref('visits/' + safeKey).remove();
       }
       
       const zone = getCurrentZoneObject();
       if (zone && zone.addrs && newState) {
-        // 방금 누른 것을 포함하여 구역 내 몇 개가 완료되었는지 체크
         const completedCount = zone.addrs.filter(a => isAddressDone(getFullAddr(a).replace(/[.#$[\]]/g, '_'))).length + 1;
         if (completedCount === zone.addrs.length) {
           setTimeout(() => alert(`🎉 수고하셨습니다!\n\n${currentUser} 전도인님, 해당 구역의 모든 방문을 완료했습니다.`), 300);
