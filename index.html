@@ -25,10 +25,7 @@
     body { background-color: #f1f5f9; overflow: hidden; height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
 
     /* 공통 모달 스타일 */
-    .modal-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 10000;
-    }
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 10000; }
     .modal-card { background: #fff; width: 85%; max-width: 320px; border-radius: 12px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
     .modal-card h3 { font-size: 16px; margin-bottom: 10px; color: #0f172a; }
     .modal-card textarea { width: 100%; height: 80px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; resize: none; outline: none; margin-bottom: 10px; font-size: 13px; }
@@ -37,23 +34,15 @@
     .btn-cancel { background: #e2e8f0; color: #475569; }
     .btn-save { background: #4a6da7; color: #fff; }
 
-    /* 시작 화면 (로그인) 스타일 - 배경 그라데이션 컬러 수정 */
-    #login-screen {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: linear-gradient(135deg, #4a6da7, #1e293b);
-      display: flex; justify-content: center; align-items: center; z-index: 9000;
-    }
+    /* 시작 화면 (로그인) 스타일 */
+    #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #4a6da7, #1e293b); display: flex; justify-content: center; align-items: center; z-index: 9000; }
     .btn-admin-gear { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; color: rgba(255,255,255,0.6); transition: 0.2s; }
     .btn-admin-gear:active { transform: rotate(90deg) scale(0.9); color: #fff; }
     .login-card { background: rgba(255, 255, 255, 0.95); padding: 40px 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 85%; max-width: 340px; text-align: center; }
     
-    /* -----------------------------------------
-       새로운 직각 로고 및 폭 맞춤 텍스트 스타일 
-       ----------------------------------------- */
     .brand-wrapper { width: 80px; margin: 0 auto 30px auto; display: flex; flex-direction: column; align-items: center; }
     .custom-logo { width: 100%; height: 80px; background-color: #4a6da7; color: white; display: flex; justify-content: center; align-items: center; font-size: 38px; font-weight: 900; margin: 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     .brand-text { width: 100%; display: flex; justify-content: space-between; color: #4a6da7; font-size: 16px; font-weight: 900; margin-top: 6px; }
-    /* ----------------------------------------- */
     
     .input-group { margin-bottom: 20px; text-align: left; }
     .input-group label { display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px; }
@@ -72,15 +61,22 @@
     .admin-section { background: white; border-radius: 8px; padding: 15px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
     .admin-section h2 { font-size: 15px; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
     
+    /* 통계 대시보드 전용 스타일 */
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .stat-card { background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center; }
+    .stat-card.full-width { grid-column: span 2; }
+    .stat-title { font-size: 11px; color: #64748b; font-weight: bold; margin-bottom: 4px; }
+    .stat-value { font-size: 20px; font-weight: 900; color: #4a6da7; }
+    .stat-subtext { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+    .stat-list { font-size: 12px; text-align: left; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #cbd5e1; }
+    .stat-list-item { display: flex; justify-content: space-between; margin-bottom: 4px; color: #334155; }
+    .stat-list-item strong { color: #0f172a; }
+
     .search-wrap { display: flex; margin-bottom: 10px; }
     .search-wrap input { flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; outline: none; }
-    
-    /* 초성 필터 바 스타일 */
     .consonant-filter { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
     .consonant-btn { padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px; background: white; font-size: 12px; cursor: pointer; color: #475569; }
     .consonant-btn.active { background: #4a6da7; color: white; border-color: #4a6da7; font-weight: bold; }
-
-    /* 페이지네이션 버튼 스타일 */
     .pagination { display: flex; justify-content: center; gap: 5px; margin-top: 15px; flex-wrap: wrap; }
     .page-btn { padding: 4px 10px; border: 1px solid #cbd5e1; border-radius: 4px; background: white; cursor: pointer; font-size: 12px; color: #475569; }
     .page-btn.active { background: #10b981; color: white; border-color: #10b981; font-weight: bold; }
@@ -93,7 +89,6 @@
     .add-pub-wrap { display: flex; gap: 8px; margin-bottom: 10px; }
     .add-pub-wrap input { flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; }
     .add-pub-wrap button { background: #10b981; color: white; border: none; padding: 8px 12px; border-radius: 4px; font-size: 13px; font-weight: bold; }
-    
     .comp-history-item { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; background: #f8fafc; border-radius: 4px; padding: 6px 8px; width: 100%; }
 
     /* 메인 앱 화면 스타일 */
@@ -173,30 +168,22 @@
   <div id="login-screen">
     <div class="btn-admin-gear" onclick="openAdmin()" title="관리자 페이지">⚙️</div>
     <div class="login-card">
-      
-      <!-- 정교하게 폭을 맞춘 자체 제작 로고 및 텍스트 영역 -->
       <div class="brand-wrapper">
         <div class="custom-logo">JW</div>
-        <div class="brand-text">
-          <span>구</span><span>역</span><span>카</span><span>드</span>
-        </div>
+        <div class="brand-text"><span>구</span><span>역</span><span>카</span><span>드</span></div>
       </div>
       
       <div class="input-group">
         <label>전도인</label>
         <input type="text" id="inputName" placeholder="이름을 입력하세요">
       </div>
-      
       <div class="input-group">
         <label>구역번호 (숫자만 입력 가능)</label>
         <input type="number" id="inputZoneNum" placeholder="구역번호를 입력하세요">
       </div>
       
       <button class="btn-start" onclick="startApp()">시 작</button>
-      
-      <div class="recent-visit" id="recentVisitDisplay">
-        최근 방문 기록이 없습니다.
-      </div>
+      <div class="recent-visit" id="recentVisitDisplay">최근 방문 기록이 없습니다.</div>
     </div>
   </div>
 
@@ -208,6 +195,14 @@
     </div>
     <div class="admin-content">
       
+      <!-- 📊 새롭게 추가된 통계 대시보드 섹션 -->
+      <div class="admin-section">
+        <h2>📊 구역 활동 통계</h2>
+        <div class="stats-grid" id="statsGridArea">
+          <!-- 통계 카드가 자바스크립트에 의해 이곳에 렌더링됩니다 -->
+        </div>
+      </div>
+
       <div class="admin-section">
         <h2>👥 전도인 관리</h2>
         <div class="add-pub-wrap">
@@ -215,7 +210,6 @@
           <button onclick="addPublisher()">추가</button>
         </div>
         <ul class="admin-list" id="adminPubList"></ul>
-        <!-- 초성 필터 버튼 영역 -->
         <div class="consonant-filter" id="pubFilterBar"></div>
       </div>
 
@@ -245,7 +239,6 @@
     <div class="header">
       <div class="header-top">
         <div class="title-group">
-          <!-- 심플한 라인 아이콘 (홈 버튼) -->
           <div class="btn-home" onclick="goHome()" title="첫 화면으로 돌아가기">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
@@ -320,6 +313,7 @@
     let currentMemoKey = "";
 
     window.addressToZoneMap = {};
+    window.zoneToRegionMap = {}; // 지역 통계를 위한 새 매핑 객체
 
     let currentPubFilter = "전체";
     const ITEMS_PER_PAGE = 10;
@@ -336,7 +330,7 @@
     }
 
     // ==========================================
-    // 3. 구역 데이터 명칭 포맷 변환
+    // 3. 구역 데이터 명칭 포맷 변환 및 통계 매핑
     // ==========================================
     function formatZoneData() {
       const regions = ["안면읍", "남면", "고남면"];
@@ -363,6 +357,9 @@
             zoneData.newTopTitle = `${prefixMap[region]} ${paddedCounter} - ${streetName} - ${zoneNum}`;
             zoneData.newSubTitle = `${streetName}-${zoneNum} (${detailInfo})`;
             zoneData.globalNum = paddedCounter;
+
+            // 통계를 위해 구역번호가 어느 행정구역인지 기록
+            window.zoneToRegionMap[paddedCounter] = region;
 
             if (zoneData.addrs) {
               zoneData.addrs.forEach(addr => {
@@ -404,7 +401,11 @@
     function initFirebaseGlobalSync() {
       db.ref('publishers').on('value', snap => { globalPublishers = snap.val() || {}; renderAdminPublishers(); });
       db.ref('memos').on('value', snap => { globalMemos = snap.val() || {}; renderAdminMemos(); refreshSoftUI(); });
-      db.ref('zone_completions').on('value', snap => { globalCompletions = snap.val() || {}; renderAdminCompletions(); });
+      db.ref('zone_completions').on('value', snap => { 
+        globalCompletions = snap.val() || {}; 
+        renderAdminCompletions(); 
+        renderAdminStats(); // 완료 데이터가 갱신될 때마다 통계도 업데이트
+      });
       db.ref('visits').on('value', snap => { doneMap = snap.val() || {}; updateProgressUI(); refreshSoftUI(); });
     }
 
@@ -414,13 +415,11 @@
 
       if (!nameVal) { alert("전도인 이름을 입력해주세요."); return; }
       if (Object.keys(globalPublishers).length > 0 && !globalPublishers[nameVal]) {
-        alert("등록된 전도인이 아닙니다. 관리자에게 문의하세요.");
-        return;
+        alert("등록된 전도인이 아닙니다. 관리자에게 문의하세요."); return;
       }
 
       currentUser = nameVal;
       localStorage.setItem('ammap_username', currentUser);
-      
       document.getElementById('mainHeaderTitle').innerHTML = `전도인: <span style="color:#ffffff;">${currentUser}</span>`;
 
       document.getElementById('login-screen').style.display = 'none';
@@ -446,24 +445,103 @@
       document.getElementById('main-app').style.display = 'none';
       document.getElementById('login-screen').style.display = 'flex';
       document.getElementById('inputZoneNum').value = '';
-
       const savedZone = localStorage.getItem('ammap_recentzone') || "";
       if (savedZone) document.getElementById('recentVisitDisplay').innerHTML = `최근 방문<br><strong>${savedZone} 번</strong>`;
     }
 
     // ==========================================
-    // 5. 관리자 페이지 로직
+    // 5. 관리자 페이지 로직 (통계 대시보드 추가)
     // ==========================================
     function openAdmin() {
       const pwd = prompt("관리자 비밀번호를 입력하세요.");
       if (pwd === "1234") { 
         document.getElementById('admin-screen').style.display = 'flex';
+        renderAdminStats(); // 관리자 화면을 열 때 통계 새로고침
       } else if (pwd !== null) {
         alert("비밀번호가 일치하지 않습니다.");
       }
     }
     function closeAdmin() { document.getElementById('admin-screen').style.display = 'none'; }
 
+    // 📊 통계 대시보드 렌더링 함수
+    function renderAdminStats() {
+      const grid = document.getElementById('statsGridArea');
+      
+      // 1. 전체 구역 수 및 완료율 계산
+      let totalZonesCount = Object.keys(window.zoneToRegionMap).length;
+      let completedZonesCount = Object.keys(globalCompletions).filter(num => globalCompletions[num] && globalCompletions[num].history && globalCompletions[num].history.length > 0).length;
+      let progressPct = totalZonesCount > 0 ? Math.round((completedZonesCount / totalZonesCount) * 100) : 0;
+
+      // 2. 지역별 완료 현황
+      let regionTotal = { "안면읍": 0, "남면": 0, "고남면": 0 };
+      let regionDone = { "안면읍": 0, "남면": 0, "고남면": 0 };
+      
+      Object.keys(window.zoneToRegionMap).forEach(num => {
+        const r = window.zoneToRegionMap[num];
+        if(regionTotal[r] !== undefined) regionTotal[r]++;
+      });
+      
+      Object.keys(globalCompletions).forEach(num => {
+        const history = globalCompletions[num].history || [];
+        if (history.length > 0) {
+          const r = window.zoneToRegionMap[num];
+          if(regionDone[r] !== undefined) regionDone[r]++;
+        }
+      });
+
+      // 3. 전도인별 활동 랭킹 및 기간별 추이 계산
+      let pubCounts = {};
+      let last7Days = 0;
+      let last30Days = 0;
+      const now = Date.now();
+
+      Object.values(globalCompletions).forEach(data => {
+        const history = data.history || [];
+        history.forEach(record => {
+          // 전도인 집계
+          pubCounts[record.user] = (pubCounts[record.user] || 0) + 1;
+          // 날짜 집계
+          const diffDays = (now - record.timestamp) / (1000 * 60 * 60 * 24);
+          if (diffDays <= 7) last7Days++;
+          if (diffDays <= 30) last30Days++;
+        });
+      });
+
+      // 랭킹 정렬 (상위 3명)
+      const sortedPubs = Object.keys(pubCounts).map(user => ({ user, count: pubCounts[user] })).sort((a, b) => b.count - a.count);
+      const top3HTML = sortedPubs.slice(0, 3).map((p, i) => `<div class="stat-list-item"><span>${i+1}위. ${p.user}</span><strong>${p.count}회</strong></div>`).join('') || '<div class="stat-subtext">기록 없음</div>';
+
+      // 지역 현황 HTML
+      const getRegHTML = (name) => `<div class="stat-list-item"><span>${name}</span><strong>${regionDone[name]}/${regionTotal[name]}</strong></div>`;
+
+      // HTML 화면 그리기
+      grid.innerHTML = `
+        <div class="stat-card">
+          <div class="stat-title">전체 진행률</div>
+          <div class="stat-value">${progressPct}%</div>
+          <div class="stat-subtext">${completedZonesCount} / ${totalZonesCount} 구역</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">최근 완료 추이</div>
+          <div class="stat-value">${last7Days}건</div>
+          <div class="stat-subtext">최근 7일 기준 (30일: ${last30Days}건)</div>
+        </div>
+        <div class="stat-card full-width">
+          <div class="stat-title">🏆 전도인 누적 완료 랭킹</div>
+          <div class="stat-list">${top3HTML}</div>
+        </div>
+        <div class="stat-card full-width">
+          <div class="stat-title">📍 지역별 현황</div>
+          <div class="stat-list">
+            ${getRegHTML('안면읍')}
+            ${getRegHTML('남면')}
+            ${getRegHTML('고남면')}
+          </div>
+        </div>
+      `;
+    }
+
+    // 초성 필터, 전도인 관리, 페이징 로직 등 유지
     function initConsonantFilter() {
       const bar = document.getElementById('pubFilterBar');
       bar.innerHTML = '';
@@ -503,7 +581,6 @@
       if(!confirm(`해당 구역의 완료 기록을 삭제하시겠습니까?`)) return;
       const history = globalCompletions[zoneNum].history || [];
       history.splice(index, 1);
-      
       if (history.length === 0) db.ref('zone_completions/' + zoneNum).remove();
       else db.ref('zone_completions/' + zoneNum + '/history').set(history);
     }
@@ -513,7 +590,6 @@
     function renderAdminCompletions() {
       const searchVal = document.getElementById('searchComp').value.trim();
       let listArr = [];
-
       Object.keys(globalCompletions).forEach(zoneNum => {
         if (searchVal && !zoneNum.includes(searchVal)) return;
         const history = globalCompletions[zoneNum].history || [];
@@ -523,7 +599,6 @@
 
       const totalPages = Math.ceil(listArr.length / ITEMS_PER_PAGE) || 1;
       if (currentCompPage > totalPages) currentCompPage = totalPages;
-      
       const startIdx = (currentCompPage - 1) * ITEMS_PER_PAGE;
       const paginatedList = listArr.slice(startIdx, startIdx + ITEMS_PER_PAGE);
 
@@ -531,26 +606,14 @@
       ul.innerHTML = '';
       paginatedList.forEach(data => {
         const li = document.createElement('li');
-        li.style.flexDirection = 'column';
-        li.style.alignItems = 'flex-start';
-        
-        let html = `<div style="width:100%; border-bottom:1px solid #e2e8f0; padding-bottom:4px; margin-bottom:4px;">
-                      <strong style="color:#0ea5e9;">${data.zoneNum}번 구역</strong> (총 ${data.history.length}회 완료)
-                    </div>`;
-
+        li.style.flexDirection = 'column'; li.style.alignItems = 'flex-start';
+        let html = `<div style="width:100%; border-bottom:1px solid #e2e8f0; padding-bottom:4px; margin-bottom:4px;"><strong style="color:#4a6da7;">${data.zoneNum}번 구역</strong> (총 ${data.history.length}회 완료)</div>`;
         data.history.forEach((record, index) => {
           const dateStr = new Date(record.timestamp).toLocaleDateString();
-          html += `
-            <div class="comp-history-item">
-              <span>${index + 1}회: <strong>${record.user}</strong> / ${dateStr}</span>
-              <button class="btn-delete" onclick="removeCompletion('${data.zoneNum}', ${index})">삭제</button>
-            </div>
-          `;
+          html += `<div class="comp-history-item"><span>${index + 1}회: <strong>${record.user}</strong> / ${dateStr}</span><button class="btn-delete" onclick="removeCompletion('${data.zoneNum}', ${index})">삭제</button></div>`;
         });
-        li.innerHTML = html;
-        ul.appendChild(li);
+        li.innerHTML = html; ul.appendChild(li);
       });
-
       renderPagination('compPagination', totalPages, currentCompPage, (p) => { currentCompPage = p; renderAdminCompletions(); });
     }
 
@@ -559,7 +622,6 @@
     function renderAdminMemos() {
       const searchVal = document.getElementById('searchMemo').value.trim();
       let listArr = [];
-
       Object.keys(globalMemos).forEach(safeKey => {
         const zoneNum = window.addressToZoneMap[safeKey] || "알수없음";
         if (searchVal && !zoneNum.includes(searchVal)) return;
@@ -568,7 +630,6 @@
 
       const totalPages = Math.ceil(listArr.length / ITEMS_PER_PAGE) || 1;
       if (currentMemoPage > totalPages) currentMemoPage = totalPages;
-      
       const startIdx = (currentMemoPage - 1) * ITEMS_PER_PAGE;
       const paginatedList = listArr.slice(startIdx, startIdx + ITEMS_PER_PAGE);
 
@@ -576,19 +637,10 @@
       ul.innerHTML = '';
       paginatedList.forEach(data => {
         const displayAddr = data.safeKey.replace(/_/g, ' '); 
-        const li = document.createElement('li');
-        li.style.alignItems = 'flex-start';
-        li.innerHTML = `
-          <div style="flex:1;">
-            <span style="font-size:11px; color:#0ea5e9; font-weight:bold;">[${data.zoneNum}번 구역]</span><br>
-            <strong>${displayAddr}</strong><br>
-            <span style="color:#ef4444">${data.text}</span>
-          </div> 
-          <button class="btn-delete" style="margin-top:14px;" onclick="db.ref('memos/${data.safeKey}').remove()">삭제</button>
-        `;
+        const li = document.createElement('li'); li.style.alignItems = 'flex-start';
+        li.innerHTML = `<div style="flex:1;"><span style="font-size:11px; color:#4a6da7; font-weight:bold;">[${data.zoneNum}번 구역]</span><br><strong>${displayAddr}</strong><br><span style="color:#ef4444">${data.text}</span></div><button class="btn-delete" style="margin-top:14px;" onclick="db.ref('memos/${data.safeKey}').remove()">삭제</button>`;
         ul.appendChild(li);
       });
-
       renderPagination('memoPagination', totalPages, currentMemoPage, (p) => { currentMemoPage = p; renderAdminMemos(); });
     }
 
@@ -596,18 +648,15 @@
       const container = document.getElementById(containerId);
       container.innerHTML = '';
       if (totalPages <= 1) return;
-
       for (let i = 1; i <= totalPages; i++) {
         const btn = document.createElement('button');
         btn.className = 'page-btn' + (i === currentPage ? ' active' : '');
-        btn.innerText = i;
-        btn.onclick = () => callback(i);
-        container.appendChild(btn);
+        btn.innerText = i; btn.onclick = () => callback(i); container.appendChild(btn);
       }
     }
 
     // ==========================================
-    // 6. 메모 작성 팝업 로직
+    // 6. 기타 필수 로직 유지 (메모, 리스트, 핀 등)
     // ==========================================
     function openMemoModal(shortAddr, idx) {
       const fullAddr = getFullAddr(shortAddr);
@@ -626,9 +675,6 @@
       closeMemoModal();
     }
 
-    // ==========================================
-    // 7. 구역 선택 및 리스트 렌더링
-    // ==========================================
     function processZoneSelection(zoneNumVal) {
       if (zoneNumVal) {
          const searchTarget = String(zoneNumVal).padStart(3, '0');
@@ -639,8 +685,7 @@
             document.getElementById('selZone').value = found.zoneKey; onZoneChange();
             localStorage.setItem('ammap_recentzone', searchTarget);
          } else {
-            alert("입력하신 번호에 해당하는 구역을 찾지 못했습니다.\n기본 구역으로 시작합니다.");
-            onZoneChange();
+            alert("입력하신 번호에 해당하는 구역을 찾지 못했습니다.\n기본 구역으로 시작합니다."); onZoneChange();
          }
       } else { onZoneChange(); }
     }
@@ -649,62 +694,43 @@
       for (const town in ZONE_DATABASE) {
         for (const village in ZONE_DATABASE[town]) {
           const zones = ZONE_DATABASE[town][village];
-          for (const key in zones) {
-            if (zones[key].globalNum === targetNumStr) return { town, village, zoneKey: key };
-          }
+          for (const key in zones) { if (zones[key].globalNum === targetNumStr) return { town, village, zoneKey: key }; }
         }
       }
       return null;
     }
 
     function initDropdowns() {
-      const tSelect = document.getElementById('selTown');
-      tSelect.innerHTML = '';
+      const tSelect = document.getElementById('selTown'); tSelect.innerHTML = '';
       const towns = Object.keys(ZONE_DATABASE).filter(t => Object.keys(ZONE_DATABASE[t] || {}).length > 0);
-      towns.forEach(town => {
-        const opt = document.createElement('option'); opt.value = town; opt.innerText = town; tSelect.appendChild(opt);
-      });
+      towns.forEach(town => { const opt = document.createElement('option'); opt.value = town; opt.innerText = town; tSelect.appendChild(opt); });
       curTown = towns.includes("안면읍") ? "안면읍" : (towns[0] || "안면읍");
       tSelect.value = curTown; updateVillageDropdown();
     }
 
     function onTownChange() { curTown = document.getElementById('selTown').value; updateVillageDropdown(); }
     function onVillageChange() { curVillage = document.getElementById('selVillage').value; updateZoneDropdown(); }
-
     function updateVillageDropdown() {
-      const vSelect = document.getElementById('selVillage');
-      vSelect.innerHTML = '';
+      const vSelect = document.getElementById('selVillage'); vSelect.innerHTML = '';
       const villages = Object.keys(ZONE_DATABASE[curTown] || {});
-      villages.forEach(v => {
-        const opt = document.createElement('option'); opt.value = v; opt.innerText = v; vSelect.appendChild(opt);
-      });
-      curVillage = villages[0] || '';
-      vSelect.value = curVillage; updateZoneDropdown();
+      villages.forEach(v => { const opt = document.createElement('option'); opt.value = v; opt.innerText = v; vSelect.appendChild(opt); });
+      curVillage = villages[0] || ''; vSelect.value = curVillage; updateZoneDropdown();
     }
 
     function updateZoneDropdown() {
-      const zSelect = document.getElementById('selZone');
-      zSelect.innerHTML = '';
+      const zSelect = document.getElementById('selZone'); zSelect.innerHTML = '';
       const zones = ZONE_DATABASE[curTown]?.[curVillage] || {};
       const zoneKeys = Object.keys(zones);
-
       if (zoneKeys.length > 0) {
-        zoneKeys.forEach(k => {
-          const opt = document.createElement('option'); opt.value = k; opt.innerText = zones[k].newTopTitle; zSelect.appendChild(opt);
-        });
+        zoneKeys.forEach(k => { const opt = document.createElement('option'); opt.value = k; opt.innerText = zones[k].newTopTitle; zSelect.appendChild(opt); });
         curZoneKey = zoneKeys[0];
-      } else {
-        zSelect.innerHTML = '<option value="">구역 준비중</option>'; curZoneKey = "";
-      }
+      } else { zSelect.innerHTML = '<option value="">구역 준비중</option>'; curZoneKey = ""; }
       if (map) onZoneChange();
     }
 
     function onZoneChange() {
-      curZoneKey = document.getElementById('selZone').value;
-      focusedAddr = null;
-      renderCurrentList();
+      curZoneKey = document.getElementById('selZone').value; focusedAddr = null; renderCurrentList();
       if (map && geocoder) drawPinsForCurrentZone(true);
-      
       const zone = getCurrentZoneObject();
       if (zone && zone.globalNum) localStorage.setItem('ammap_recentzone', zone.globalNum);
     }
@@ -713,128 +739,59 @@
       if (!curTown || !curVillage || !curZoneKey) return null;
       return ZONE_DATABASE[curTown]?.[curVillage]?.[curZoneKey] || null;
     }
-
-    function getFullAddr(shortAddr) {
-      if (shortAddr.startsWith("충청남도")) return shortAddr;
-      return `충청남도 태안군 ${curTown} ${shortAddr}`;
-    }
-
-    function isAddressDone(safeKey) {
-      const data = doneMap[safeKey];
-      if (!data) return false;
-      return (data === true) || (data.done === true);
-    }
+    function getFullAddr(shortAddr) { return shortAddr.startsWith("충청남도") ? shortAddr : `충청남도 태안군 ${curTown} ${shortAddr}`; }
+    function isAddressDone(safeKey) { const data = doneMap[safeKey]; if (!data) return false; return (data === true) || (data.done === true); }
 
     function updateProgressUI() {
       const zone = getCurrentZoneObject();
-      if (!zone || !zone.addrs || zone.addrs.length === 0) {
-        document.getElementById('progRatio').innerText = '0 / 0 (0%)'; return;
-      }
+      if (!zone || !zone.addrs || zone.addrs.length === 0) { document.getElementById('progRatio').innerText = '0 / 0 (0%)'; return; }
       let doneCnt = 0;
-      zone.addrs.forEach(addr => {
-        const safeKey = getFullAddr(addr).replace(/[.#$[\]]/g, '_');
-        if (isAddressDone(safeKey)) doneCnt++;
-      });
-      const pct = Math.round((doneCnt / zone.addrs.length) * 100);
-      document.getElementById('progRatio').innerText = `${doneCnt} / ${zone.addrs.length} (${pct}%)`;
+      zone.addrs.forEach(addr => { if (isAddressDone(getFullAddr(addr).replace(/[.#$[\]]/g, '_'))) doneCnt++; });
+      document.getElementById('progRatio').innerText = `${doneCnt} / ${zone.addrs.length} (${Math.round((doneCnt / zone.addrs.length) * 100)}%)`;
     }
 
     function renderCurrentList() {
-      const zone = getCurrentZoneObject();
-      const listEl = document.getElementById('listArea');
-      listEl.innerHTML = '';
-
-      if (!zone || !zone.addrs || zone.addrs.length === 0) {
-        document.getElementById('subZoneTitle').innerText = `주소 데이터 준비 중`;
-        document.getElementById('pinCount').innerText = '핀: 0개';
-        updateProgressUI(); return;
-      }
-
+      const zone = getCurrentZoneObject(); const listEl = document.getElementById('listArea'); listEl.innerHTML = '';
+      if (!zone || !zone.addrs || zone.addrs.length === 0) { document.getElementById('subZoneTitle').innerText = `주소 데이터 준비 중`; document.getElementById('pinCount').innerText = '핀: 0개'; updateProgressUI(); return; }
       document.getElementById('subZoneTitle').innerText = zone.newSubTitle;
 
       zone.addrs.forEach((shortAddr, idx) => {
-        const fullAddr = getFullAddr(shortAddr);
-        const safeKey = fullAddr.replace(/[.#$[\]]/g, '_');
-        const isDone = isAddressDone(safeKey);
-        const isFocused = (focusedAddr === shortAddr);
-        const memoText = globalMemos[safeKey] || "";
-
-        const card = document.createElement('div');
-        card.id = `card-addr-${idx}`;
-        card.className = 'house-card' + (isDone ? ' completed' : '') + (isFocused ? ' focused' : '');
-        card.innerHTML = `
-          <div class="house-card-top">
-            <div class="address-text" onclick="focusSingleAddress('${shortAddr}', ${idx})">#${idx + 1}. ${shortAddr}</div>
-            <div class="btn-wrap">
-              <button class="btn-memo" onclick="openMemoModal('${shortAddr}', ${idx})">📝</button>
-              <a class="btn-navi" href="https://map.kakao.com/link/search/${encodeURIComponent(fullAddr)}" target="_blank">안내</a>
-              <button id="btn-check-${idx}" class="btn-check ${isDone ? 'completed' : ''}" onclick="toggleDone('${shortAddr}', ${idx})">${isDone ? '완료' : '미방문'}</button>
-            </div>
-          </div>
-          <div id="memo-display-${idx}" class="memo-display ${memoText ? 'has-memo' : ''}">↳ 메모: ${memoText}</div>
-        `;
+        const fullAddr = getFullAddr(shortAddr); const safeKey = fullAddr.replace(/[.#$[\]]/g, '_');
+        const isDone = isAddressDone(safeKey); const isFocused = (focusedAddr === shortAddr); const memoText = globalMemos[safeKey] || "";
+        const card = document.createElement('div'); card.id = `card-addr-${idx}`; card.className = 'house-card' + (isDone ? ' completed' : '') + (isFocused ? ' focused' : '');
+        card.innerHTML = `<div class="house-card-top"><div class="address-text" onclick="focusSingleAddress('${shortAddr}', ${idx})">#${idx + 1}. ${shortAddr}</div><div class="btn-wrap"><button class="btn-memo" onclick="openMemoModal('${shortAddr}', ${idx})">📝</button><a class="btn-navi" href="https://map.kakao.com/link/search/${encodeURIComponent(fullAddr)}" target="_blank">안내</a><button id="btn-check-${idx}" class="btn-check ${isDone ? 'completed' : ''}" onclick="toggleDone('${shortAddr}', ${idx})">${isDone ? '완료' : '미방문'}</button></div></div><div id="memo-display-${idx}" class="memo-display ${memoText ? 'has-memo' : ''}">↳ 메모: ${memoText}</div>`;
         listEl.appendChild(card);
       });
       updateProgressUI();
     }
 
     function refreshSoftUI() {
-      const zone = getCurrentZoneObject();
-      if (!zone || !zone.addrs) return;
-
+      const zone = getCurrentZoneObject(); if (!zone || !zone.addrs) return;
       zone.addrs.forEach((shortAddr, idx) => {
-        const fullAddr = getFullAddr(shortAddr);
-        const safeKey = fullAddr.replace(/[.#$[\]]/g, '_');
-        const isDone = isAddressDone(safeKey);
-        const memoText = globalMemos[safeKey] || "";
-        
-        const card = document.getElementById(`card-addr-${idx}`);
-        const btn = document.getElementById(`btn-check-${idx}`);
-        const memoDiv = document.getElementById(`memo-display-${idx}`);
-        
+        const safeKey = getFullAddr(shortAddr).replace(/[.#$[\]]/g, '_'); const isDone = isAddressDone(safeKey); const memoText = globalMemos[safeKey] || "";
+        const card = document.getElementById(`card-addr-${idx}`); const btn = document.getElementById(`btn-check-${idx}`); const memoDiv = document.getElementById(`memo-display-${idx}`);
         if (card && btn) {
-          if (isDone) { card.classList.add('completed'); btn.classList.add('completed'); btn.innerText = '완료'; } 
-          else { card.classList.remove('completed'); btn.classList.remove('completed'); btn.innerText = '미방문'; }
+          if (isDone) { card.classList.add('completed'); btn.classList.add('completed'); btn.innerText = '완료'; } else { card.classList.remove('completed'); btn.classList.remove('completed'); btn.innerText = '미방문'; }
         }
-        if (memoDiv) {
-          if (memoText) { memoDiv.innerText = `↳ 메모: ${memoText}`; memoDiv.classList.add('has-memo'); } 
-          else { memoDiv.classList.remove('has-memo'); }
-        }
+        if (memoDiv) { if (memoText) { memoDiv.innerText = `↳ 메모: ${memoText}`; memoDiv.classList.add('has-memo'); } else { memoDiv.classList.remove('has-memo'); } }
         if (markersMap[shortAddr]) markersMap[shortAddr].setImage(getMarkerImage(isDone, false));
-        
-        const tagEl = document.getElementById(`map-tag-${idx}`);
-        if (tagEl) {
-          if (isDone) tagEl.classList.add('done'); else tagEl.classList.remove('done');
-        }
+        const tagEl = document.getElementById(`map-tag-${idx}`); if (tagEl) { if (isDone) tagEl.classList.add('done'); else tagEl.classList.remove('done'); }
       });
     }
 
-    // ==========================================
-    // 8. 방문 처리 및 구역 완료 기록 로직
-    // ==========================================
     function toggleDone(shortAddr, idx) {
-      const fullAddr = getFullAddr(shortAddr);
-      const safeKey = fullAddr.replace(/[.#$[\]]/g, '_'); 
-      const isCurrentlyDone = isAddressDone(safeKey);
-      const newState = !isCurrentlyDone;
-
-      if (newState) {
-        db.ref('visits/' + safeKey).set({ done: true, user: currentUser, timestamp: firebase.database.ServerValue.TIMESTAMP });
-      } else {
-        db.ref('visits/' + safeKey).remove();
-      }
+      const safeKey = getFullAddr(shortAddr).replace(/[.#$[\]]/g, '_'); const isCurrentlyDone = isAddressDone(safeKey); const newState = !isCurrentlyDone;
+      if (newState) db.ref('visits/' + safeKey).set({ done: true, user: currentUser, timestamp: firebase.database.ServerValue.TIMESTAMP });
+      else db.ref('visits/' + safeKey).remove();
       
       const zone = getCurrentZoneObject();
       if (zone && zone.addrs && newState) {
         const completedCount = zone.addrs.filter(a => isAddressDone(getFullAddr(a).replace(/[.#$[\]]/g, '_'))).length + (isCurrentlyDone ? 0 : 1);
-        
         if (completedCount === zone.addrs.length) {
           const zoneGlobalNum = zone.globalNum;
           db.ref('zone_completions/' + zoneGlobalNum).once('value').then(snap => {
-            let data = snap.val() || { history: [] };
-            if(!data.history) data.history = [];
-            data.history.push({ user: currentUser, timestamp: Date.now() });
-            db.ref('zone_completions/' + zoneGlobalNum).set(data);
+            let data = snap.val() || { history: [] }; if(!data.history) data.history = [];
+            data.history.push({ user: currentUser, timestamp: Date.now() }); db.ref('zone_completions/' + zoneGlobalNum).set(data);
           });
           setTimeout(() => alert(`🎉 수고하셨습니다!\n\n${currentUser} 전도인님, 해당 구역의 모든 방문을 완료했습니다.`), 300);
         }
@@ -842,164 +799,73 @@
     }
 
     function resetCurrentZone() {
-      const zone = getCurrentZoneObject();
-      if (!zone || !zone.addrs || zone.addrs.length === 0) return;
-
+      const zone = getCurrentZoneObject(); if (!zone || !zone.addrs || zone.addrs.length === 0) return;
       if (!confirm(`이 구역의 방문 기록을 '미방문'으로 초기화하시겠습니까?\n(메모는 삭제되지 않으며, 방문 기록만 즉시 초기화됩니다)`)) return;
-
-      zone.addrs.forEach(shortAddr => {
-        const safeKey = getFullAddr(shortAddr).replace(/[.#$[\]]/g, '_');
-        db.ref('visits/' + safeKey).remove(); 
-      });
+      zone.addrs.forEach(shortAddr => { db.ref('visits/' + getFullAddr(shortAddr).replace(/[.#$[\]]/g, '_')).remove(); });
     }
 
-    // ==========================================
-    // 9. 지도 핀 관리
-    // ==========================================
     function getMarkerImage(isDone, isLarge = false) {
-      const w = isLarge ? 34 : 26, h = isLarge ? 44 : 34;
-      const fillColor = isDone ? '#10b981' : '#ef4444';
-      const strokeColor = isDone ? '#047857' : '#b91c1c';
+      const w = isLarge ? 34 : 26, h = isLarge ? 44 : 34; const fillColor = isDone ? '#10b981' : '#ef4444'; const strokeColor = isDone ? '#047857' : '#b91c1c';
       const svgInner = isDone ? `<path fill="#ffffff" d="M11 17.5l-3-3 1.4-1.4 1.6 1.6 4.6-4.6 1.4 1.4z"/>` : `<circle cx="13" cy="14" r="4" fill="#ffffff"/>`;
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 26 34"><path fill="${fillColor}" stroke="${strokeColor}" stroke-width="1.5" d="M13 1C6.4 1 1 6.4 1 13c0 8.5 12 20 12 20s12-11.5 12-20c0-6.6-5.4-12-12-12z"/>${svgInner}</svg>`;
       return new kakao.maps.MarkerImage('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg), new kakao.maps.Size(w, h), { offset: new kakao.maps.Point(w / 2, h) });
     }
 
     function clearAllMapMarkers() {
-      Object.values(markersMap).forEach(m => m.setMap(null)); markersMap = {};
-      Object.values(overlaysMap).forEach(o => o.setMap(null)); overlaysMap = {};
-      if (singleMarker) { singleMarker.setMap(null); singleMarker = null; }
-      if (activeOverlay) { activeOverlay.setMap(null); activeOverlay = null; }
+      Object.values(markersMap).forEach(m => m.setMap(null)); markersMap = {}; Object.values(overlaysMap).forEach(o => o.setMap(null)); overlaysMap = {};
+      if (singleMarker) { singleMarker.setMap(null); singleMarker = null; } if (activeOverlay) { activeOverlay.setMap(null); activeOverlay = null; }
     }
 
     function drawPinsForCurrentZone(fitBounds = false) {
-      clearAllMapMarkers();
-      const zone = getCurrentZoneObject();
-      if (!zone || !zone.addrs || !geocoder) return;
-
-      const session = ++currentDrawSession;
-      const bounds = new kakao.maps.LatLngBounds();
-      const coordBuckets = {}; 
-      let pinnedCount = 0, processedCount = 0;
-      const totalCount = zone.addrs.length;
-
-      document.getElementById('pinCount').innerText = `핀: 0 / ${totalCount}개`;
+      clearAllMapMarkers(); const zone = getCurrentZoneObject(); if (!zone || !zone.addrs || !geocoder) return;
+      const session = ++currentDrawSession; const bounds = new kakao.maps.LatLngBounds(); const coordBuckets = {}; 
+      let pinnedCount = 0, processedCount = 0; const totalCount = zone.addrs.length; document.getElementById('pinCount').innerText = `핀: 0 / ${totalCount}개`;
 
       zone.addrs.forEach((shortAddr, idx) => {
-        const fullAddr = getFullAddr(shortAddr);
-        const labelText = `#${idx + 1} ${shortAddr}`;
-
+        const fullAddr = getFullAddr(shortAddr); const labelText = `#${idx + 1} ${shortAddr}`;
         const placePin = (coords) => {
-          if (session !== currentDrawSession) return;
-          const key = `${coords.getLat().toFixed(5)},${coords.getLng().toFixed(5)}`;
-          let pos = coords;
-          if (coordBuckets[key]) {
-            const c = coordBuckets[key];
-            const angle = c * 2.39996, dist = 0.000045 * Math.sqrt(c);
-            pos = new kakao.maps.LatLng(coords.getLat() + Math.sin(angle) * dist, coords.getLng() + Math.cos(angle) * dist);
-            coordBuckets[key]++;
-          } else { coordBuckets[key] = 1; }
-
-          addMarkerWithLabel(shortAddr, fullAddr, pos, labelText, idx);
-          bounds.extend(pos);
-          pinnedCount++;
-          document.getElementById('pinCount').innerText = `핀: ${pinnedCount} / ${totalCount}개`;
-
-          processedCount++;
-          if (processedCount === totalCount && fitBounds && !focusedAddr && pinnedCount > 0) {
-            pinnedCount === 1 ? (map.setCenter(pos), map.setLevel(4)) : map.setBounds(bounds, 30);
-          }
+          if (session !== currentDrawSession) return; const key = `${coords.getLat().toFixed(5)},${coords.getLng().toFixed(5)}`; let pos = coords;
+          if (coordBuckets[key]) { const c = coordBuckets[key]; const angle = c * 2.39996, dist = 0.000045 * Math.sqrt(c); pos = new kakao.maps.LatLng(coords.getLat() + Math.sin(angle) * dist, coords.getLng() + Math.cos(angle) * dist); coordBuckets[key]++; } else { coordBuckets[key] = 1; }
+          addMarkerWithLabel(shortAddr, fullAddr, pos, labelText, idx); bounds.extend(pos); pinnedCount++; document.getElementById('pinCount').innerText = `핀: ${pinnedCount} / ${totalCount}개`;
+          processedCount++; if (processedCount === totalCount && fitBounds && !focusedAddr && pinnedCount > 0) { pinnedCount === 1 ? (map.setCenter(pos), map.setLevel(4)) : map.setBounds(bounds, 30); }
         };
 
         if (addrCoordCache[fullAddr]) placePin(addrCoordCache[fullAddr]);
         else {
           geocoder.addressSearch(fullAddr, function(result, status) {
-            if (status === kakao.maps.services.Status.OK) {
-              const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
-              addrCoordCache[fullAddr] = coords; placePin(coords);
-            } else {
-              const fallbackAddr = fullAddr.replace(/-\d+$/, '');
-              if (fallbackAddr !== fullAddr) {
-                geocoder.addressSearch(fallbackAddr, function(fRes, fStat) {
-                  if (fStat === kakao.maps.services.Status.OK) {
-                    const fCoords = new kakao.maps.LatLng(fRes[0].y, fRes[0].x);
-                    addrCoordCache[fullAddr] = fCoords; placePin(fCoords);
-                  } else { processedCount++; }
-                });
-              } else { processedCount++; }
-            }
+            if (status === kakao.maps.services.Status.OK) { const coords = new kakao.maps.LatLng(result[0].y, result[0].x); addrCoordCache[fullAddr] = coords; placePin(coords); } 
+            else { const fallbackAddr = fullAddr.replace(/-\d+$/, ''); if (fallbackAddr !== fullAddr) { geocoder.addressSearch(fallbackAddr, function(fRes, fStat) { if (fStat === kakao.maps.services.Status.OK) { const fCoords = new kakao.maps.LatLng(fRes[0].y, fRes[0].x); addrCoordCache[fullAddr] = fCoords; placePin(fCoords); } else { processedCount++; } }); } else { processedCount++; } }
           });
         }
       });
     }
 
     function addMarkerWithLabel(shortAddr, fullAddr, pos, labelText, idx) {
-      const safeKey = fullAddr.replace(/[.#$[\]]/g, '_');
-      const isDone = isAddressDone(safeKey);
-      const marker = new kakao.maps.Marker({ map: map, position: pos, image: getMarkerImage(isDone, false) });
+      const safeKey = fullAddr.replace(/[.#$[\]]/g, '_'); const isDone = isAddressDone(safeKey); const marker = new kakao.maps.Marker({ map: map, position: pos, image: getMarkerImage(isDone, false) });
       kakao.maps.event.addListener(marker, 'click', () => focusSingleAddress(shortAddr, idx));
-      const labelOverlay = new kakao.maps.CustomOverlay({
-        position: pos, content: `<div id="map-tag-${idx}" class="map-addr-tag ${isDone ? 'done' : ''}">${labelText}</div>`, xAnchor: 0.5, yAnchor: 0.5, map: map
-      });
+      const labelOverlay = new kakao.maps.CustomOverlay({ position: pos, content: `<div id="map-tag-${idx}" class="map-addr-tag ${isDone ? 'done' : ''}">${labelText}</div>`, xAnchor: 0.5, yAnchor: 0.5, map: map });
       markersMap[shortAddr] = marker; overlaysMap[shortAddr] = labelOverlay;
     }
 
     function focusSingleAddress(shortAddr, idx) {
-      if (!map) return;
-      focusedAddr = shortAddr;
-      currentDrawSession++;
-
+      if (!map) return; focusedAddr = shortAddr; currentDrawSession++;
       document.querySelectorAll('.house-card').forEach(c => c.classList.remove('focused'));
-      const targetCard = document.getElementById(`card-addr-${idx}`);
-      if (targetCard) {
-        targetCard.classList.add('focused');
-        targetCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
-
-      clearAllMapMarkers();
-      const fullAddr = getFullAddr(shortAddr);
-
+      const targetCard = document.getElementById(`card-addr-${idx}`); if (targetCard) { targetCard.classList.add('focused'); targetCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+      clearAllMapMarkers(); const fullAddr = getFullAddr(shortAddr);
       const showPin = (pos) => {
-        const safeKey = fullAddr.replace(/[.#$[\]]/g, '_');
-        const isDone = isAddressDone(safeKey);
+        const safeKey = fullAddr.replace(/[.#$[\]]/g, '_'); const isDone = isAddressDone(safeKey);
         singleMarker = new kakao.maps.Marker({ map: map, position: pos, image: getMarkerImage(isDone, true) });
-        activeOverlay = new kakao.maps.CustomOverlay({
-          position: pos,
-          content: `<div class="custom-speech-bubble ${isDone ? 'done' : ''}"><div class="bubble-status ${isDone ? 'visited' : 'unvisited'}">${isDone ? '✓ 방문완료' : '● 미방문'}</div><div class="bubble-title">${shortAddr}</div></div>`,
-          yAnchor: 1.35, xAnchor: 0.5, map: map
-        });
+        activeOverlay = new kakao.maps.CustomOverlay({ position: pos, content: `<div class="custom-speech-bubble ${isDone ? 'done' : ''}"><div class="bubble-status ${isDone ? 'visited' : 'unvisited'}">${isDone ? '✓ 방문완료' : '● 미방문'}</div><div class="bubble-title">${shortAddr}</div></div>`, yAnchor: 1.35, xAnchor: 0.5, map: map });
         map.setCenter(pos); map.setLevel(2);
       };
-
       if (addrCoordCache[fullAddr]) showPin(addrCoordCache[fullAddr]);
-      else if (geocoder) {
-        geocoder.addressSearch(fullAddr, (result, status) => {
-          if (status === kakao.maps.services.Status.OK) {
-            const pos = new kakao.maps.LatLng(result[0].y, result[0].x);
-            addrCoordCache[fullAddr] = pos; showPin(pos);
-          }
-        });
-      }
+      else if (geocoder) { geocoder.addressSearch(fullAddr, (result, status) => { if (status === kakao.maps.services.Status.OK) { const pos = new kakao.maps.LatLng(result[0].y, result[0].x); addrCoordCache[fullAddr] = pos; showPin(pos); } }); }
     }
 
-    function showAllPins() {
-      focusedAddr = null;
-      document.querySelectorAll('.house-card').forEach(c => c.classList.remove('focused'));
-      drawPinsForCurrentZone(true);
-    }
-
+    function showAllPins() { focusedAddr = null; document.querySelectorAll('.house-card').forEach(c => c.classList.remove('focused')); drawPinsForCurrentZone(true); }
     function locateUser() {
       if (!navigator.geolocation || !map) { alert("GPS 위치 서비스를 사용할 수 없습니다."); return; }
-      navigator.geolocation.getCurrentPosition(
-        pos => {
-          const latLng = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
-          if (userMarker) userMarker.setMap(null);
-          userMarker = new kakao.maps.Marker({ map: map, position: latLng });
-          map.setCenter(latLng); map.setLevel(3);
-        },
-        () => alert("위치 권한을 확인해주세요."),
-        { enableHighAccuracy: true, timeout: 5000 }
-      );
+      navigator.geolocation.getCurrentPosition(pos => { const latLng = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude); if (userMarker) userMarker.setMap(null); userMarker = new kakao.maps.Marker({ map: map, position: latLng }); map.setCenter(latLng); map.setLevel(3); }, () => alert("위치 권한을 확인해주세요."), { enableHighAccuracy: true, timeout: 5000 });
     }
   </script>
 </body>
