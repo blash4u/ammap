@@ -25,17 +25,35 @@
     body { background-color: #f1f5f9; overflow: hidden; height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
 
     /* =========================================
+       [공통 모달 스타일]
+       ========================================= */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 10000;
+    }
+    .modal-card {
+      background: #fff; width: 85%; max-width: 320px; border-radius: 12px; padding: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    .modal-card h3 { font-size: 16px; margin-bottom: 10px; color: #0f172a; }
+    .modal-card textarea { width: 100%; height: 80px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; resize: none; outline: none; margin-bottom: 10px; font-size: 13px; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .modal-btn { padding: 8px 16px; border: none; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; }
+    .btn-cancel { background: #e2e8f0; color: #475569; }
+    .btn-save { background: #0284c7; color: #fff; }
+
+    /* =========================================
        [시작 화면 (로그인) 스타일]
        ========================================= */
     #login-screen {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: linear-gradient(135deg, #0ea5e9, #1e293b);
-      display: flex; justify-content: center; align-items: center; z-index: 9999;
+      display: flex; justify-content: center; align-items: center; z-index: 9000;
     }
-    .login-card {
-      background: rgba(255, 255, 255, 0.95); padding: 40px 30px; border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 85%; max-width: 340px; text-align: center;
-    }
+    .btn-admin-gear { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; color: rgba(255,255,255,0.6); transition: 0.2s; }
+    .btn-admin-gear:active { transform: rotate(90deg) scale(0.9); color: #fff; }
+
+    .login-card { background: rgba(255, 255, 255, 0.95); padding: 40px 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 85%; max-width: 340px; text-align: center; }
     .login-title { font-size: 24px; font-weight: 900; color: #0f172a; margin-bottom: 5px; }
     .login-subtitle { font-size: 14px; font-weight: bold; color: #64748b; margin-bottom: 30px; }
     
@@ -49,6 +67,28 @@
     
     .recent-visit { font-size: 12px; color: #64748b; font-weight: 600; background: #e2e8f0; padding: 8px; border-radius: 6px; }
     .recent-visit strong { color: #0ea5e9; }
+
+    /* =========================================
+       [관리자 화면 스타일]
+       ========================================= */
+    #admin-screen {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: #f8fafc; z-index: 9500; display: none; flex-direction: column;
+    }
+    .admin-header { background: #1e293b; color: white; padding: 15px; font-size: 16px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+    .admin-close { background: none; border: none; color: white; font-size: 14px; font-weight: bold; cursor: pointer; }
+    .admin-content { flex: 1; overflow-y: auto; padding: 15px; }
+    .admin-section { background: white; border-radius: 8px; padding: 15px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .admin-section h2 { font-size: 15px; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 12px; }
+    
+    .admin-list { list-style: none; font-size: 13px; color: #334155; }
+    .admin-list li { padding: 8px 0; border-bottom: 1px dashed #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+    .admin-list li:last-child { border-bottom: none; }
+    .btn-delete { background: #fee2e2; color: #b91c1c; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; }
+    
+    .add-pub-wrap { display: flex; gap: 8px; margin-bottom: 10px; }
+    .add-pub-wrap input { flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; }
+    .add-pub-wrap button { background: #10b981; color: white; border: none; padding: 8px 12px; border-radius: 4px; font-size: 13px; font-weight: bold; }
 
     /* =========================================
        [메인 앱 화면 스타일]
@@ -87,15 +127,19 @@
 
     .list-area { flex: 1 1 auto; max-height: 300px; overflow-y: auto; padding: 6px 8px 40px 8px; background-color: #f8fafc; -webkit-overflow-scrolling: touch; }
     
-    .house-card { height: 50px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 10px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s, background-color 0.2s; }
-    .house-card:last-child { margin-bottom: 0; }
+    .house-card { min-height: 50px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 10px; margin-bottom: 5px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s, background-color 0.2s; }
+    .house-card-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
     .house-card.completed { background: #d1fae5; border-color: #10b981; }
     .house-card.completed .address-text { text-decoration: line-through; color: #065f46; }
     .house-card.focused { border: 2px solid #0284c7; background-color: #f0f9ff; }
     
     .address-text { font-size: 13px; font-weight: bold; color: #0369a1; cursor: pointer; flex: 1; padding-right: 8px; user-select: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+    .memo-display { font-size: 11px; color: #ef4444; margin-top: 4px; font-weight: bold; display: none; }
+    .memo-display.has-memo { display: block; }
+
     .btn-wrap { display: flex; gap: 5px; align-items: center; flex-shrink: 0; }
+    .btn-memo { background: #cbd5e1; color: #0f172a; border: none; padding: 5px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
     .btn-navi { background: #fde047; color: #854d0e; text-decoration: none; padding: 5px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
     .btn-check { background: #64748b; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; min-width: 54px; transition: background-color 0.2s; }
     .btn-check.completed { background: #10b981; }
@@ -114,8 +158,21 @@
 </head>
 <body>
 
-  <!-- 1. 시작 화면 (로그인 페이지) -->
+  <!-- 메모 팝업 모달 -->
+  <div id="memo-modal" class="modal-overlay">
+    <div class="modal-card">
+      <h3 id="memo-target-addr">주소</h3>
+      <textarea id="memo-input" placeholder="특이사항을 입력하세요 (예: 빈집, 맹견 등)"></textarea>
+      <div class="modal-actions">
+        <button class="modal-btn btn-cancel" onclick="closeMemoModal()">취소</button>
+        <button class="modal-btn btn-save" onclick="saveMemo()">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 시작 화면 (로그인 페이지) -->
   <div id="login-screen">
+    <div class="btn-admin-gear" onclick="openAdmin()" title="관리자 페이지">⚙️</div>
     <div class="login-card">
       <div class="login-title">전자 구역 카드</div>
       <div class="login-subtitle">- 안면 회중 -</div>
@@ -138,12 +195,41 @@
     </div>
   </div>
 
-  <!-- 2. 메인 애플리케이션 영역 -->
+  <!-- 관리자 화면 -->
+  <div id="admin-screen">
+    <div class="admin-header">
+      <span>관리자 페이지</span>
+      <button class="admin-close" onclick="closeAdmin()">닫기 ✕</button>
+    </div>
+    <div class="admin-content">
+      
+      <div class="admin-section">
+        <h2>👥 전도인 관리</h2>
+        <div class="add-pub-wrap">
+          <input type="text" id="newPubName" placeholder="추가할 이름 입력">
+          <button onclick="addPublisher()">추가</button>
+        </div>
+        <ul class="admin-list" id="adminPubList"></ul>
+      </div>
+
+      <div class="admin-section">
+        <h2>🏆 구역 완료 기록</h2>
+        <ul class="admin-list" id="adminCompList"></ul>
+      </div>
+
+      <div class="admin-section">
+        <h2>📝 특이사항 메모 관리</h2>
+        <ul class="admin-list" id="adminMemoList"></ul>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 메인 애플리케이션 영역 -->
   <div id="main-app">
     <div class="header">
       <div class="header-top">
         <div class="title-group">
-          <!-- 홈 버튼 추가 -->
           <div class="btn-home" onclick="goHome()" title="첫 화면으로 돌아가기">🏠</div>
           <div class="title" id="mainHeaderTitle">안면도 구역카드</div>
         </div>
@@ -178,7 +264,7 @@
 
   <script>
     // ==========================================
-    // 1. Firebase 실시간 데이터베이스 설정 
+    // 1. Firebase 설정 (사용자 정보 유지)
     // ==========================================
     const firebaseConfig = {
       apiKey: "AIzaSyD3N7SPoV6Z4qsCs3S0vrQ9Tko4Z62ZCfQ",
@@ -191,9 +277,7 @@
       measurementId: "G-EVR0XR2TVM"
     };
     
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     firebase.analytics();
 
@@ -207,25 +291,28 @@
     let curTown = "", curVillage = "", curZoneKey = "";
     let focusedAddr = null, currentDrawSession = 0;
     
-    let doneMap = {}; 
     let currentUser = ""; 
+    let doneMap = {}; 
+    let globalPublishers = {}; // 전도인 목록
+    let globalMemos = {}; // 주소별 메모
+    let globalCompletions = {}; // 구역 완료 역사
+
+    // 메모 관리를 위한 변수
+    let currentMemoKey = "";
 
     // ==========================================
-    // 3. 구역 데이터 명칭 포맷 변환 (글로벌 카운터 적용)
+    // 3. 구역 데이터 명칭 포맷 변환 (글로벌 카운터)
     // ==========================================
     function formatZoneData() {
       const regions = ["안면읍", "남면", "고남면"];
       const prefixMap = { "안면읍": "안면", "남면": "남면", "고남면": "고남" };
-
       let counter = 1;
 
       regions.forEach(region => {
         const villages = window.ZONE_DATABASE[region] || {};
-
         Object.keys(villages).forEach(village => {
           const zones = villages[village];
           const newZones = {};
-
           Object.keys(zones).forEach(oldKey => {
             const zoneData = zones[oldKey];
             const parts = oldKey.split('-');
@@ -240,6 +327,7 @@
 
             zoneData.newTopTitle = `${prefixMap[region]} ${paddedCounter} - ${streetName} - ${zoneNum}`;
             zoneData.newSubTitle = `${streetName}-${zoneNum} (${detailInfo})`;
+            zoneData.globalNum = paddedCounter; // 고유 번호 저장
 
             newZones[oldKey] = zoneData;
             counter++;
@@ -250,7 +338,7 @@
     }
 
     // ==========================================
-    // 4. 앱 초기화 및 시작/홈 로직
+    // 4. 앱 초기화, 로그인 및 관리자 로직
     // ==========================================
     window.onload = function() {
       if (typeof ZONE_DATABASE === 'undefined') {
@@ -258,6 +346,7 @@
         return;
       }
       formatZoneData();
+      initFirebaseGlobalSync(); // 전역 데이터(전도인, 메모 등) 동기화 시작
       
       const savedName = localStorage.getItem('ammap_username') || "";
       const savedZone = localStorage.getItem('ammap_recentzone') || "";
@@ -268,12 +357,37 @@
       }
     };
 
+    // Firebase 전역 데이터 실시간 수신
+    function initFirebaseGlobalSync() {
+      db.ref('publishers').on('value', snap => {
+        globalPublishers = snap.val() || {};
+        renderAdminPublishers();
+      });
+      db.ref('memos').on('value', snap => {
+        globalMemos = snap.val() || {};
+        renderAdminMemos();
+        refreshSoftUI();
+      });
+      db.ref('zone_completions').on('value', snap => {
+        globalCompletions = snap.val() || {};
+        renderAdminCompletions();
+      });
+      db.ref('visits').on('value', snap => {
+        doneMap = snap.val() || {};
+        updateProgressUI();
+        refreshSoftUI(); 
+      });
+    }
+
     function startApp() {
       const nameVal = document.getElementById('inputName').value.trim();
       let zoneNumVal = document.getElementById('inputZoneNum').value.trim();
 
-      if (!nameVal) {
-        alert("전도인 이름을 입력해주세요.");
+      if (!nameVal) { alert("전도인 이름을 입력해주세요."); return; }
+
+      // 전도인 등록 여부 검증 (목록이 비어있으면 최초 실행으로 간주하여 패스)
+      if (Object.keys(globalPublishers).length > 0 && !globalPublishers[nameVal]) {
+        alert("등록된 전도인이 아닙니다. 관리자에게 문의하세요.");
         return;
       }
 
@@ -281,52 +395,139 @@
       localStorage.setItem('ammap_username', currentUser);
       document.getElementById('mainHeaderTitle').innerText = `전도인: ${currentUser}`;
 
-      // 화면 전환
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('main-app').style.display = 'flex';
 
       initDropdowns();
-      initFirebaseSync(); 
 
-      // 맵 모듈 초기화 (한 번만 로드)
       if (!map) {
         kakao.maps.load(function() {
           const container = document.getElementById('map');
           map = new kakao.maps.Map(container, { center: new kakao.maps.LatLng(36.4178, 126.3985), level: 5 });
           geocoder = new kakao.maps.services.Geocoder();
           document.getElementById('map-status').style.display = 'none';
-          
           processZoneSelection(zoneNumVal);
         });
       } else {
-        // 이미 맵이 로드된 상태(홈으로 돌아갔다가 다시 시작할 때)
         map.relayout();
         processZoneSelection(zoneNumVal);
       }
     }
 
-    // 홈(첫 화면)으로 돌아가는 함수
     function goHome() {
-      // 메인 화면 숨기고, 로그인 화면 표시
       document.getElementById('main-app').style.display = 'none';
       document.getElementById('login-screen').style.display = 'flex';
-      
-      // 편의성을 위해 구역 번호 입력칸을 비워줍니다.
       document.getElementById('inputZoneNum').value = '';
 
-      // 최근 방문 기록 업데이트
       const savedZone = localStorage.getItem('ammap_recentzone') || "";
-      if (savedZone) {
-        document.getElementById('recentVisitDisplay').innerHTML = `최근 방문<br><strong>${savedZone} 번</strong>`;
+      if (savedZone) document.getElementById('recentVisitDisplay').innerHTML = `최근 방문<br><strong>${savedZone} 번</strong>`;
+    }
+
+    // ==========================================
+    // 5. 관리자 페이지 로직
+    // ==========================================
+    function openAdmin() {
+      const pwd = prompt("관리자 비밀번호를 입력하세요.");
+      if (pwd === "1234") { // 비밀번호를 원하시는 번호로 수정하세요.
+        document.getElementById('admin-screen').style.display = 'flex';
+      } else if (pwd !== null) {
+        alert("비밀번호가 일치하지 않습니다.");
       }
     }
 
-    // 구역 번호 입력값을 처리하는 함수
+    function closeAdmin() {
+      document.getElementById('admin-screen').style.display = 'none';
+    }
+
+    function addPublisher() {
+      const name = document.getElementById('newPubName').value.trim();
+      if(name) {
+        db.ref('publishers/' + name).set(true);
+        document.getElementById('newPubName').value = "";
+      }
+    }
+
+    function removePublisher(name) {
+      if(confirm(`'${name}' 전도인을 삭제하시겠습니까?`)) {
+        db.ref('publishers/' + name).remove();
+      }
+    }
+
+    function renderAdminPublishers() {
+      const ul = document.getElementById('adminPubList');
+      ul.innerHTML = '';
+      Object.keys(globalPublishers).forEach(name => {
+        const li = document.createElement('li');
+        li.innerHTML = `<span>${name}</span> <button class="btn-delete" onclick="removePublisher('${name}')">삭제</button>`;
+        ul.appendChild(li);
+      });
+    }
+
+    function renderAdminCompletions() {
+      const ul = document.getElementById('adminCompList');
+      ul.innerHTML = '';
+      Object.keys(globalCompletions).forEach(zoneNum => {
+        const data = globalCompletions[zoneNum];
+        const history = data.history || [];
+        const count = history.length;
+        if(count === 0) return;
+        
+        const lastRecord = history[count - 1];
+        const dateStr = new Date(lastRecord.timestamp).toLocaleDateString();
+        
+        const li = document.createElement('li');
+        li.innerHTML = `<span><strong>${zoneNum}번</strong> (${count}회 완료)</span> <span>${lastRecord.user} / ${dateStr}</span>`;
+        ul.appendChild(li);
+      });
+    }
+
+    function renderAdminMemos() {
+      const ul = document.getElementById('adminMemoList');
+      ul.innerHTML = '';
+      Object.keys(globalMemos).forEach(safeKey => {
+        const memoText = globalMemos[safeKey];
+        // safeKey 복원 시도 (완벽하진 않지만 가독성 향상)
+        const displayAddr = safeKey.replace(/_/g, ' '); 
+        const li = document.createElement('li');
+        li.innerHTML = `<div><strong>${displayAddr}</strong><br><span style="color:#ef4444">${memoText}</span></div> 
+                        <button class="btn-delete" onclick="db.ref('memos/${safeKey}').remove()">삭제</button>`;
+        ul.appendChild(li);
+      });
+    }
+
+    // ==========================================
+    // 6. 메모 기능 로직
+    // ==========================================
+    function openMemoModal(shortAddr, idx) {
+      const fullAddr = getFullAddr(shortAddr);
+      currentMemoKey = fullAddr.replace(/[.#$[\]]/g, '_');
+      
+      document.getElementById('memo-target-addr').innerText = shortAddr;
+      document.getElementById('memo-input').value = globalMemos[currentMemoKey] || "";
+      document.getElementById('memo-modal').style.display = 'flex';
+    }
+
+    function closeMemoModal() {
+      document.getElementById('memo-modal').style.display = 'none';
+      currentMemoKey = "";
+    }
+
+    function saveMemo() {
+      const text = document.getElementById('memo-input').value.trim();
+      if(currentMemoKey) {
+        if(text === "") db.ref('memos/' + currentMemoKey).remove();
+        else db.ref('memos/' + currentMemoKey).set(text);
+      }
+      closeMemoModal();
+    }
+
+    // ==========================================
+    // 7. 구역 선택 및 리스트 렌더링
+    // ==========================================
     function processZoneSelection(zoneNumVal) {
       if (zoneNumVal) {
          const searchTarget = String(zoneNumVal).padStart(3, '0');
          const found = searchZoneByNumber(searchTarget);
-         
          if (found) {
             document.getElementById('selTown').value = found.town;
             onTownChange();
@@ -349,8 +550,7 @@
         for (const village in ZONE_DATABASE[town]) {
           const zones = ZONE_DATABASE[town][village];
           for (const key in zones) {
-            const title = zones[key].newTopTitle; 
-            if (title.includes(` ${targetNumStr} -`)) {
+            if (zones[key].globalNum === targetNumStr) {
               return { town, village, zoneKey: key };
             }
           }
@@ -359,26 +559,6 @@
       return null;
     }
 
-    // ==========================================
-    // Firebase 동기화 
-    // ==========================================
-    function initFirebaseSync() {
-      db.ref('visits').on('value', (snapshot) => {
-        doneMap = snapshot.val() || {};
-        updateProgressUI();
-        refreshSoftUI(); 
-      });
-    }
-
-    function isAddressDone(safeKey) {
-      const data = doneMap[safeKey];
-      if (!data) return false;
-      return (data === true) || (data.done === true);
-    }
-
-    // ==========================================
-    // 5. 드롭다운 및 UI 업데이트 로직
-    // ==========================================
     function initDropdowns() {
       const tSelect = document.getElementById('selTown');
       tSelect.innerHTML = '';
@@ -430,7 +610,6 @@
         zSelect.innerHTML = '<option value="">구역 준비중</option>';
         curZoneKey = "";
       }
-      
       if (map) onZoneChange();
     }
 
@@ -441,10 +620,7 @@
       if (map && geocoder) drawPinsForCurrentZone(true);
       
       const zone = getCurrentZoneObject();
-      if (zone) {
-        const match = zone.newTopTitle.match(/\d{3}/);
-        if (match) localStorage.setItem('ammap_recentzone', match[0]);
-      }
+      if (zone && zone.globalNum) localStorage.setItem('ammap_recentzone', zone.globalNum);
     }
 
     function getCurrentZoneObject() {
@@ -457,9 +633,12 @@
       return `충청남도 태안군 ${curTown} ${shortAddr}`;
     }
 
-    // ==========================================
-    // 6. 리스트 및 프로그레스 렌더링
-    // ==========================================
+    function isAddressDone(safeKey) {
+      const data = doneMap[safeKey];
+      if (!data) return false;
+      return (data === true) || (data.done === true);
+    }
+
     function updateProgressUI() {
       const zone = getCurrentZoneObject();
       if (!zone || !zone.addrs || zone.addrs.length === 0) {
@@ -494,20 +673,25 @@
         const safeKey = fullAddr.replace(/[.#$[\]]/g, '_');
         const isDone = isAddressDone(safeKey);
         const isFocused = (focusedAddr === shortAddr);
+        const memoText = globalMemos[safeKey] || "";
 
         const card = document.createElement('div');
         card.id = `card-addr-${idx}`;
         card.className = 'house-card' + (isDone ? ' completed' : '') + (isFocused ? ' focused' : '');
         card.innerHTML = `
-          <div class="address-text" onclick="focusSingleAddress('${shortAddr}', ${idx})">
-            #${idx + 1}. ${shortAddr}
+          <div class="house-card-top">
+            <div class="address-text" onclick="focusSingleAddress('${shortAddr}', ${idx})">
+              #${idx + 1}. ${shortAddr}
+            </div>
+            <div class="btn-wrap">
+              <button class="btn-memo" onclick="openMemoModal('${shortAddr}', ${idx})">📝</button>
+              <a class="btn-navi" href="https://map.kakao.com/link/search/${encodeURIComponent(fullAddr)}" target="_blank">안내</a>
+              <button id="btn-check-${idx}" class="btn-check ${isDone ? 'completed' : ''}" onclick="toggleDone('${shortAddr}', ${idx})">
+                ${isDone ? '완료' : '미방문'}
+              </button>
+            </div>
           </div>
-          <div class="btn-wrap">
-            <a class="btn-navi" href="https://map.kakao.com/link/search/${encodeURIComponent(fullAddr)}" target="_blank">안내</a>
-            <button id="btn-check-${idx}" class="btn-check ${isDone ? 'completed' : ''}" onclick="toggleDone('${shortAddr}', ${idx})">
-              ${isDone ? '완료' : '미방문'}
-            </button>
-          </div>
+          <div id="memo-display-${idx}" class="memo-display ${memoText ? 'has-memo' : ''}">↳ 메모: ${memoText}</div>
         `;
         listEl.appendChild(card);
       });
@@ -522,9 +706,11 @@
         const fullAddr = getFullAddr(shortAddr);
         const safeKey = fullAddr.replace(/[.#$[\]]/g, '_');
         const isDone = isAddressDone(safeKey);
+        const memoText = globalMemos[safeKey] || "";
         
         const card = document.getElementById(`card-addr-${idx}`);
         const btn = document.getElementById(`btn-check-${idx}`);
+        const memoDiv = document.getElementById(`memo-display-${idx}`);
         
         if (card && btn) {
           if (isDone) {
@@ -535,6 +721,15 @@
             card.classList.remove('completed');
             btn.classList.remove('completed');
             btn.innerText = '미방문';
+          }
+        }
+
+        if (memoDiv) {
+          if (memoText) {
+            memoDiv.innerText = `↳ 메모: ${memoText}`;
+            memoDiv.classList.add('has-memo');
+          } else {
+            memoDiv.classList.remove('has-memo');
           }
         }
         
@@ -550,7 +745,7 @@
     }
 
     // ==========================================
-    // 7. 방문 처리 및 Firebase 데이터 기록 (이름 포함)
+    // 8. 방문 처리 및 구역 완료 기록 로직
     // ==========================================
     function toggleDone(shortAddr, idx) {
       const fullAddr = getFullAddr(shortAddr);
@@ -560,9 +755,7 @@
 
       if (newState) {
         db.ref('visits/' + safeKey).set({
-          done: true,
-          user: currentUser,
-          timestamp: firebase.database.ServerValue.TIMESTAMP
+          done: true, user: currentUser, timestamp: firebase.database.ServerValue.TIMESTAMP
         });
       } else {
         db.ref('visits/' + safeKey).remove();
@@ -570,8 +763,20 @@
       
       const zone = getCurrentZoneObject();
       if (zone && zone.addrs && newState) {
-        const completedCount = zone.addrs.filter(a => isAddressDone(getFullAddr(a).replace(/[.#$[\]]/g, '_'))).length + 1;
+        // 새롭게 완료된 상태를 포함하여 구역 내 완료된 개수 확인
+        const completedCount = zone.addrs.filter(a => isAddressDone(getFullAddr(a).replace(/[.#$[\]]/g, '_'))).length + (isCurrentlyDone ? 0 : 1);
+        
         if (completedCount === zone.addrs.length) {
+          // 구역 완료 기록 저장 (history 배열에 추가)
+          const zoneGlobalNum = zone.globalNum;
+          db.ref('zone_completions/' + zoneGlobalNum).once('value').then(snap => {
+            let data = snap.val() || { history: [] };
+            if(!data.history) data.history = [];
+            data.history.push({ user: currentUser, timestamp: Date.now() });
+            
+            db.ref('zone_completions/' + zoneGlobalNum).set(data);
+          });
+
           setTimeout(() => alert(`🎉 수고하셨습니다!\n\n${currentUser} 전도인님, 해당 구역의 모든 방문을 완료했습니다.`), 300);
         }
       }
@@ -581,7 +786,7 @@
       const zone = getCurrentZoneObject();
       if (!zone || !zone.addrs || zone.addrs.length === 0) return;
 
-      if (!confirm(`이 구역의 방문 기록을 '미방문'으로 초기화하시겠습니까?\n(모든 기기에서 즉시 초기화됩니다)`)) return;
+      if (!confirm(`이 구역의 방문 기록을 '미방문'으로 초기화하시겠습니까?\n(메모는 삭제되지 않으며, 방문 기록만 즉시 초기화됩니다)`)) return;
 
       zone.addrs.forEach(shortAddr => {
         const safeKey = getFullAddr(shortAddr).replace(/[.#$[\]]/g, '_');
@@ -590,7 +795,7 @@
     }
 
     // ==========================================
-    // 8. 지도 핀 생성 및 위치 관리
+    // 9. 지도 핀 관리
     // ==========================================
     function getMarkerImage(isDone, isLarge = false) {
       const w = isLarge ? 34 : 26, h = isLarge ? 44 : 34;
