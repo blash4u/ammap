@@ -24,17 +24,12 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Malgun Gothic", -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background-color: #f1f5f9; overflow: hidden; height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
 
-    /* =========================================
-       [공통 모달 스타일]
-       ========================================= */
+    /* 공통 모달 스타일 */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 10000;
     }
-    .modal-card {
-      background: #fff; width: 85%; max-width: 320px; border-radius: 12px; padding: 20px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    }
+    .modal-card { background: #fff; width: 85%; max-width: 320px; border-radius: 12px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
     .modal-card h3 { font-size: 16px; margin-bottom: 10px; color: #0f172a; }
     .modal-card textarea { width: 100%; height: 80px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; resize: none; outline: none; margin-bottom: 10px; font-size: 13px; }
     .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
@@ -42,9 +37,7 @@
     .btn-cancel { background: #e2e8f0; color: #475569; }
     .btn-save { background: #0284c7; color: #fff; }
 
-    /* =========================================
-       [시작 화면 (로그인) 스타일]
-       ========================================= */
+    /* 시작 화면 (로그인) 스타일 */
     #login-screen {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: linear-gradient(135deg, #0ea5e9, #1e293b);
@@ -52,58 +45,50 @@
     }
     .btn-admin-gear { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; color: rgba(255,255,255,0.6); transition: 0.2s; }
     .btn-admin-gear:active { transform: rotate(90deg) scale(0.9); color: #fff; }
-
     .login-card { background: rgba(255, 255, 255, 0.95); padding: 40px 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 85%; max-width: 340px; text-align: center; }
     .login-title { font-size: 24px; font-weight: 900; color: #0f172a; margin-bottom: 5px; }
     .login-subtitle { font-size: 14px; font-weight: bold; color: #64748b; margin-bottom: 30px; }
-    
     .input-group { margin-bottom: 20px; text-align: left; }
     .input-group label { display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px; }
     .input-group input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 15px; font-weight: bold; outline: none; transition: border-color 0.2s; }
     .input-group input:focus { border-color: #0ea5e9; }
-
     .btn-start { width: 100%; background: #0284c7; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(2, 132, 199, 0.3); transition: background 0.2s; margin-bottom: 20px; }
     .btn-start:active { background: #0369a1; transform: scale(0.98); }
-    
     .recent-visit { font-size: 12px; color: #64748b; font-weight: 600; background: #e2e8f0; padding: 8px; border-radius: 6px; }
     .recent-visit strong { color: #0ea5e9; }
 
-    /* =========================================
-       [관리자 화면 스타일]
-       ========================================= */
-    #admin-screen {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: #f8fafc; z-index: 9500; display: none; flex-direction: column;
-    }
+    /* 관리자 화면 스타일 */
+    #admin-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f8fafc; z-index: 9500; display: none; flex-direction: column; }
     .admin-header { background: #1e293b; color: white; padding: 15px; font-size: 16px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
     .admin-close { background: none; border: none; color: white; font-size: 14px; font-weight: bold; cursor: pointer; }
     .admin-content { flex: 1; overflow-y: auto; padding: 15px; }
     .admin-section { background: white; border-radius: 8px; padding: 15px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .admin-section h2 { font-size: 15px; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 12px; }
+    .admin-section h2 { font-size: 15px; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    
+    .search-wrap { display: flex; margin-bottom: 10px; }
+    .search-wrap input { flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; outline: none; }
     
     .admin-list { list-style: none; font-size: 13px; color: #334155; }
     .admin-list li { padding: 8px 0; border-bottom: 1px dashed #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
     .admin-list li:last-child { border-bottom: none; }
-    .btn-delete { background: #fee2e2; color: #b91c1c; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; }
+    .btn-delete { background: #fee2e2; color: #b91c1c; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; flex-shrink: 0; }
     
     .add-pub-wrap { display: flex; gap: 8px; margin-bottom: 10px; }
     .add-pub-wrap input { flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; }
     .add-pub-wrap button { background: #10b981; color: white; border: none; padding: 8px 12px; border-radius: 4px; font-size: 13px; font-weight: bold; }
+    
+    .comp-history-item { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; background: #f8fafc; border-radius: 4px; padding: 6px 8px; width: 100%; }
 
-    /* =========================================
-       [메인 앱 화면 스타일]
-       ========================================= */
+    /* 메인 앱 화면 스타일 */
     #main-app { display: none; flex-direction: column; height: 100%; width: 100%; }
     .header { background-color: #1e293b; padding: 10px 10px; flex-shrink: 0; }
     .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-    
     .title-group { display: flex; align-items: center; gap: 8px; }
     .btn-home { font-size: 16px; cursor: pointer; transition: transform 0.2s; user-select: none; }
     .btn-home:active { transform: scale(0.85); }
     .title { color: #38bdf8; font-size: 15px; font-weight: bold; }
     
     .btn-gps { background: #0284c7; color: #fff; border: none; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; }
-
     .dropdown-group { display: flex; gap: 5px; width: 100%; }
     .select-btn { height: 36px; padding: 4px; border-radius: 5px; font-size: 12px; font-weight: bold; border: 1px solid #475569; outline: none; }
     #selTown { flex: 2.5; background: #334155; color: white; }
@@ -117,22 +102,18 @@
     .info-bar { background-color: #ffffff; padding: 8px 12px; border-top: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1; display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
     .info-bar-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
     .btn-all-pins { flex: 1; background: #0284c7; color: #ffffff; border: none; padding: 6px 0; margin-right: 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    
     .status-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
     .pin-counter { font-size: 11px; color: #0284c7; font-weight: 700; }
     .prog-text { font-size: 12px; color: #10b981; font-weight: 800; }
     .btn-reset-zone { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
-
     .sub-zone-title { text-align: center; font-size: 12px; color: #475569; font-weight: 700; background: #f1f5f9; padding: 4px; border-radius: 4px; }
 
     .list-area { flex: 1 1 auto; max-height: 300px; overflow-y: auto; padding: 6px 8px 40px 8px; background-color: #f8fafc; -webkit-overflow-scrolling: touch; }
-    
     .house-card { min-height: 50px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 10px; margin-bottom: 5px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s, background-color 0.2s; }
     .house-card-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
     .house-card.completed { background: #d1fae5; border-color: #10b981; }
     .house-card.completed .address-text { text-decoration: line-through; color: #065f46; }
     .house-card.focused { border: 2px solid #0284c7; background-color: #f0f9ff; }
-    
     .address-text { font-size: 13px; font-weight: bold; color: #0369a1; cursor: pointer; flex: 1; padding-right: 8px; user-select: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     .memo-display { font-size: 11px; color: #ef4444; margin-top: 4px; font-weight: bold; display: none; }
@@ -214,11 +195,17 @@
 
       <div class="admin-section">
         <h2>🏆 구역 완료 기록</h2>
+        <div class="search-wrap">
+          <input type="text" id="searchComp" placeholder="구역번호로 검색 (예: 001)" onkeyup="renderAdminCompletions()">
+        </div>
         <ul class="admin-list" id="adminCompList"></ul>
       </div>
 
       <div class="admin-section">
         <h2>📝 특이사항 메모 관리</h2>
+        <div class="search-wrap">
+          <input type="text" id="searchMemo" placeholder="구역번호로 검색 (예: 001)" onkeyup="renderAdminMemos()">
+        </div>
         <ul class="admin-list" id="adminMemoList"></ul>
       </div>
 
@@ -264,7 +251,7 @@
 
   <script>
     // ==========================================
-    // 1. Firebase 설정 (사용자 정보 유지)
+    // 1. Firebase 설정
     // ==========================================
     const firebaseConfig = {
       apiKey: "AIzaSyD3N7SPoV6Z4qsCs3S0vrQ9Tko4Z62ZCfQ",
@@ -293,15 +280,17 @@
     
     let currentUser = ""; 
     let doneMap = {}; 
-    let globalPublishers = {}; // 전도인 목록
-    let globalMemos = {}; // 주소별 메모
-    let globalCompletions = {}; // 구역 완료 역사
+    let globalPublishers = {}; 
+    let globalMemos = {}; 
+    let globalCompletions = {}; 
 
-    // 메모 관리를 위한 변수
     let currentMemoKey = "";
 
+    // 주소를 구역번호(globalNum)로 빠르게 매핑하기 위한 딕셔너리
+    window.addressToZoneMap = {};
+
     // ==========================================
-    // 3. 구역 데이터 명칭 포맷 변환 (글로벌 카운터)
+    // 3. 구역 데이터 명칭 포맷 변환 (맵 매핑 추가)
     // ==========================================
     function formatZoneData() {
       const regions = ["안면읍", "남면", "고남면"];
@@ -327,7 +316,16 @@
 
             zoneData.newTopTitle = `${prefixMap[region]} ${paddedCounter} - ${streetName} - ${zoneNum}`;
             zoneData.newSubTitle = `${streetName}-${zoneNum} (${detailInfo})`;
-            zoneData.globalNum = paddedCounter; // 고유 번호 저장
+            zoneData.globalNum = paddedCounter;
+
+            // 주소별 구역번호 캐싱 (검색을 위해)
+            if (zoneData.addrs) {
+              zoneData.addrs.forEach(addr => {
+                const fullAddr = addr.startsWith("충청남도") ? addr : `충청남도 태안군 ${region} ${addr}`;
+                const safeKey = fullAddr.replace(/[.#$[\]]/g, '_');
+                window.addressToZoneMap[safeKey] = paddedCounter;
+              });
+            }
 
             newZones[oldKey] = zoneData;
             counter++;
@@ -346,7 +344,7 @@
         return;
       }
       formatZoneData();
-      initFirebaseGlobalSync(); // 전역 데이터(전도인, 메모 등) 동기화 시작
+      initFirebaseGlobalSync();
       
       const savedName = localStorage.getItem('ammap_username') || "";
       const savedZone = localStorage.getItem('ammap_recentzone') || "";
@@ -357,7 +355,6 @@
       }
     };
 
-    // Firebase 전역 데이터 실시간 수신
     function initFirebaseGlobalSync() {
       db.ref('publishers').on('value', snap => {
         globalPublishers = snap.val() || {};
@@ -385,7 +382,6 @@
 
       if (!nameVal) { alert("전도인 이름을 입력해주세요."); return; }
 
-      // 전도인 등록 여부 검증 (목록이 비어있으면 최초 실행으로 간주하여 패스)
       if (Object.keys(globalPublishers).length > 0 && !globalPublishers[nameVal]) {
         alert("등록된 전도인이 아닙니다. 관리자에게 문의하세요.");
         return;
@@ -393,7 +389,9 @@
 
       currentUser = nameVal;
       localStorage.setItem('ammap_username', currentUser);
-      document.getElementById('mainHeaderTitle').innerText = `전도인: ${currentUser}`;
+      
+      // 요청 1: 이름 폰트 색상을 흰색으로 지정
+      document.getElementById('mainHeaderTitle').innerHTML = `전도인: <span style="color:#ffffff;">${currentUser}</span>`;
 
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('main-app').style.display = 'flex';
@@ -428,7 +426,7 @@
     // ==========================================
     function openAdmin() {
       const pwd = prompt("관리자 비밀번호를 입력하세요.");
-      if (pwd === "1234") { // 비밀번호를 원하시는 번호로 수정하세요.
+      if (pwd === "1234") { 
         document.getElementById('admin-screen').style.display = 'flex';
       } else if (pwd !== null) {
         alert("비밀번호가 일치하지 않습니다.");
@@ -463,34 +461,81 @@
       });
     }
 
+    // 구역 완료 기록 삭제
+    function removeCompletion(zoneNum, index) {
+      if(!confirm(`해당 구역의 완료 기록을 삭제하시겠습니까?`)) return;
+      const history = globalCompletions[zoneNum].history || [];
+      history.splice(index, 1);
+      
+      // 기록이 0개가 되면 노드 자체를 삭제, 아니면 업데이트
+      if (history.length === 0) {
+        db.ref('zone_completions/' + zoneNum).remove();
+      } else {
+        db.ref('zone_completions/' + zoneNum + '/history').set(history);
+      }
+    }
+
+    // 요청 2: 구역 완료 기록 검색 및 삭제 렌더링
     function renderAdminCompletions() {
       const ul = document.getElementById('adminCompList');
       ul.innerHTML = '';
+      const searchVal = document.getElementById('searchComp').value.trim();
+
       Object.keys(globalCompletions).forEach(zoneNum => {
+        // 검색어가 있고, 구역 번호에 포함되지 않으면 그리지 않음
+        if (searchVal && !zoneNum.includes(searchVal)) return;
+
         const data = globalCompletions[zoneNum];
         const history = data.history || [];
-        const count = history.length;
-        if(count === 0) return;
-        
-        const lastRecord = history[count - 1];
-        const dateStr = new Date(lastRecord.timestamp).toLocaleDateString();
+        if(history.length === 0) return;
         
         const li = document.createElement('li');
-        li.innerHTML = `<span><strong>${zoneNum}번</strong> (${count}회 완료)</span> <span>${lastRecord.user} / ${dateStr}</span>`;
+        li.style.flexDirection = 'column';
+        li.style.alignItems = 'flex-start';
+        
+        let html = `<div style="width:100%; border-bottom:1px solid #e2e8f0; padding-bottom:4px; margin-bottom:4px;">
+                      <strong style="color:#0ea5e9;">${zoneNum}번 구역</strong> (총 ${history.length}회 완료)
+                    </div>`;
+
+        history.forEach((record, index) => {
+          const dateStr = new Date(record.timestamp).toLocaleDateString();
+          html += `
+            <div class="comp-history-item">
+              <span>${index + 1}회: <strong>${record.user}</strong> / ${dateStr}</span>
+              <button class="btn-delete" onclick="removeCompletion('${zoneNum}', ${index})">삭제</button>
+            </div>
+          `;
+        });
+        
+        li.innerHTML = html;
         ul.appendChild(li);
       });
     }
 
+    // 요청 3: 특이사항 메모 관리 구역번호로 검색
     function renderAdminMemos() {
       const ul = document.getElementById('adminMemoList');
       ul.innerHTML = '';
+      const searchVal = document.getElementById('searchMemo').value.trim();
+
       Object.keys(globalMemos).forEach(safeKey => {
+        const zoneNum = window.addressToZoneMap[safeKey] || "알수없음";
+        
+        // 검색어가 있고, 매핑된 구역번호에 포함되지 않으면 그리지 않음
+        if (searchVal && !zoneNum.includes(searchVal)) return;
+
         const memoText = globalMemos[safeKey];
-        // safeKey 복원 시도 (완벽하진 않지만 가독성 향상)
         const displayAddr = safeKey.replace(/_/g, ' '); 
         const li = document.createElement('li');
-        li.innerHTML = `<div><strong>${displayAddr}</strong><br><span style="color:#ef4444">${memoText}</span></div> 
-                        <button class="btn-delete" onclick="db.ref('memos/${safeKey}').remove()">삭제</button>`;
+        li.style.alignItems = 'flex-start';
+        li.innerHTML = `
+          <div style="flex:1;">
+            <span style="font-size:11px; color:#0ea5e9; font-weight:bold;">[${zoneNum}번 구역]</span><br>
+            <strong>${displayAddr}</strong><br>
+            <span style="color:#ef4444">${memoText}</span>
+          </div> 
+          <button class="btn-delete" style="margin-top:14px;" onclick="db.ref('memos/${safeKey}').remove()">삭제</button>
+        `;
         ul.appendChild(li);
       });
     }
@@ -763,11 +808,9 @@
       
       const zone = getCurrentZoneObject();
       if (zone && zone.addrs && newState) {
-        // 새롭게 완료된 상태를 포함하여 구역 내 완료된 개수 확인
         const completedCount = zone.addrs.filter(a => isAddressDone(getFullAddr(a).replace(/[.#$[\]]/g, '_'))).length + (isCurrentlyDone ? 0 : 1);
         
         if (completedCount === zone.addrs.length) {
-          // 구역 완료 기록 저장 (history 배열에 추가)
           const zoneGlobalNum = zone.globalNum;
           db.ref('zone_completions/' + zoneGlobalNum).once('value').then(snap => {
             let data = snap.val() || { history: [] };
