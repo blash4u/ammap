@@ -383,7 +383,7 @@
     }
 
     // ==========================================
-    // 4. 앱 초기화, 로그인 로직
+    // 4. 앱 초기화, 로그인 및 ★ 외부 앱 복귀 로직
     // ==========================================
     window.onload = function() {
       if (typeof ZONE_DATABASE === 'undefined') {
@@ -400,6 +400,14 @@
       document.getElementById('inputName').value = savedName;
       if (savedZone) {
         document.getElementById('recentVisitDisplay').innerHTML = `최근 방문<br><strong>${savedZone} 번</strong>`;
+      }
+
+      // ★ 카카오맵 등 외부에서 뒤로가기로 돌아와서 페이지가 새로고침 되었을 때
+      // 이전에 보던 구역 화면을 자동으로 띄워주는 핵심 로직입니다!
+      if (sessionStorage.getItem('ammap_active_session') === 'true' && savedName) {
+        document.getElementById('inputZoneNum').value = savedZone;
+        // 아주 약간의 지연을 주어 지도와 데이터가 안정적으로 로드되게 합니다.
+        setTimeout(() => startApp(), 100); 
       }
     };
 
@@ -425,6 +433,10 @@
 
       currentUser = nameVal;
       localStorage.setItem('ammap_username', currentUser);
+      
+      // ★ 앱 진입 시 현재 세션이 활성화되었음을 브라우저 임시 메모리에 저장합니다.
+      sessionStorage.setItem('ammap_active_session', 'true');
+
       document.getElementById('mainHeaderTitle').innerHTML = `전도인: <span style="color:#ffffff;">${currentUser}</span>`;
 
       document.getElementById('login-screen').style.display = 'none';
@@ -447,6 +459,9 @@
     }
 
     function goHome() {
+      // ★ 사용자가 직접 홈 버튼을 누르면 자동 복귀 세션을 초기화합니다.
+      sessionStorage.removeItem('ammap_active_session');
+      
       document.getElementById('main-app').style.display = 'none';
       document.getElementById('login-screen').style.display = 'flex';
       document.getElementById('inputZoneNum').value = '';
@@ -799,7 +814,6 @@
       });
     }
 
-    // 버그 수정된 토글 로직 유지
     function toggleDone(shortAddr, idx) {
       const fullAddr = getFullAddr(shortAddr);
       const safeKey = fullAddr.replace(/[.#$[\]]/g, '_'); 
