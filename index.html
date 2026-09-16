@@ -64,14 +64,19 @@
     
     /* 통계 대시보드 전용 스타일 */
     .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-    .stat-card { background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center; }
+    .stat-card { background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; text-align: center; }
     .stat-card.full-width { grid-column: span 2; }
-    .stat-title { font-size: 11px; color: #64748b; font-weight: bold; margin-bottom: 4px; }
-    .stat-value { font-size: 20px; font-weight: 900; color: #4a6da7; }
-    .stat-subtext { font-size: 11px; color: #94a3b8; margin-top: 2px; }
-    .stat-list { font-size: 12px; text-align: left; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #cbd5e1; }
-    .stat-list-item { display: flex; justify-content: space-between; margin-bottom: 4px; color: #334155; }
-    .stat-list-item strong { color: #0f172a; }
+    .stat-title { font-size: 11px; color: #64748b; font-weight: bold; margin-bottom: 6px; }
+    .stat-value { font-size: 22px; font-weight: 900; color: #4a6da7; }
+    .stat-subtext { font-size: 11px; color: #94a3b8; margin-top: 4px; line-height: 1.4; }
+    
+    .region-stats-container { display: flex; justify-content: space-around; margin-top: 15px; padding-top: 15px; border-top: 1px dashed #cbd5e1; }
+    .region-stat { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .circular-chart { position: relative; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .circular-chart::before { content: ""; position: absolute; inset: 6px; background-color: #f1f5f9; border-radius: 50%; }
+    .circular-chart-value { position: relative; font-size: 13px; font-weight: 900; color: #4a6da7; }
+    .region-name { font-size: 12px; font-weight: bold; color: #334155; margin-top: 4px; }
+    .region-count { font-size: 11px; color: #64748b; font-weight: bold; }
 
     .search-wrap { display: flex; margin-bottom: 10px; }
     .search-wrap input { flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; outline: none; }
@@ -169,12 +174,10 @@
   <div id="login-screen">
     <div class="btn-admin-gear" onclick="openAdmin()" title="관리자 페이지">⚙️</div>
     <div class="login-card">
-      <!-- 수정된 로고 및 텍스트 영역 -->
       <div class="brand-wrapper">
         <div class="custom-logo">JW</div>
         <div class="brand-text"><span>전</span><span>자</span><span>구</span><span>역</span></div>
       </div>
-      <!-- 회중 이름 추가 -->
       <div class="login-subtitle">- 안면 회중 -</div>
       
       <div class="input-group">
@@ -199,11 +202,10 @@
     </div>
     <div class="admin-content">
       
-      <!-- 📊 업데이트된 통계 대시보드 (전도인 랭킹 제거) -->
       <div class="admin-section">
         <h2>📊 구역 활동 통계</h2>
         <div class="stats-grid" id="statsGridArea">
-          <!-- 통계 카드가 자바스크립트에 의해 이곳에 렌더링됩니다 -->
+          <!-- 통계 카드가 렌더링됩니다 -->
         </div>
       </div>
 
@@ -466,66 +468,90 @@
     }
     function closeAdmin() { document.getElementById('admin-screen').style.display = 'none'; }
 
-    // 📊 전도인 랭킹을 제거한 통계 대시보드 렌더링 함수
     function renderAdminStats() {
       const grid = document.getElementById('statsGridArea');
       
-      // 1. 전체 구역 수 및 완료율 계산
       let totalZonesCount = Object.keys(window.zoneToRegionMap).length;
-      let completedZonesCount = Object.keys(globalCompletions).filter(num => globalCompletions[num] && globalCompletions[num].history && globalCompletions[num].history.length > 0).length;
-      let progressPct = totalZonesCount > 0 ? Math.round((completedZonesCount / totalZonesCount) * 100) : 0;
+      if (totalZonesCount === 0) return;
 
-      // 2. 지역별 완료 현황
-      let regionTotal = { "안면읍": 0, "남면": 0, "고남면": 0 };
-      let regionDone = { "안면읍": 0, "남면": 0, "고남면": 0 };
-      
+      let zoneCompletionCounts = [];
       Object.keys(window.zoneToRegionMap).forEach(num => {
-        const r = window.zoneToRegionMap[num];
-        if(regionTotal[r] !== undefined) regionTotal[r]++;
+        let count = globalCompletions[num] && globalCompletions[num].history ? globalCompletions[num].history.length : 0;
+        zoneCompletionCounts.push({ num: num, count: count });
       });
       
-      Object.keys(globalCompletions).forEach(num => {
-        const history = globalCompletions[num].history || [];
-        if (history.length > 0) {
-          const r = window.zoneToRegionMap[num];
-          if(regionDone[r] !== undefined) regionDone[r]++;
+      let minCompletions = Math.min(...zoneCompletionCounts.map(z => z.count));
+
+      let currentCycleTimestamps = [];
+      let regionTotal = { "안면읍": 0, "남면": 0, "고남면": 0 };
+      let regionDone = { "안면읍": 0, "남면": 0, "고남면": 0 };
+
+      Object.keys(window.zoneToRegionMap).forEach(num => {
+        const r = window.zoneToRegionMap[num];
+        if (regionTotal[r] !== undefined) regionTotal[r]++;
+        
+        let history = globalCompletions[num] ? (globalCompletions[num].history || []) : [];
+        if (history.length > minCompletions) {
+           currentCycleTimestamps.push(history[minCompletions].timestamp);
+           if (regionDone[r] !== undefined) regionDone[r]++;
         }
       });
 
-      // 3. 기간별 추이 계산 (전도인 랭킹 집계 로직 삭제됨)
-      let last7Days = 0;
-      let last30Days = 0;
-      const now = Date.now();
+      let completedZonesCount = currentCycleTimestamps.length;
+      let progressPct = Math.round((completedZonesCount / totalZonesCount) * 100);
 
-      Object.values(globalCompletions).forEach(data => {
-        const history = data.history || [];
-        history.forEach(record => {
-          const diffDays = (now - record.timestamp) / (1000 * 60 * 60 * 24);
-          if (diffDays <= 7) last7Days++;
-          if (diffDays <= 30) last30Days++;
+      let daysElapsedText = "진행 전";
+      if (currentCycleTimestamps.length > 0) {
+        let cycleStartTs = Math.min(...currentCycleTimestamps);
+        let daysElapsed = Math.floor((Date.now() - cycleStartTs) / (1000 * 60 * 60 * 24)) + 1;
+        daysElapsedText = daysElapsed + "일째";
+      }
+
+      let lastFullCompletionDateText = "기록 없음";
+      if (minCompletions > 0) {
+        let lastCycleTimestamps = [];
+        Object.keys(window.zoneToRegionMap).forEach(num => {
+          let history = globalCompletions[num] ? (globalCompletions[num].history || []) : [];
+          if (history.length >= minCompletions) {
+             lastCycleTimestamps.push(history[minCompletions - 1].timestamp);
+          }
         });
-      });
+        let lastFullCompletionTs = Math.max(...lastCycleTimestamps);
+        lastFullCompletionDateText = new Date(lastFullCompletionTs).toLocaleDateString();
+      }
 
-      const getRegHTML = (name) => `<div class="stat-list-item"><span>${name}</span><strong>${regionDone[name]}/${regionTotal[name]}</strong></div>`;
+      const getRegionDonutHTML = (name) => {
+        let total = regionTotal[name] || 0;
+        let done = regionDone[name] || 0;
+        let pct = total > 0 ? Math.round((done / total) * 100) : 0;
+        return `
+          <div class="region-stat">
+            <div class="circular-chart" style="background: conic-gradient(#4a6da7 ${pct}%, #e2e8f0 0);">
+              <div class="circular-chart-value">${pct}%</div>
+            </div>
+            <div class="region-name">${name}</div>
+            <div class="region-count">${done} / ${total}</div>
+          </div>
+        `;
+      };
 
-      // HTML 화면 그리기 (랭킹 카드 제거)
       grid.innerHTML = `
         <div class="stat-card">
-          <div class="stat-title">전체 진행률</div>
+          <div class="stat-title">전체 진행률 (${minCompletions + 1}회독)</div>
           <div class="stat-value">${progressPct}%</div>
-          <div class="stat-subtext">${completedZonesCount} / ${totalZonesCount} 구역</div>
+          <div class="stat-subtext">${completedZonesCount} / ${totalZonesCount} 구역<br><span style="color:#0ea5e9; font-weight:bold;">⏳ 소요: ${daysElapsedText}</span></div>
         </div>
         <div class="stat-card">
-          <div class="stat-title">최근 완료 추이</div>
-          <div class="stat-value">${last7Days}건</div>
-          <div class="stat-subtext">최근 7일 기준 (30일: ${last30Days}건)</div>
+          <div class="stat-title">최근 100% 완료일</div>
+          <div class="stat-value" style="font-size:16px; margin-top:4px;">${lastFullCompletionDateText}</div>
+          <div class="stat-subtext">누적 전체 완료: ${minCompletions}회</div>
         </div>
         <div class="stat-card full-width">
           <div class="stat-title">📍 지역별 현황</div>
-          <div class="stat-list">
-            ${getRegHTML('안면읍')}
-            ${getRegHTML('남면')}
-            ${getRegHTML('고남면')}
+          <div class="region-stats-container">
+            ${getRegionDonutHTML('안면읍')}
+            ${getRegionDonutHTML('남면')}
+            ${getRegionDonutHTML('고남면')}
           </div>
         </div>
       `;
@@ -719,6 +745,11 @@
 
     function onZoneChange() {
       curZoneKey = document.getElementById('selZone').value; focusedAddr = null; renderCurrentList();
+      
+      // ★ 새 구역을 열 때마다 스크롤을 맨 위로(1번 주소가 보이게) 초기화합니다.
+      const listEl = document.getElementById('listArea');
+      if (listEl) listEl.scrollTop = 0;
+
       if (map && geocoder) drawPinsForCurrentZone(true);
       const zone = getCurrentZoneObject();
       if (zone && zone.globalNum) localStorage.setItem('ammap_recentzone', zone.globalNum);
@@ -768,19 +799,38 @@
       });
     }
 
+    // 버그 수정된 토글 로직 유지
     function toggleDone(shortAddr, idx) {
-      const safeKey = getFullAddr(shortAddr).replace(/[.#$[\]]/g, '_'); const isCurrentlyDone = isAddressDone(safeKey); const newState = !isCurrentlyDone;
-      if (newState) db.ref('visits/' + safeKey).set({ done: true, user: currentUser, timestamp: firebase.database.ServerValue.TIMESTAMP });
-      else db.ref('visits/' + safeKey).remove();
+      const fullAddr = getFullAddr(shortAddr);
+      const safeKey = fullAddr.replace(/[.#$[\]]/g, '_'); 
+      const isCurrentlyDone = isAddressDone(safeKey);
+      const newState = !isCurrentlyDone;
+
+      if (newState) {
+        db.ref('visits/' + safeKey).set({ done: true, user: currentUser, timestamp: firebase.database.ServerValue.TIMESTAMP });
+      } else {
+        db.ref('visits/' + safeKey).remove();
+      }
       
       const zone = getCurrentZoneObject();
       if (zone && zone.addrs && newState) {
-        const completedCount = zone.addrs.filter(a => isAddressDone(getFullAddr(a).replace(/[.#$[\]]/g, '_'))).length + (isCurrentlyDone ? 0 : 1);
-        if (completedCount === zone.addrs.length) {
+        let allOthersDone = true;
+        for (let i = 0; i < zone.addrs.length; i++) {
+          if (zone.addrs[i] === shortAddr) continue; 
+          const otherSafeKey = getFullAddr(zone.addrs[i]).replace(/[.#$[\]]/g, '_');
+          if (!isAddressDone(otherSafeKey)) {
+            allOthersDone = false;
+            break;
+          }
+        }
+        
+        if (allOthersDone) {
           const zoneGlobalNum = zone.globalNum;
           db.ref('zone_completions/' + zoneGlobalNum).once('value').then(snap => {
-            let data = snap.val() || { history: [] }; if(!data.history) data.history = [];
-            data.history.push({ user: currentUser, timestamp: Date.now() }); db.ref('zone_completions/' + zoneGlobalNum).set(data);
+            let data = snap.val() || { history: [] }; 
+            if(!data.history) data.history = [];
+            data.history.push({ user: currentUser, timestamp: Date.now() }); 
+            db.ref('zone_completions/' + zoneGlobalNum).set(data);
           });
           setTimeout(() => alert(`🎉 수고하셨습니다!\n\n${currentUser} 전도인님, 해당 구역의 모든 방문을 완료했습니다.`), 300);
         }
