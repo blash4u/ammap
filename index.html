@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>구역카드</title>
+  <title>전자구역</title>
 
   <!-- 행정구역별 분할 주소 데이터 로드 -->
   <script type="text/javascript" src="data_anmyeon_north.js"></script>
@@ -40,9 +40,10 @@
     .btn-admin-gear:active { transform: rotate(90deg) scale(0.9); color: #fff; }
     .login-card { background: rgba(255, 255, 255, 0.95); padding: 40px 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 85%; max-width: 340px; text-align: center; }
     
-    .brand-wrapper { width: 80px; margin: 0 auto 30px auto; display: flex; flex-direction: column; align-items: center; }
+    .brand-wrapper { width: 80px; margin: 0 auto 5px auto; display: flex; flex-direction: column; align-items: center; }
     .custom-logo { width: 100%; height: 80px; background-color: #4a6da7; color: white; display: flex; justify-content: center; align-items: center; font-size: 38px; font-weight: 900; margin: 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     .brand-text { width: 100%; display: flex; justify-content: space-between; color: #4a6da7; font-size: 16px; font-weight: 900; margin-top: 6px; }
+    .login-subtitle { font-size: 14px; font-weight: bold; color: #64748b; margin-bottom: 25px; margin-top: 5px; }
     
     .input-group { margin-bottom: 20px; text-align: left; }
     .input-group label { display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px; }
@@ -168,10 +169,13 @@
   <div id="login-screen">
     <div class="btn-admin-gear" onclick="openAdmin()" title="관리자 페이지">⚙️</div>
     <div class="login-card">
+      <!-- 수정된 로고 및 텍스트 영역 -->
       <div class="brand-wrapper">
         <div class="custom-logo">JW</div>
-        <div class="brand-text"><span>구</span><span>역</span><span>카</span><span>드</span></div>
+        <div class="brand-text"><span>전</span><span>자</span><span>구</span><span>역</span></div>
       </div>
+      <!-- 회중 이름 추가 -->
+      <div class="login-subtitle">- 안면 회중 -</div>
       
       <div class="input-group">
         <label>전도인</label>
@@ -195,7 +199,7 @@
     </div>
     <div class="admin-content">
       
-      <!-- 📊 새롭게 추가된 통계 대시보드 섹션 -->
+      <!-- 📊 업데이트된 통계 대시보드 (전도인 랭킹 제거) -->
       <div class="admin-section">
         <h2>📊 구역 활동 통계</h2>
         <div class="stats-grid" id="statsGridArea">
@@ -313,7 +317,7 @@
     let currentMemoKey = "";
 
     window.addressToZoneMap = {};
-    window.zoneToRegionMap = {}; // 지역 통계를 위한 새 매핑 객체
+    window.zoneToRegionMap = {}; 
 
     let currentPubFilter = "전체";
     const ITEMS_PER_PAGE = 10;
@@ -358,7 +362,6 @@
             zoneData.newSubTitle = `${streetName}-${zoneNum} (${detailInfo})`;
             zoneData.globalNum = paddedCounter;
 
-            // 통계를 위해 구역번호가 어느 행정구역인지 기록
             window.zoneToRegionMap[paddedCounter] = region;
 
             if (zoneData.addrs) {
@@ -404,7 +407,7 @@
       db.ref('zone_completions').on('value', snap => { 
         globalCompletions = snap.val() || {}; 
         renderAdminCompletions(); 
-        renderAdminStats(); // 완료 데이터가 갱신될 때마다 통계도 업데이트
+        renderAdminStats(); 
       });
       db.ref('visits').on('value', snap => { doneMap = snap.val() || {}; updateProgressUI(); refreshSoftUI(); });
     }
@@ -450,20 +453,20 @@
     }
 
     // ==========================================
-    // 5. 관리자 페이지 로직 (통계 대시보드 추가)
+    // 5. 관리자 페이지 로직 (통계 대시보드)
     // ==========================================
     function openAdmin() {
       const pwd = prompt("관리자 비밀번호를 입력하세요.");
       if (pwd === "1234") { 
         document.getElementById('admin-screen').style.display = 'flex';
-        renderAdminStats(); // 관리자 화면을 열 때 통계 새로고침
+        renderAdminStats(); 
       } else if (pwd !== null) {
         alert("비밀번호가 일치하지 않습니다.");
       }
     }
     function closeAdmin() { document.getElementById('admin-screen').style.display = 'none'; }
 
-    // 📊 통계 대시보드 렌더링 함수
+    // 📊 전도인 랭킹을 제거한 통계 대시보드 렌더링 함수
     function renderAdminStats() {
       const grid = document.getElementById('statsGridArea');
       
@@ -489,8 +492,7 @@
         }
       });
 
-      // 3. 전도인별 활동 랭킹 및 기간별 추이 계산
-      let pubCounts = {};
+      // 3. 기간별 추이 계산 (전도인 랭킹 집계 로직 삭제됨)
       let last7Days = 0;
       let last30Days = 0;
       const now = Date.now();
@@ -498,23 +500,15 @@
       Object.values(globalCompletions).forEach(data => {
         const history = data.history || [];
         history.forEach(record => {
-          // 전도인 집계
-          pubCounts[record.user] = (pubCounts[record.user] || 0) + 1;
-          // 날짜 집계
           const diffDays = (now - record.timestamp) / (1000 * 60 * 60 * 24);
           if (diffDays <= 7) last7Days++;
           if (diffDays <= 30) last30Days++;
         });
       });
 
-      // 랭킹 정렬 (상위 3명)
-      const sortedPubs = Object.keys(pubCounts).map(user => ({ user, count: pubCounts[user] })).sort((a, b) => b.count - a.count);
-      const top3HTML = sortedPubs.slice(0, 3).map((p, i) => `<div class="stat-list-item"><span>${i+1}위. ${p.user}</span><strong>${p.count}회</strong></div>`).join('') || '<div class="stat-subtext">기록 없음</div>';
-
-      // 지역 현황 HTML
       const getRegHTML = (name) => `<div class="stat-list-item"><span>${name}</span><strong>${regionDone[name]}/${regionTotal[name]}</strong></div>`;
 
-      // HTML 화면 그리기
+      // HTML 화면 그리기 (랭킹 카드 제거)
       grid.innerHTML = `
         <div class="stat-card">
           <div class="stat-title">전체 진행률</div>
@@ -527,10 +521,6 @@
           <div class="stat-subtext">최근 7일 기준 (30일: ${last30Days}건)</div>
         </div>
         <div class="stat-card full-width">
-          <div class="stat-title">🏆 전도인 누적 완료 랭킹</div>
-          <div class="stat-list">${top3HTML}</div>
-        </div>
-        <div class="stat-card full-width">
           <div class="stat-title">📍 지역별 현황</div>
           <div class="stat-list">
             ${getRegHTML('안면읍')}
@@ -541,7 +531,6 @@
       `;
     }
 
-    // 초성 필터, 전도인 관리, 페이징 로직 등 유지
     function initConsonantFilter() {
       const bar = document.getElementById('pubFilterBar');
       bar.innerHTML = '';
