@@ -383,7 +383,7 @@
     }
 
     // ==========================================
-    // 4. 앱 초기화, 로그인 및 ★ 외부 앱 복귀 로직
+    // 4. 앱 초기화, 로그인 로직
     // ==========================================
     window.onload = function() {
       if (typeof ZONE_DATABASE === 'undefined') {
@@ -402,11 +402,8 @@
         document.getElementById('recentVisitDisplay').innerHTML = `최근 방문<br><strong>${savedZone} 번</strong>`;
       }
 
-      // ★ 카카오맵 등 외부에서 뒤로가기로 돌아와서 페이지가 새로고침 되었을 때
-      // 이전에 보던 구역 화면을 자동으로 띄워주는 핵심 로직입니다!
       if (sessionStorage.getItem('ammap_active_session') === 'true' && savedName) {
         document.getElementById('inputZoneNum').value = savedZone;
-        // 아주 약간의 지연을 주어 지도와 데이터가 안정적으로 로드되게 합니다.
         setTimeout(() => startApp(), 100); 
       }
     };
@@ -433,10 +430,7 @@
 
       currentUser = nameVal;
       localStorage.setItem('ammap_username', currentUser);
-      
-      // ★ 앱 진입 시 현재 세션이 활성화되었음을 브라우저 임시 메모리에 저장합니다.
       sessionStorage.setItem('ammap_active_session', 'true');
-
       document.getElementById('mainHeaderTitle').innerHTML = `전도인: <span style="color:#ffffff;">${currentUser}</span>`;
 
       document.getElementById('login-screen').style.display = 'none';
@@ -459,9 +453,7 @@
     }
 
     function goHome() {
-      // ★ 사용자가 직접 홈 버튼을 누르면 자동 복귀 세션을 초기화합니다.
       sessionStorage.removeItem('ammap_active_session');
-      
       document.getElementById('main-app').style.display = 'none';
       document.getElementById('login-screen').style.display = 'flex';
       document.getElementById('inputZoneNum').value = '';
@@ -760,11 +752,7 @@
 
     function onZoneChange() {
       curZoneKey = document.getElementById('selZone').value; focusedAddr = null; renderCurrentList();
-      
-      // ★ 새 구역을 열 때마다 스크롤을 맨 위로(1번 주소가 보이게) 초기화합니다.
-      const listEl = document.getElementById('listArea');
-      if (listEl) listEl.scrollTop = 0;
-
+      const listEl = document.getElementById('listArea'); if (listEl) listEl.scrollTop = 0;
       if (map && geocoder) drawPinsForCurrentZone(true);
       const zone = getCurrentZoneObject();
       if (zone && zone.globalNum) localStorage.setItem('ammap_recentzone', zone.globalNum);
@@ -872,22 +860,53 @@
     function drawPinsForCurrentZone(fitBounds = false) {
       clearAllMapMarkers(); const zone = getCurrentZoneObject(); if (!zone || !zone.addrs || !geocoder) return;
       const session = ++currentDrawSession; const bounds = new kakao.maps.LatLngBounds(); const coordBuckets = {}; 
-      let pinnedCount = 0, processedCount = 0; const totalCount = zone.addrs.length; document.getElementById('pinCount').innerText = `핀: 0 / ${totalCount}개`;
+      let pinnedCount = 0, processedCount = 0, boundedPinCount = 0; const totalCount = zone.addrs.length; document.getElementById('pinCount').innerText = `핀: 0 / ${totalCount}개`;
 
       zone.addrs.forEach((shortAddr, idx) => {
         const fullAddr = getFullAddr(shortAddr); const labelText = `#${idx + 1} ${shortAddr}`;
-        const placePin = (coords) => {
+        const placePin = (coords, addressType) => {
           if (session !== currentDrawSession) return; const key = `${coords.getLat().toFixed(5)},${coords.getLng().toFixed(5)}`; let pos = coords;
           if (coordBuckets[key]) { const c = coordBuckets[key]; const angle = c * 2.39996, dist = 0.000045 * Math.sqrt(c); pos = new kakao.maps.LatLng(coords.getLat() + Math.sin(angle) * dist, coords.getLng() + Math.cos(angle) * dist); coordBuckets[key]++; } else { coordBuckets[key] = 1; }
-          addMarkerWithLabel(shortAddr, fullAddr, pos, labelText, idx); bounds.extend(pos); pinnedCount++; document.getElementById('pinCount').innerText = `핀: ${pinnedCount} / ${totalCount}개`;
-          processedCount++; if (processedCount === totalCount && fitBounds && !focusedAddr && pinnedCount > 0) { pinnedCount === 1 ? (map.setCenter(pos), map.setLevel(4)) : map.setBounds(bounds, 30); }
+          
+          addMarkerWithLabel(shortAddr, fullAddr, pos, labelText, idx); 
+          
+          // ★ 지도 축소 버그 수정: 'REGION'(단순 읍/면/동 지역 중앙)이 아닌 경우에만 화면 경계선에 포함
+          if (addressType !== 'REGION') {
+             bounds.extend(pos);
+             boundedPinCount++;
+          }
+          
+          pinnedCount++; document.getElementById('pinCount').innerText = `핀: ${pinnedCount} / ${totalCount}개`;
+          processedCount++; 
+          if (processedCount === totalCount && fitBounds && !focusedAddr) { 
+             if (boundedPinCount > 0) {
+                 boundedPinCount === 1 ? (map.setCenter(pos), map.setLevel(4)) : map.setBounds(bounds, 30); 
+             } else if (pinnedCount > 0) {
+                 map.setCenter(pos); map.setLevel(6); 
+             }
+          }
         };
 
-        if (addrCoordCache[fullAddr]) placePin(addrCoordCache[fullAddr]);
+        if (addrCoordCache[fullAddr]) placePin(addrCoordCache[fullAddr].coords, addrCoordCache[fullAddr].type);
         else {
           geocoder.addressSearch(fullAddr, function(result, status) {
-            if (status === kakao.maps.services.Status.OK) { const coords = new kakao.maps.LatLng(result[0].y, result[0].x); addrCoordCache[fullAddr] = coords; placePin(coords); } 
-            else { const fallbackAddr = fullAddr.replace(/-\d+$/, ''); if (fallbackAddr !== fullAddr) { geocoder.addressSearch(fallbackAddr, function(fRes, fStat) { if (fStat === kakao.maps.services.Status.OK) { const fCoords = new kakao.maps.LatLng(fRes[0].y, fRes[0].x); addrCoordCache[fullAddr] = fCoords; placePin(fCoords); } else { processedCount++; } }); } else { processedCount++; } }
+            if (status === kakao.maps.services.Status.OK) { 
+               const coords = new kakao.maps.LatLng(result[0].y, result[0].x); 
+               addrCoordCache[fullAddr] = { coords: coords, type: result[0].address_type }; 
+               placePin(coords, result[0].address_type); 
+            } 
+            else { 
+              const fallbackAddr = fullAddr.replace(/-\d+$/, ''); 
+              if (fallbackAddr !== fullAddr) { 
+                geocoder.addressSearch(fallbackAddr, function(fRes, fStat) { 
+                  if (fStat === kakao.maps.services.Status.OK) { 
+                    const fCoords = new kakao.maps.LatLng(fRes[0].y, fRes[0].x); 
+                    addrCoordCache[fullAddr] = { coords: fCoords, type: fRes[0].address_type }; 
+                    placePin(fCoords, fRes[0].address_type); 
+                  } else { processedCount++; } 
+                }); 
+              } else { processedCount++; } 
+            }
           });
         }
       });
@@ -911,8 +930,8 @@
         activeOverlay = new kakao.maps.CustomOverlay({ position: pos, content: `<div class="custom-speech-bubble ${isDone ? 'done' : ''}"><div class="bubble-status ${isDone ? 'visited' : 'unvisited'}">${isDone ? '✓ 방문완료' : '● 미방문'}</div><div class="bubble-title">${shortAddr}</div></div>`, yAnchor: 1.35, xAnchor: 0.5, map: map });
         map.setCenter(pos); map.setLevel(2);
       };
-      if (addrCoordCache[fullAddr]) showPin(addrCoordCache[fullAddr]);
-      else if (geocoder) { geocoder.addressSearch(fullAddr, (result, status) => { if (status === kakao.maps.services.Status.OK) { const pos = new kakao.maps.LatLng(result[0].y, result[0].x); addrCoordCache[fullAddr] = pos; showPin(pos); } }); }
+      if (addrCoordCache[fullAddr]) showPin(addrCoordCache[fullAddr].coords);
+      else if (geocoder) { geocoder.addressSearch(fullAddr, (result, status) => { if (status === kakao.maps.services.Status.OK) { const pos = new kakao.maps.LatLng(result[0].y, result[0].x); addrCoordCache[fullAddr] = { coords: pos, type: result[0].address_type }; showPin(pos); } }); }
     }
 
     function showAllPins() { focusedAddr = null; document.querySelectorAll('.house-card').forEach(c => c.classList.remove('focused')); drawPinsForCurrentZone(true); }
