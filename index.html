@@ -285,7 +285,7 @@
 
   <script>
     // ==========================================
-    // 1. Firebase 및 카카오 SDK 설정
+    // 1. Firebase 설정
     // ==========================================
     const firebaseConfig = {
       apiKey: "AIzaSyD3N7SPoV6Z4qsCs3S0vrQ9Tko4Z62ZCfQ",
@@ -837,26 +837,13 @@
       updateProgressUI();
     }
 
-    // ★ 카카오내비 연동 함수 (수정됨)
     function openNavi(shortAddr, fullAddr) {
-      const launchNavi = (lat, lng) => {
-        Kakao.Navi.start({
-          name: shortAddr,
-          x: lng,
-          y: lat,
-          coordType: 'wgs84'
-        });
-      };
-
+      const launchNavi = (lat, lng) => { Kakao.Navi.start({ name: shortAddr, x: lng, y: lat, coordType: 'wgs84' }); };
       if (addrCoordCache[fullAddr] && addrCoordCache[fullAddr].coords) {
         launchNavi(addrCoordCache[fullAddr].coords.getLat(), addrCoordCache[fullAddr].coords.getLng());
       } else {
         searchAddressWithFallback(fullAddr, function(result) {
-          if (result) {
-            launchNavi(result.y, result.x);
-          } else {
-            alert("정확한 좌표를 찾을 수 없어 길 안내를 실행할 수 없습니다.");
-          }
+          if (result) { launchNavi(result.y, result.x); } else { alert("정확한 좌표를 찾을 수 없어 길 안내를 실행할 수 없습니다."); }
         });
       }
     }
@@ -930,11 +917,27 @@
       if (singleMarker) { singleMarker.setMap(null); singleMarker = null; } if (activeOverlay) { activeOverlay.setMap(null); activeOverlay = null; }
     }
 
+    // ★ 안정적으로 지도를 중앙에 잡아주는 안전한 경계 계산 패치
     function drawPinsForCurrentZone(fitBounds = false) {
       clearAllMapMarkers(); const zone = getCurrentZoneObject(); if (!zone || !zone.addrs || !geocoder) return;
       const session = ++currentDrawSession; const bounds = new kakao.maps.LatLngBounds(); const coordBuckets = {}; 
       let pinnedCount = 0, processedCount = 0, boundedPinCount = 0; const totalCount = zone.addrs.length; document.getElementById('pinCount').innerText = `핀: 0 / ${totalCount}개`;
+      
       let fallbackCenterPos = null;
+      let firstBoundedPos = null; 
+
+      const finalizeBounds = () => {
+        if (!fitBounds || focusedAddr) return;
+        if (boundedPinCount > 1) {
+            map.setBounds(bounds, 30);
+        } else if (boundedPinCount === 1 && firstBoundedPos) {
+            map.setCenter(firstBoundedPos);
+            map.setLevel(4);
+        } else if (pinnedCount > 0 && fallbackCenterPos) {
+            map.setCenter(fallbackCenterPos);
+            map.setLevel(6);
+        }
+      };
 
       zone.addrs.forEach((shortAddr, idx) => {
         const fullAddr = getFullAddr(shortAddr); const labelText = `#${idx + 1} ${shortAddr}`;
@@ -947,19 +950,16 @@
           addMarkerWithLabel(shortAddr, fullAddr, pos, labelText, idx); 
           if (!fallbackCenterPos) fallbackCenterPos = pos;
 
-          // REGION 타입(면 단위 중심점)은 화면 경계선 계산에서 제외하여 우주로 줌아웃되는 현상 방지
-          if (addressType !== 'REGION') { bounds.extend(pos); boundedPinCount++; }
+          if (addressType !== 'REGION') { 
+              bounds.extend(pos); 
+              boundedPinCount++; 
+              if (boundedPinCount === 1) firstBoundedPos = pos;
+          }
           
           pinnedCount++; document.getElementById('pinCount').innerText = `핀: ${pinnedCount} / ${totalCount}개`;
           
           processedCount++; 
-          if (processedCount === totalCount && fitBounds && !focusedAddr) { 
-             if (boundedPinCount > 0) { 
-                 boundedPinCount === 1 ? (map.setCenter(bounds.getCenter()), map.setLevel(4)) : map.setBounds(bounds, 30); 
-             } else if (pinnedCount > 0 && fallbackCenterPos) { 
-                 map.setCenter(fallbackCenterPos); map.setLevel(6); 
-             }
-          }
+          if (processedCount === totalCount) finalizeBounds();
         };
 
         if (addrCoordCache[fullAddr]) {
@@ -972,13 +972,7 @@
               placePin(coords, result.address_type); 
             } else {
               processedCount++;
-              if (processedCount === totalCount && fitBounds && !focusedAddr) { 
-                 if (boundedPinCount > 0) { 
-                     boundedPinCount === 1 ? (map.setCenter(bounds.getCenter()), map.setLevel(4)) : map.setBounds(bounds, 30); 
-                 } else if (pinnedCount > 0 && fallbackCenterPos) { 
-                     map.setCenter(fallbackCenterPos); map.setLevel(6); 
-                 }
-              }
+              if (processedCount === totalCount) finalizeBounds();
             }
           });
         }
@@ -997,6 +991,7 @@
       document.querySelectorAll('.house-card').forEach(c => c.classList.remove('focused'));
       const targetCard = document.getElementById(`card-addr-${idx}`); if (targetCard) { targetCard.classList.add('focused'); targetCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
       clearAllMapMarkers(); const fullAddr = getFullAddr(shortAddr);
+      
       const showPin = (pos) => {
         const safeKey = fullAddr.replace(/[.#$[\]]/g, '_'); const isDone = isAddressDone(safeKey);
         singleMarker = new kakao.maps.Marker({ map: map, position: pos, image: getMarkerImage(isDone, true) });
@@ -1004,8 +999,9 @@
         map.setCenter(pos); map.setLevel(2);
       };
       
-      if (addrCoordCache[fullAddr]) showPin(addrCoordCache[fullAddr].coords);
-      else if (geocoder) { 
+      if (addrCoordCache[fullAddr]) {
+          showPin(addrCoordCache[fullAddr].coords);
+      } else if (geocoder) { 
         searchAddressWithFallback(fullAddr, function(result) {
           if (result) {
             const pos = new kakao.maps.LatLng(result.y, result.x); 
