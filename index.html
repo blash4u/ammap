@@ -17,7 +17,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script>
 
-  <!-- ★ 카카오 지도 및 카카오내비 SDK 로드 -->
+  <!-- 카카오 지도 및 카카오내비 SDK 로드 -->
   <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=e41e9b55de02ad81ebeb00e3721d52e2&libraries=services&autoload=false"></script>
   <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
 
@@ -139,7 +139,6 @@
     .memo-display { font-size: 11px; color: #ef4444; margin-top: 4px; font-weight: bold; display: none; }
     .memo-display.has-memo { display: block; }
 
-    /* ★ 변경: btn-navi를 버튼 스타일로 변경 (테두리 제거, 배경색 등 유지) */
     .btn-wrap { display: flex; gap: 5px; align-items: center; flex-shrink: 0; }
     .btn-memo { background: #cbd5e1; color: #0f172a; border: none; padding: 5px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
     .btn-navi { background: #fde047; color: #854d0e; text-decoration: none; border: none; padding: 5px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
@@ -286,7 +285,7 @@
 
   <script>
     // ==========================================
-    // 1. Firebase 및 카카오 SDK 초기화
+    // 1. Firebase 및 카카오 SDK 설정
     // ==========================================
     const firebaseConfig = {
       apiKey: "AIzaSyD3N7SPoV6Z4qsCs3S0vrQ9Tko4Z62ZCfQ",
@@ -303,7 +302,6 @@
     const db = firebase.database();
     firebase.analytics();
 
-    // 카카오 SDK 초기화
     if (!Kakao.isInitialized()) {
       Kakao.init('e41e9b55de02ad81ebeb00e3721d52e2');
     }
@@ -340,6 +338,40 @@
       const code = str.charCodeAt(0) - 44032;
       if (code > -1 && code < 11172) return cho[Math.floor(code / 588)];
       return str.charAt(0);
+    }
+
+    // ★ 강력한 3단계 검색 엔진 함수 (정확 -> 지번제거 -> 도로명)
+    function searchAddressWithFallback(fullAddr, callback) {
+      geocoder.addressSearch(fullAddr, function(res1, stat1) {
+        if (stat1 === kakao.maps.services.Status.OK) {
+          callback(res1[0]);
+        } else {
+          let fallback1 = fullAddr.replace(/-\d+$/, '');
+          if (fallback1 !== fullAddr) {
+            geocoder.addressSearch(fallback1, function(res2, stat2) {
+              if (stat2 === kakao.maps.services.Status.OK) {
+                callback(res2[0]);
+              } else {
+                let fallback2 = fallback1.substring(0, fallback1.lastIndexOf(' '));
+                if(fallback2) {
+                  geocoder.addressSearch(fallback2, function(res3, stat3) {
+                    if (stat3 === kakao.maps.services.Status.OK) callback(res3[0]);
+                    else callback(null);
+                  });
+                } else callback(null);
+              }
+            });
+          } else {
+            let fallback2 = fullAddr.substring(0, fullAddr.lastIndexOf(' '));
+            if(fallback2) {
+              geocoder.addressSearch(fallback2, function(res3, stat3) {
+                if (stat3 === kakao.maps.services.Status.OK) callback(res3[0]);
+                else callback(null);
+              });
+            } else callback(null);
+          }
+        }
+      });
     }
 
     // ==========================================
@@ -780,7 +812,6 @@
       document.getElementById('progRatio').innerText = `${doneCnt} / ${zone.addrs.length} (${Math.round((doneCnt / zone.addrs.length) * 100)}%)`;
     }
 
-    // ★ 안내 버튼을 <a> 태그에서 내비게이션 실행 <button>으로 변경
     function renderCurrentList() {
       const zone = getCurrentZoneObject(); const listEl = document.getElementById('listArea'); listEl.innerHTML = '';
       if (!zone || !zone.addrs || zone.addrs.length === 0) { document.getElementById('subZoneTitle').innerText = `주소 데이터 준비 중`; document.getElementById('pinCount').innerText = '핀: 0개'; updateProgressUI(); return; }
@@ -806,7 +837,7 @@
       updateProgressUI();
     }
 
-    // ★ 카카오내비 실행 함수
+    // ★ 카카오내비 연동 함수 (수정됨)
     function openNavi(shortAddr, fullAddr) {
       const launchNavi = (lat, lng) => {
         Kakao.Navi.start({
@@ -817,29 +848,14 @@
         });
       };
 
-      // 1. 기존에 지도를 그리면서 찾아둔 좌표가 있다면 즉시 실행
       if (addrCoordCache[fullAddr] && addrCoordCache[fullAddr].coords) {
         launchNavi(addrCoordCache[fullAddr].coords.getLat(), addrCoordCache[fullAddr].coords.getLng());
-      } 
-      // 2. 캐시에 없다면 주소를 검색해서 좌표를 찾아낸 뒤 실행
-      else if (geocoder) {
-        geocoder.addressSearch(fullAddr, (result, status) => {
-          if (status === kakao.maps.services.Status.OK) {
-            const pos = new kakao.maps.LatLng(result[0].y, result[0].x);
-            addrCoordCache[fullAddr] = { coords: pos, type: result[0].address_type };
-            launchNavi(pos.getLat(), pos.getLng());
+      } else {
+        searchAddressWithFallback(fullAddr, function(result) {
+          if (result) {
+            launchNavi(result.y, result.x);
           } else {
-            // 끝자리 지번이 명확하지 않을 때를 대비한 검색
-            const fallbackAddr = fullAddr.replace(/-\d+$/, '');
-            geocoder.addressSearch(fallbackAddr, (fRes, fStat) => {
-              if (fStat === kakao.maps.services.Status.OK) {
-                const fPos = new kakao.maps.LatLng(fRes[0].y, fRes[0].x);
-                addrCoordCache[fullAddr] = { coords: fPos, type: fRes[0].address_type };
-                launchNavi(fPos.getLat(), fPos.getLng());
-              } else {
-                alert("정확한 좌표를 찾을 수 없어 길 안내를 실행할 수 없습니다.");
-              }
-            });
+            alert("정확한 좌표를 찾을 수 없어 길 안내를 실행할 수 없습니다.");
           }
         });
       }
@@ -918,43 +934,51 @@
       clearAllMapMarkers(); const zone = getCurrentZoneObject(); if (!zone || !zone.addrs || !geocoder) return;
       const session = ++currentDrawSession; const bounds = new kakao.maps.LatLngBounds(); const coordBuckets = {}; 
       let pinnedCount = 0, processedCount = 0, boundedPinCount = 0; const totalCount = zone.addrs.length; document.getElementById('pinCount').innerText = `핀: 0 / ${totalCount}개`;
+      let fallbackCenterPos = null;
 
       zone.addrs.forEach((shortAddr, idx) => {
         const fullAddr = getFullAddr(shortAddr); const labelText = `#${idx + 1} ${shortAddr}`;
+        
         const placePin = (coords, addressType) => {
-          if (session !== currentDrawSession) return; const key = `${coords.getLat().toFixed(5)},${coords.getLng().toFixed(5)}`; let pos = coords;
+          if (session !== currentDrawSession) return; 
+          const key = `${coords.getLat().toFixed(5)},${coords.getLng().toFixed(5)}`; let pos = coords;
           if (coordBuckets[key]) { const c = coordBuckets[key]; const angle = c * 2.39996, dist = 0.000045 * Math.sqrt(c); pos = new kakao.maps.LatLng(coords.getLat() + Math.sin(angle) * dist, coords.getLng() + Math.cos(angle) * dist); coordBuckets[key]++; } else { coordBuckets[key] = 1; }
           
           addMarkerWithLabel(shortAddr, fullAddr, pos, labelText, idx); 
+          if (!fallbackCenterPos) fallbackCenterPos = pos;
+
+          // REGION 타입(면 단위 중심점)은 화면 경계선 계산에서 제외하여 우주로 줌아웃되는 현상 방지
           if (addressType !== 'REGION') { bounds.extend(pos); boundedPinCount++; }
           
           pinnedCount++; document.getElementById('pinCount').innerText = `핀: ${pinnedCount} / ${totalCount}개`;
+          
           processedCount++; 
           if (processedCount === totalCount && fitBounds && !focusedAddr) { 
-             if (boundedPinCount > 0) { boundedPinCount === 1 ? (map.setCenter(pos), map.setLevel(4)) : map.setBounds(bounds, 30); } 
-             else if (pinnedCount > 0) { map.setCenter(pos); map.setLevel(6); }
+             if (boundedPinCount > 0) { 
+                 boundedPinCount === 1 ? (map.setCenter(bounds.getCenter()), map.setLevel(4)) : map.setBounds(bounds, 30); 
+             } else if (pinnedCount > 0 && fallbackCenterPos) { 
+                 map.setCenter(fallbackCenterPos); map.setLevel(6); 
+             }
           }
         };
 
-        if (addrCoordCache[fullAddr]) placePin(addrCoordCache[fullAddr].coords, addrCoordCache[fullAddr].type);
-        else {
-          geocoder.addressSearch(fullAddr, function(result, status) {
-            if (status === kakao.maps.services.Status.OK) { 
-               const coords = new kakao.maps.LatLng(result[0].y, result[0].x); 
-               addrCoordCache[fullAddr] = { coords: coords, type: result[0].address_type }; 
-               placePin(coords, result[0].address_type); 
-            } 
-            else { 
-              const fallbackAddr = fullAddr.replace(/-\d+$/, ''); 
-              if (fallbackAddr !== fullAddr) { 
-                geocoder.addressSearch(fallbackAddr, function(fRes, fStat) { 
-                  if (fStat === kakao.maps.services.Status.OK) { 
-                    const fCoords = new kakao.maps.LatLng(fRes[0].y, fRes[0].x); 
-                    addrCoordCache[fullAddr] = { coords: fCoords, type: fRes[0].address_type }; 
-                    placePin(fCoords, fRes[0].address_type); 
-                  } else { processedCount++; } 
-                }); 
-              } else { processedCount++; } 
+        if (addrCoordCache[fullAddr]) {
+            placePin(addrCoordCache[fullAddr].coords, addrCoordCache[fullAddr].type);
+        } else {
+          searchAddressWithFallback(fullAddr, function(result) {
+            if (result) {
+              const coords = new kakao.maps.LatLng(result.y, result.x); 
+              addrCoordCache[fullAddr] = { coords: coords, type: result.address_type }; 
+              placePin(coords, result.address_type); 
+            } else {
+              processedCount++;
+              if (processedCount === totalCount && fitBounds && !focusedAddr) { 
+                 if (boundedPinCount > 0) { 
+                     boundedPinCount === 1 ? (map.setCenter(bounds.getCenter()), map.setLevel(4)) : map.setBounds(bounds, 30); 
+                 } else if (pinnedCount > 0 && fallbackCenterPos) { 
+                     map.setCenter(fallbackCenterPos); map.setLevel(6); 
+                 }
+              }
             }
           });
         }
@@ -979,8 +1003,19 @@
         activeOverlay = new kakao.maps.CustomOverlay({ position: pos, content: `<div class="custom-speech-bubble ${isDone ? 'done' : ''}"><div class="bubble-status ${isDone ? 'visited' : 'unvisited'}">${isDone ? '✓ 방문완료' : '● 미방문'}</div><div class="bubble-title">${shortAddr}</div></div>`, yAnchor: 1.35, xAnchor: 0.5, map: map });
         map.setCenter(pos); map.setLevel(2);
       };
+      
       if (addrCoordCache[fullAddr]) showPin(addrCoordCache[fullAddr].coords);
-      else if (geocoder) { geocoder.addressSearch(fullAddr, (result, status) => { if (status === kakao.maps.services.Status.OK) { const pos = new kakao.maps.LatLng(result[0].y, result[0].x); addrCoordCache[fullAddr] = { coords: pos, type: result[0].address_type }; showPin(pos); } }); }
+      else if (geocoder) { 
+        searchAddressWithFallback(fullAddr, function(result) {
+          if (result) {
+            const pos = new kakao.maps.LatLng(result.y, result.x); 
+            addrCoordCache[fullAddr] = { coords: pos, type: result.address_type }; 
+            showPin(pos); 
+          } else {
+             alert("해당 주소의 정확한 좌표를 카카오맵에서 찾을 수 없습니다.");
+          }
+        }); 
+      }
     }
 
     function showAllPins() { focusedAddr = null; document.querySelectorAll('.house-card').forEach(c => c.classList.remove('focused')); drawPinsForCurrentZone(true); }
