@@ -11,6 +11,7 @@
   <script type="text/javascript" src="data_anmyeon_south.js"></script>
   <script type="text/javascript" src="data_gonam.js"></script>
   <script type="text/javascript" src="data_nam.js"></script>
+  <script type="text/javascript" src="data_wonsan.js"></script> <!-- ★ 원산도 데이터 추가 -->
 
   <!-- Firebase v8 로드 -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -285,7 +286,7 @@
 
   <script>
     // ==========================================
-    // 1. Firebase 설정
+    // 1. Firebase 및 카카오 SDK 설정
     // ==========================================
     const firebaseConfig = {
       apiKey: "AIzaSyD3N7SPoV6Z4qsCs3S0vrQ9Tko4Z62ZCfQ",
@@ -379,8 +380,9 @@
     // 3. 구역 데이터 명칭 포맷 변환 및 통계 매핑
     // ==========================================
     function formatZoneData() {
-      const regions = ["안면읍", "남면", "고남면"];
-      const prefixMap = { "안면읍": "안면", "남면": "남면", "고남면": "고남" };
+      // ★ 오천면 추가 및 Prefix 반영
+      const regions = ["안면읍", "남면", "고남면", "오천면"];
+      const prefixMap = { "안면읍": "안면", "남면": "남면", "고남면": "고남", "오천면": "원산" };
       let counter = 1;
 
       regions.forEach(region => {
@@ -408,7 +410,9 @@
 
             if (zoneData.addrs) {
               zoneData.addrs.forEach(addr => {
-                const fullAddr = addr.startsWith("충청남도") ? addr : `충청남도 태안군 ${region} ${addr}`;
+                // ★ 보령시 오천면 예외 처리 적용
+                const baseCity = (region === "오천면") ? "보령시" : "태안군";
+                const fullAddr = addr.startsWith("충청남도") ? addr : `충청남도 ${baseCity} ${region} ${addr}`;
                 const safeKey = fullAddr.replace(/[.#$[\]]/g, '_');
                 window.addressToZoneMap[safeKey] = paddedCounter;
               });
@@ -530,8 +534,8 @@
       let minCompletions = Math.min(...zoneCompletionCounts.map(z => z.count));
 
       let currentCycleTimestamps = [];
-      let regionTotal = { "안면읍": 0, "남면": 0, "고남면": 0 };
-      let regionDone = { "안면읍": 0, "남면": 0, "고남면": 0 };
+      let regionTotal = { "안면읍": 0, "남면": 0, "고남면": 0, "오천면": 0 };
+      let regionDone = { "안면읍": 0, "남면": 0, "고남면": 0, "오천면": 0 };
 
       Object.keys(window.zoneToRegionMap).forEach(num => {
         const r = window.zoneToRegionMap[num];
@@ -576,7 +580,7 @@
             <div class="circular-chart" style="background: conic-gradient(#4a6da7 ${pct}%, #e2e8f0 0);">
               <div class="circular-chart-value">${pct}%</div>
             </div>
-            <div class="region-name">${name}</div>
+            <div class="region-name">${name === "오천면" ? "원산도" : name}</div>
             <div class="region-count">${done} / ${total}</div>
           </div>
         `;
@@ -599,6 +603,7 @@
             ${getRegionDonutHTML('안면읍')}
             ${getRegionDonutHTML('남면')}
             ${getRegionDonutHTML('고남면')}
+            ${getRegionDonutHTML('오천면')}
           </div>
         </div>
       `;
@@ -802,7 +807,14 @@
       if (!curTown || !curVillage || !curZoneKey) return null;
       return ZONE_DATABASE[curTown]?.[curVillage]?.[curZoneKey] || null;
     }
-    function getFullAddr(shortAddr) { return shortAddr.startsWith("충청남도") ? shortAddr : `충청남도 태안군 ${curTown} ${shortAddr}`; }
+    
+    // ★ 보령시 오천면 검색을 위한 주소 포맷팅 함수 업데이트
+    function getFullAddr(shortAddr) { 
+      if (shortAddr.startsWith("충청남도")) return shortAddr;
+      const baseCity = (curTown === "오천면") ? "보령시" : "태안군";
+      return `충청남도 ${baseCity} ${curTown} ${shortAddr}`; 
+    }
+    
     function isAddressDone(safeKey) { const data = doneMap[safeKey]; if (!data) return false; return (data === true) || (data.done === true); }
 
     function updateProgressUI() {
@@ -918,7 +930,6 @@
       if (singleMarker) { singleMarker.setMap(null); singleMarker = null; } if (activeOverlay) { activeOverlay.setMap(null); activeOverlay = null; }
     }
 
-    // ★ 안전한 중심점(Center) 계산 로직 패치!
     function drawPinsForCurrentZone(fitBounds = false) {
       clearAllMapMarkers(); const zone = getCurrentZoneObject(); if (!zone || !zone.addrs || !geocoder) return;
       const session = ++currentDrawSession; const bounds = new kakao.maps.LatLngBounds(); const coordBuckets = {}; 
@@ -936,7 +947,7 @@
             map.setLevel(4);
         } else if (pinnedCount > 0 && fallbackCenterPos) {
             map.setCenter(fallbackCenterPos);
-            map.setLevel(5); // 고남면 등 읍/면 단위 중심점에 예쁘게 위치하도록 축소 레벨을 5로 지정
+            map.setLevel(5); 
         }
       };
 
@@ -951,7 +962,6 @@
           addMarkerWithLabel(shortAddr, fullAddr, pos, labelText, idx); 
           if (!fallbackCenterPos) fallbackCenterPos = pos;
 
-          // REGION 타입(면 단위 중심점)은 화면 경계선 계산에서 제외하여 우주로 줌아웃되는 현상 방지
           if (addressType !== 'REGION') { 
               bounds.extend(pos); 
               boundedPinCount++; 
