@@ -1,1 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>전화구역</title>
+  
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Malgun Gothic", -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: #f1f5f9; height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
 
+    /* 상단 헤더 스타일 */
+    .header { background-color: #1e293b; padding: 15px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; color: white; }
+    .title-group { display: flex; align-items: center; gap: 10px; }
+    
+    /* 뒤로 가기 (메인 지도 앱으로 복귀) 버튼 */
+    .btn-back { display: flex; align-items: center; justify-content: center; cursor: pointer; color: #ffffff; text-decoration: none; transition: transform 0.2s; }
+    .btn-back:active { transform: scale(0.85); }
+    .btn-back svg { width: 24px; height: 24px; stroke-width: 2.5px; }
+    
+    .title { color: #fde047; font-size: 16px; font-weight: bold; }
+
+    /* 메인 컨텐츠 영역 */
+    .content-area { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center; color: #475569; }
+    .content-area h2 { font-size: 20px; color: #0f172a; margin-bottom: 10px; }
+    .content-area p { font-size: 14px; line-height: 1.5; margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+
+  <!-- 상단 헤더 영역 -->
+  <div class="header">
+    <div class="title-group">
+      <!-- 기존 전자구역(index.html)으로 돌아가는 버튼 -->
+      <a href="index.html" class="btn-back" title="전자구역으로 돌아가기">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 18l-6-6 6-6"/>
+        </svg>
+      </a>
+      <div class="title">📞 전화구역 시스템</div>
+    </div>
+  </div>
+
+  <!-- 메인 컨텐츠 (앞으로 채워나갈 곳) -->
+  <div class="content-area">
+    <h2>전화구역 준비 중입니다!</h2>
+    <p>이곳에 전화번호부 목록, 통화 기록 체크 등<br>전화구역에 필요한 기능들을 만들어 나갈 예정입니다.</p>
+  </div>
+
+  <script>
+    // 전화구역에 필요한 자바스크립트 기능은 이곳에 작성될 예정입니다.
+    console.log("전화구역 시스템 로드 완료!");
+  </script>
+</body>
+</html>
