@@ -85,8 +85,10 @@
     .info-bar { background-color: #ffffff; padding: 10px 12px; border-bottom: 1px solid #cbd5e1; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
     .info-bar-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
     .prog-text { font-size: 14px; color: #166534; font-weight: 800; }
+    
     .btn-zone-complete { background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: 0.1s; }
     .btn-zone-complete:active { transform: scale(0.95); }
+
     .sub-zone-title { text-align: center; font-size: 16px; color: #0f172a; font-weight: 900; background: #f0fdf4; padding: 10px; border-radius: 6px; border: 1px solid #bbf7d0; margin-top: 4px; }
 
     /* 전화구역 전용 카드 리스트 */
@@ -112,15 +114,15 @@
     .btn-status.active.wrong { background: #64748b; color: white; border-color: #64748b; }
     .btn-status.active.reject { background: #ef4444; color: white; border-color: #ef4444; }
 
-    /* 결번/거절 상태 CSS */
     .phone-card.status-wrong .phone-link, 
     .phone-card.status-wrong .biz-name-highlight { text-decoration: line-through; color: #94a3b8; }
+    
     .phone-card.status-reject .phone-link, 
     .phone-card.status-reject .biz-name-highlight { text-decoration: line-through; color: #ef4444; }
     .reject-label { display: none; background-color: #ef4444; color: white; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
     .phone-card.status-reject .reject-label { display: inline-block; }
 
-    /* 개선된 메모 표시 UI */
+    /* 메모 상시 노출 스타일 */
     .memo-display { font-size: 13px; color: #b91c1c; font-weight: bold; background: #fef2f2; padding: 8px 12px; border-radius: 6px; display: none; border-left: 4px solid #ef4444; margin-top: 2px; }
     .memo-display.has-memo { display: block; }
 
@@ -194,7 +196,7 @@
         </div>
       </div>
 
-      <!-- 데이터 수정 패널 (안전한 평면 키 방식으로 업그레이드 됨) -->
+      <!-- 데이터 수정 패널 -->
       <div class="admin-section">
         <h2>✏️ 전화번호/상호명 수정</h2>
         <p style="font-size:11px; color:#64748b; margin-bottom:10px;">전화번호와 상호가 변경되었을 때 여기서 수정하면 기록(메모 등)이 보존됩니다.</p>
@@ -255,6 +257,7 @@
     <div class="info-bar">
       <div class="info-bar-top">
         <span class="prog-text" id="progRatio">진행률: 0 / 0 (0%)</span>
+        <!-- ★ 완료 버튼 -->
         <button class="btn-zone-complete" onclick="completeCurrentZone()">구역 완료 🏆</button>
       </div>
       <div id="subZoneTitle" class="sub-zone-title">구역을 선택해주세요</div>
@@ -464,7 +467,6 @@
 
     function getCurrentZoneObject() { return PHONE_ZONE_DATABASE[curTown]?.[curVillage]?.[curZoneKey] || null; }
     
-    // 식별용 안전 키 반환
     function getSafeKey(str) { return str.replace(/[.#$[\]\/]/g, '_'); }
 
     function getAddressStatus(safeKey) {
@@ -500,7 +502,6 @@
         const memoText = globalMemos[safeKey] || "";
         const isFocused = (focusedAddr === originalString);
 
-        // 플랫(Flat) 구조로 저장된 관리자 편집 데이터 불러오기
         const flatEditKey = zone.globalNum + '_' + idx;
         const displayString = globalPhoneEdits[flatEditKey] ? globalPhoneEdits[flatEditKey] : originalString;
 
@@ -590,7 +591,7 @@
       updateProgressUI();
     }
 
-    // ★ 구역 완료 버튼 처리 (통화, 부재만 초기화)
+    // ★ 구역 완료 시 통화, 부재만 즉시 초기화 (UI 강제 리렌더링 반영)
     function completeCurrentZone() {
       const zone = getCurrentZoneObject();
       if (!zone || !zone.addrs || zone.addrs.length === 0) return;
@@ -599,7 +600,6 @@
 
       const zoneGlobalNum = zone.globalNum;
 
-      // 구역 완료 기록 저장
       db.ref('phone_zone_completions/' + zoneGlobalNum).once('value').then(snap => {
         let data = snap.val() || { history: [] };
         if(!data.history) data.history = [];
@@ -607,20 +607,26 @@
         db.ref('phone_zone_completions/' + zoneGlobalNum).set(data);
       });
 
-      // 통화, 부재 기록만 선택적 삭제
       zone.addrs.forEach(originalString => {
         const safeKey = getSafeKey(originalString);
         const status = getAddressStatus(safeKey);
 
         if (status === '통화' || status === '부재') {
-          db.ref('phone_visits/' + safeKey).remove();
+          // 로컬 데이터 즉시 삭제 (UI 초기화용)
+          delete doneMap[safeKey]; 
+          // DB 삭제 요청 (에러 캐치 포함)
+          db.ref('phone_visits/' + safeKey).remove().catch(e => console.error(e));
         }
       });
 
-      showToast(`🎉 수고하셨습니다! 구역 완료가 저장되었습니다.`);
+      // UI 즉시 새로고침
+      renderCurrentList();
+      updateProgressUI();
+
+      alert(`🎉 수고하셨습니다!\n구역완료\n\n${currentUser} 전도인님, 해당 구역의 '통화/부재' 기록이 초기화되었습니다.`);
     }
 
-    // 메모 입력 모달 오픈 (버그 수정 반영)
+    // ★ 메모 DB 저장 시 권한 거부(PERMISSION_DENIED) 에러를 화면에 띄우도록 캐치 추가
     function openMemoModal(idx) {
       const zone = getCurrentZoneObject();
       const originalString = zone.addrs[idx];
@@ -637,14 +643,13 @@
     
     function closeMemoModal() { document.getElementById('memo-modal').style.display = 'none'; currentMemoKey = ""; }
     
-    // 메모 DB 저장 (안전장치 추가)
     function saveMemo() {
       const text = document.getElementById('memo-input').value.trim();
       if(currentMemoKey) {
         if(text === "") {
-          db.ref('phone_memos/' + currentMemoKey).remove().catch(e => alert("DB 에러: " + e.message));
+          db.ref('phone_memos/' + currentMemoKey).remove().catch(e => alert("DB 에러: " + e.message + "\n(Firebase 보안 규칙을 확인해주세요.)"));
         } else {
-          db.ref('phone_memos/' + currentMemoKey).set(text).catch(e => alert("DB 에러: " + e.message));
+          db.ref('phone_memos/' + currentMemoKey).set(text).catch(e => alert("DB 에러: " + e.message + "\n(Firebase 보안 규칙을 확인해주세요.)"));
         }
       }
       closeMemoModal();
@@ -756,13 +761,14 @@
       });
     }
 
+    // ★ 편집 DB 저장 시 권한 거부(PERMISSION_DENIED) 에러를 화면에 띄우도록 캐치 유지
     function savePhoneEdit(zoneNum, idx) {
       const val = document.getElementById(`edit-input-${zoneNum}-${idx}`).value.trim();
       if(!val) return;
-      const flatEditKey = zoneNum + '_' + idx; // 안전한 키 포맷으로 저장
+      const flatEditKey = zoneNum + '_' + idx; 
       db.ref(`phone_edits/${flatEditKey}`).set(val).then(() => {
         alert('저장되었습니다. 앱 화면에 즉시 반영됩니다.');
-      }).catch(e => alert("DB 에러: " + e.message));
+      }).catch(e => alert("DB 에러: " + e.message + "\n(Firebase 보안 규칙을 확인해주세요.)"));
     }
 
     function resetPhoneEdit(zoneNum, idx) {
@@ -770,7 +776,7 @@
         const flatEditKey = zoneNum + '_' + idx;
         db.ref(`phone_edits/${flatEditKey}`).remove().then(() => {
           alert('복구되었습니다.');
-        }).catch(e => alert("DB 에러: " + e.message));
+        }).catch(e => alert("DB 에러: " + e.message + "\n(Firebase 보안 규칙을 확인해주세요.)"));
       }
     }
 
