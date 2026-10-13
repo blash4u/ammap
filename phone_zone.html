@@ -5,13 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>전화구역</title>
 
-  <!-- 행정구역별 데이터 로드 -->
-  <script type="text/javascript" src="data_anmyeon_north.js"></script>
-  <script type="text/javascript" src="data_anmyeon_central.js"></script>
-  <script type="text/javascript" src="data_anmyeon_south.js"></script>
-  <script type="text/javascript" src="data_gonam.js"></script>
-  <script type="text/javascript" src="data_nam.js"></script>
-  <script type="text/javascript" src="data_wonsan.js"></script>
+  <!-- ★ 전화구역 전용 데이터 로드 (기존 방문 구역 파일과 완벽히 분리) -->
+  <script type="text/javascript" src="data_phone.js"></script>
 
   <!-- Firebase v8 로드 -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -65,12 +60,13 @@
     .info-bar-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
     .prog-text { font-size: 14px; color: #166534; font-weight: 800; }
     .btn-reset-zone { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
-    .sub-zone-title { text-align: center; font-size: 13px; color: #475569; font-weight: 700; background: #f1f5f9; padding: 6px; border-radius: 4px; }
+    .sub-zone-title { text-align: center; font-size: 15px; color: #0f172a; font-weight: 800; background: #f1f5f9; padding: 6px; border-radius: 4px; border: 1px solid #cbd5e1; }
 
     /* 전화구역 전용 카드 리스트 */
     .list-area { flex: 1; overflow-y: auto; padding: 10px; background-color: #f8fafc; }
-    .phone-card { background: white; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 10px; }
+    .phone-card { background: white; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 10px; transition: border-color 0.2s, background-color 0.2s; }
     .phone-card.has-status { border-color: #2ea354; background: #f0fdf4; }
+    .phone-card.focused { border: 2px solid #2ea354; background-color: #f0fdf4; }
     
     .card-top { display: flex; justify-content: space-between; align-items: flex-start; }
     .biz-info { flex: 1; }
@@ -78,7 +74,7 @@
     .biz-info .biz-name { font-size: 15px; font-weight: 900; color: #0f172a; word-break: break-all; }
     .btn-memo { background: #e2e8f0; color: #475569; border: none; padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; }
 
-    /* 상태 버튼 그룹 */
+    /* 4가지 상태 버튼 그룹 */
     .status-group { display: flex; gap: 5px; width: 100%; }
     .btn-status { flex: 1; padding: 8px 0; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; font-weight: bold; background: #ffffff; color: #475569; cursor: pointer; transition: 0.1s; }
     
@@ -115,6 +111,7 @@
         <div class="custom-logo">JW</div>
         <div class="brand-text"><span>전</span><span>화</span><span>구</span><span>역</span></div>
       </div>
+      <!-- ★ 소제목 변경 적용 -->
       <div class="login-subtitle">- 안면 회중 -</div>
       
       <div class="input-group">
@@ -176,58 +173,22 @@
 
     let curTown = "", curVillage = "", curZoneKey = "";
     let currentUser = ""; 
-    let doneMap = {}; // phone_visits 데이터
-    let globalMemos = {}; // phone_memos 데이터
+    let doneMap = {}; 
+    let globalMemos = {}; 
     let currentMemoKey = "";
-
-    window.ZONE_DATABASE = window.ZONE_DATABASE || {};
-
-    function formatZoneData() {
-      const regions = ["안면읍", "남면", "고남면", "오천면"];
-      const prefixMap = { "안면읍": "안면", "남면": "남면", "고남면": "고남", "오천면": "원산" };
-      let counter = 1;
-
-      regions.forEach(region => {
-        const villages = window.ZONE_DATABASE[region] || {};
-        Object.keys(villages).forEach(village => {
-          const zones = villages[village];
-          const newZones = {};
-          Object.keys(zones).forEach(oldKey => {
-            const zoneData = zones[oldKey];
-            const parts = oldKey.split('-');
-            const streetName = parts.length > 1 ? parts[1] : "기타";
-            const zoneNum = parts.length > 2 ? parts[2] : "00";
-
-            const match = zoneData.title.match(/\((.*?)\)/);
-            let detailInfo = match ? match[1] : "";
-            detailInfo = detailInfo.replace(streetName, "").trim();
-            const paddedCounter = String(counter).padStart(3, '0');
-
-            zoneData.newTopTitle = `${prefixMap[region]} ${paddedCounter} - ${streetName} - ${zoneNum}`;
-            zoneData.newSubTitle = `${streetName}-${zoneNum} (${detailInfo})`;
-            zoneData.globalNum = paddedCounter;
-
-            if (zoneData.addrs) {
-              zoneData.addrs = zoneData.addrs.map(addr => addr.replace(/[\r\n\t]+/g, '').trim());
-            }
-
-            newZones[oldKey] = zoneData;
-            counter++;
-          });
-          window.ZONE_DATABASE[region][village] = newZones;
-        });
-      });
-    }
+    let focusedAddr = null;
 
     window.onload = function() {
-      formatZoneData();
+      if (typeof PHONE_ZONE_DATABASE === 'undefined') {
+        alert("전화구역 데이터 파일(data_phone.js)을 불러올 수 없습니다.");
+        return;
+      }
       
-      // ★ 전도인 이름은 전자구역(지도)과 공유합니다.
       const savedName = localStorage.getItem('ammap_username') || "";
       const savedZone = localStorage.getItem('phone_ammap_recentzone') || "";
       
       document.getElementById('inputName').value = savedName;
-      if (savedZone) document.getElementById('recentVisitDisplay').innerHTML = `최근 방문<br><strong>${savedZone} 번</strong>`;
+      if (savedZone) document.getElementById('recentVisitDisplay').innerHTML = `최근 통화<br><strong>${savedZone} 번</strong>`;
 
       db.ref('phone_memos').on('value', snap => { globalMemos = snap.val() || {}; renderCurrentList(); });
       db.ref('phone_visits').on('value', snap => { doneMap = snap.val() || {}; updateProgressUI(); renderCurrentList(); });
@@ -245,7 +206,7 @@
       if (!nameVal) { alert("전도인 이름을 입력해주세요."); return; }
 
       currentUser = nameVal;
-      localStorage.setItem('ammap_username', currentUser); // 전자구역과 이름 공유 저장
+      localStorage.setItem('ammap_username', currentUser); 
       sessionStorage.setItem('phone_ammap_active_session', 'true');
       document.getElementById('mainHeaderTitle').innerHTML = `전도인: <span style="color:#ffffff;">${currentUser}</span>`;
 
@@ -263,7 +224,6 @@
       document.getElementById('inputZoneNum').value = '';
     }
 
-    // 드롭다운 및 구역 검색 로직
     function processZoneSelection(zoneNumVal) {
       if (zoneNumVal) {
          const searchTarget = String(zoneNumVal).padStart(3, '0');
@@ -274,15 +234,15 @@
             document.getElementById('selZone').value = found.zoneKey; onZoneChange();
             localStorage.setItem('phone_ammap_recentzone', searchTarget);
          } else {
-            alert("해당 번호의 구역이 없습니다."); onZoneChange();
+            alert("입력하신 번호의 전화구역 카드가 아직 생성되지 않았습니다."); onZoneChange();
          }
       } else { onZoneChange(); }
     }
 
     function searchZoneByNumber(targetNumStr) {
-      for (const town in ZONE_DATABASE) {
-        for (const village in ZONE_DATABASE[town]) {
-          const zones = ZONE_DATABASE[town][village];
+      for (const town in PHONE_ZONE_DATABASE) {
+        for (const village in PHONE_ZONE_DATABASE[town]) {
+          const zones = PHONE_ZONE_DATABASE[town][village];
           for (const key in zones) { if (zones[key].globalNum === targetNumStr) return { town, village, zoneKey: key }; }
         }
       }
@@ -291,7 +251,8 @@
 
     function initDropdowns() {
       const tSelect = document.getElementById('selTown'); tSelect.innerHTML = '';
-      const towns = Object.keys(ZONE_DATABASE).filter(t => Object.keys(ZONE_DATABASE[t] || {}).length > 0);
+      const towns = Object.keys(PHONE_ZONE_DATABASE);
+      if(towns.length === 0) return;
       towns.forEach(town => { const opt = document.createElement('option'); opt.value = town; opt.innerText = town; tSelect.appendChild(opt); });
       curTown = towns[0]; tSelect.value = curTown; updateVillageDropdown();
     }
@@ -301,14 +262,14 @@
     
     function updateVillageDropdown() {
       const vSelect = document.getElementById('selVillage'); vSelect.innerHTML = '';
-      const villages = Object.keys(ZONE_DATABASE[curTown] || {});
+      const villages = Object.keys(PHONE_ZONE_DATABASE[curTown] || {});
       villages.forEach(v => { const opt = document.createElement('option'); opt.value = v; opt.innerText = v; vSelect.appendChild(opt); });
       curVillage = villages[0] || ''; vSelect.value = curVillage; updateZoneDropdown();
     }
 
     function updateZoneDropdown() {
       const zSelect = document.getElementById('selZone'); zSelect.innerHTML = '';
-      const zones = ZONE_DATABASE[curTown]?.[curVillage] || {};
+      const zones = PHONE_ZONE_DATABASE[curTown]?.[curVillage] || {};
       const zoneKeys = Object.keys(zones);
       if (zoneKeys.length > 0) {
         zoneKeys.forEach(k => { const opt = document.createElement('option'); opt.value = k; opt.innerText = zones[k].newTopTitle; zSelect.appendChild(opt); });
@@ -319,19 +280,17 @@
 
     function onZoneChange() {
       curZoneKey = document.getElementById('selZone').value; 
+      focusedAddr = null;
       renderCurrentList();
       const listEl = document.getElementById('listArea'); if (listEl) listEl.scrollTop = 0;
       const zone = getCurrentZoneObject();
       if (zone && zone.globalNum) localStorage.setItem('phone_ammap_recentzone', zone.globalNum);
     }
 
-    function getCurrentZoneObject() { return ZONE_DATABASE[curTown]?.[curVillage]?.[curZoneKey] || null; }
+    function getCurrentZoneObject() { return PHONE_ZONE_DATABASE[curTown]?.[curVillage]?.[curZoneKey] || null; }
     
-    function getFullAddr(shortAddr) { 
-      if (shortAddr.startsWith("충청남도")) return shortAddr;
-      const baseCity = (curTown === "오천면") ? "보령시" : "태안군";
-      return `충청남도 ${baseCity} ${curTown} ${shortAddr}`; 
-    }
+    // 전화번호는 주소 변환 규칙이 필요 없으므로 그대로 키로 사용 (단, 특수문자 치환)
+    function getSafeKey(str) { return str.replace(/[.#$[\]\/]/g, '_'); }
 
     function getAddressStatus(safeKey) {
       if(!doneMap[safeKey]) return null;
@@ -342,31 +301,32 @@
       const zone = getCurrentZoneObject();
       if (!zone || !zone.addrs || zone.addrs.length === 0) { document.getElementById('progRatio').innerText = '진행률: 0 / 0 (0%)'; return; }
       let doneCnt = 0;
-      zone.addrs.forEach(addr => { 
-        const safeKey = getFullAddr(addr).replace(/[.#$[\]\/]/g, '_');
-        if (getAddressStatus(safeKey)) doneCnt++; 
+      zone.addrs.forEach(itemString => { 
+        if (getAddressStatus(getSafeKey(itemString))) doneCnt++; 
       });
       document.getElementById('progRatio').innerText = `진행률: ${doneCnt} / ${zone.addrs.length} (${Math.round((doneCnt / zone.addrs.length) * 100)}%)`;
     }
 
-    // ★ 전화구역 전용 카드 렌더링 로직 (상호, 4가지 버튼)
     function renderCurrentList() {
       const zone = getCurrentZoneObject(); const listEl = document.getElementById('listArea'); listEl.innerHTML = '';
-      if (!zone || !zone.addrs || zone.addrs.length === 0) return;
+      if (!zone || !zone.addrs || zone.addrs.length === 0) { document.getElementById('subZoneTitle').innerText = `데이터를 준비 중입니다.`; return; }
+      
+      // 최상단 타이틀과 서브타이틀 렌더링
       document.getElementById('subZoneTitle').innerText = zone.newSubTitle;
 
       zone.addrs.forEach((itemString, idx) => {
-        const fullAddr = getFullAddr(itemString); 
-        const safeKey = fullAddr.replace(/[.#$[\]\/]/g, '_');
+        const safeKey = getSafeKey(itemString);
         const status = getAddressStatus(safeKey); 
         const memoText = globalMemos[safeKey] || "";
+        const isFocused = (focusedAddr === itemString);
 
         const card = document.createElement('div'); 
-        card.className = 'phone-card' + (status ? ' has-status' : '');
+        card.id = `card-phone-${idx}`;
+        card.className = 'phone-card' + (status ? ' has-status' : '') + (isFocused ? ' focused' : '');
         
         card.innerHTML = `
           <div class="card-top">
-            <div class="biz-info">
+            <div class="biz-info" onclick="focusSinglePhone('${itemString}', ${idx})">
               <div class="addr-id">#${idx + 1}</div>
               <div class="biz-name">${itemString}</div>
             </div>
@@ -374,10 +334,10 @@
           </div>
           
           <div class="status-group">
-            <button class="btn-status call ${status === '통화' ? 'active' : ''}" onclick="toggleStatus('${itemString}', '통화')">통화</button>
-            <button class="btn-status absent ${status === '부재' ? 'active' : ''}" onclick="toggleStatus('${itemString}', '부재')">부재</button>
-            <button class="btn-status wrong ${status === '결번' ? 'active' : ''}" onclick="toggleStatus('${itemString}', '결번')">결번</button>
-            <button class="btn-status reject ${status === '거절' ? 'active' : ''}" onclick="toggleStatus('${itemString}', '거절')">거절</button>
+            <button id="btn-call-${idx}" class="btn-status call ${status === '통화' ? 'active' : ''}" onclick="toggleStatus('${itemString}', '통화', ${idx})">통화</button>
+            <button id="btn-absent-${idx}" class="btn-status absent ${status === '부재' ? 'active' : ''}" onclick="toggleStatus('${itemString}', '부재', ${idx})">부재</button>
+            <button id="btn-wrong-${idx}" class="btn-status wrong ${status === '결번' ? 'active' : ''}" onclick="toggleStatus('${itemString}', '결번', ${idx})">결번</button>
+            <button id="btn-reject-${idx}" class="btn-status reject ${status === '거절' ? 'active' : ''}" onclick="toggleStatus('${itemString}', '거절', ${idx})">거절</button>
           </div>
           <div class="memo-display ${memoText ? 'has-memo' : ''}">↳ ${memoText}</div>
         `;
@@ -386,36 +346,88 @@
       updateProgressUI();
     }
 
-    // 4가지 통화 상태 저장 함수
-    function toggleStatus(shortAddr, newStatus) {
-      const fullAddr = getFullAddr(shortAddr);
-      const safeKey = fullAddr.replace(/[.#$[\]\/]/g, '_'); 
+    function focusSinglePhone(itemString, idx) {
+      focusedAddr = itemString;
+      document.querySelectorAll('.phone-card').forEach(c => c.classList.remove('focused'));
+      const targetCard = document.getElementById(`card-phone-${idx}`); 
+      if (targetCard) { 
+        targetCard.classList.add('focused'); 
+      }
+    }
+
+    function toggleStatus(itemString, newStatus, idx) {
+      const safeKey = getSafeKey(itemString); 
       const currentStatus = getAddressStatus(safeKey);
 
+      // 즉각적인 UI 반응 처리 (Optimistic UI)
+      const card = document.getElementById(`card-phone-${idx}`);
+      const btnCall = document.getElementById(`btn-call-${idx}`);
+      const btnAbsent = document.getElementById(`btn-absent-${idx}`);
+      const btnWrong = document.getElementById(`btn-wrong-${idx}`);
+      const btnReject = document.getElementById(`btn-reject-${idx}`);
+
+      [btnCall, btnAbsent, btnWrong, btnReject].forEach(btn => { if(btn) btn.classList.remove('active'); });
+
       if (currentStatus === newStatus) {
-        // 이미 눌린 버튼을 다시 누르면 취소(삭제)
+        // 취소
+        if(card) card.classList.remove('has-status');
+        delete doneMap[safeKey];
         db.ref('phone_visits/' + safeKey).remove();
       } else {
-        // 새로운 상태 저장
+        // 적용
+        if(card) card.classList.add('has-status');
+        if(newStatus === '통화' && btnCall) btnCall.classList.add('active');
+        if(newStatus === '부재' && btnAbsent) btnAbsent.classList.add('active');
+        if(newStatus === '결번' && btnWrong) btnWrong.classList.add('active');
+        if(newStatus === '거절' && btnReject) btnReject.classList.add('active');
+
+        doneMap[safeKey] = { status: newStatus, user: currentUser };
         db.ref('phone_visits/' + safeKey).set({ status: newStatus, user: currentUser, timestamp: firebase.database.ServerValue.TIMESTAMP });
+      }
+      
+      updateProgressUI();
+
+      // 전체 완료 체크
+      const zone = getCurrentZoneObject();
+      if (zone && zone.addrs && currentStatus !== newStatus) {
+        let allOthersDone = true;
+        for (let i = 0; i < zone.addrs.length; i++) {
+          if (zone.addrs[i] === itemString) continue; 
+          const otherSafeKey = getSafeKey(zone.addrs[i]);
+          if (!getAddressStatus(otherSafeKey)) {
+            allOthersDone = false;
+            break;
+          }
+        }
+        
+        if (allOthersDone) {
+          const zoneGlobalNum = zone.globalNum;
+          db.ref('phone_zone_completions/' + zoneGlobalNum).once('value').then(snap => {
+            let data = snap.val() || { history: [] }; 
+            if(!data.history) data.history = [];
+            data.history.push({ user: currentUser, timestamp: Date.now() }); 
+            db.ref('phone_zone_completions/' + zoneGlobalNum).set(data);
+          });
+          setTimeout(() => alert(`🎉 수고하셨습니다!\n\n${currentUser} 전도인님, 해당 구역의 모든 통화 시도를 완료했습니다.`), 300);
+        }
       }
     }
 
     function resetCurrentZone() {
       const zone = getCurrentZoneObject(); if (!zone || !zone.addrs || zone.addrs.length === 0) return;
       if (!confirm(`이 구역의 통화 기록을 모두 초기화하시겠습니까?\n(작성된 메모는 삭제되지 않습니다)`)) return;
-      zone.addrs.forEach(shortAddr => { db.ref('phone_visits/' + getFullAddr(shortAddr).replace(/[.#$[\]\/]/g, '_')).remove(); });
+      zone.addrs.forEach(itemString => { db.ref('phone_visits/' + getSafeKey(itemString)).remove(); });
     }
 
-    // 메모 기능
-    function openMemoModal(shortAddr) {
-      const fullAddr = getFullAddr(shortAddr);
-      currentMemoKey = fullAddr.replace(/[.#$[\]\/]/g, '_');
-      document.getElementById('memo-target-addr').innerText = shortAddr;
+    function openMemoModal(itemString) {
+      currentMemoKey = getSafeKey(itemString);
+      document.getElementById('memo-target-addr').innerText = itemString;
       document.getElementById('memo-input').value = globalMemos[currentMemoKey] || "";
       document.getElementById('memo-modal').style.display = 'flex';
     }
+    
     function closeMemoModal() { document.getElementById('memo-modal').style.display = 'none'; currentMemoKey = ""; }
+    
     function saveMemo() {
       const text = document.getElementById('memo-input').value.trim();
       if(currentMemoKey) {
