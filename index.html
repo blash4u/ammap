@@ -11,7 +11,7 @@
   <script type="text/javascript" src="data_anmyeon_south.js"></script>
   <script type="text/javascript" src="data_gonam.js"></script>
   <script type="text/javascript" src="data_nam.js"></script>
-  <script type="text/javascript" src="data_wonsan.js"></script> <!-- ★ 원산도 데이터 추가 -->
+  <script type="text/javascript" src="data_wonsan.js"></script> <!-- 원산도 데이터 -->
 
   <!-- Firebase v8 로드 -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -38,8 +38,15 @@
 
     /* 시작 화면 (로그인) 스타일 */
     #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #4a6da7, #1e293b); display: flex; justify-content: center; align-items: center; z-index: 9000; }
+    
+    /* 관리자 아이콘 */
     .btn-admin-gear { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; color: rgba(255,255,255,0.6); transition: 0.2s; }
     .btn-admin-gear:active { transform: rotate(90deg) scale(0.9); color: #fff; }
+    
+    /* ★ 전화구역 이동 아이콘 추가 */
+    .btn-phone-zone { position: absolute; top: 15px; left: 15px; font-size: 22px; cursor: pointer; color: rgba(255,255,255,0.6); transition: 0.2s; text-decoration: none; }
+    .btn-phone-zone:active { transform: scale(0.9); color: #fff; }
+
     .login-card { background: rgba(255, 255, 255, 0.95); padding: 40px 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 85%; max-width: 340px; text-align: center; }
     
     .brand-wrapper { width: 80px; margin: 0 auto 5px auto; display: flex; flex-direction: column; align-items: center; }
@@ -174,7 +181,12 @@
 
   <!-- 시작 화면 (로그인 페이지) -->
   <div id="login-screen">
+    
+    <!-- ★ 전화구역 이동 아이콘 추가 -->
+    <a href="phone_zone.html" class="btn-phone-zone" title="전화구역으로 이동">📞</a>
+    
     <div class="btn-admin-gear" onclick="openAdmin()" title="관리자 페이지">⚙️</div>
+    
     <div class="login-card">
       <div class="brand-wrapper">
         <div class="custom-logo">JW</div>
@@ -406,14 +418,12 @@
             window.zoneToRegionMap[paddedCounter] = region;
 
             if (zoneData.addrs) {
-              // ★ 주소에 포함된 숨은 줄바꿈(\r, \n) 및 탭 완벽 제거 (클릭 오류 원인 차단)
               zoneData.addrs = zoneData.addrs.map(addr => addr.replace(/[\r\n\t]+/g, '').trim());
               
               zoneData.addrs.forEach(addr => {
                 const baseCity = (region === "오천면") ? "보령시" : "태안군";
                 const fullAddr = addr.startsWith("충청남도") ? addr : `충청남도 ${baseCity} ${region} ${addr}`;
                 
-                // ★ 슬래시(/) 등 파이어베이스에서 에러를 유발하는 기호를 모두 변환
                 const safeKey = fullAddr.replace(/[.#$[\]\/]/g, '_');
                 window.addressToZoneMap[safeKey] = paddedCounter;
               });
@@ -809,7 +819,6 @@
       return ZONE_DATABASE[curTown]?.[curVillage]?.[curZoneKey] || null;
     }
     
-    // 주소 포맷팅 (보령시 오천면 지원)
     function getFullAddr(shortAddr) { 
       if (shortAddr.startsWith("충청남도")) return shortAddr;
       const baseCity = (curTown === "오천면") ? "보령시" : "태안군";
@@ -878,14 +887,12 @@
       });
     }
 
-    // ★ 미방문 버그 100% 수정 및 Optimistic UI 업데이트 적용
     function toggleDone(shortAddr, idx) {
       const fullAddr = getFullAddr(shortAddr);
-      const safeKey = fullAddr.replace(/[.#$[\]\/]/g, '_'); // Firebase 에러를 막는 핵심 치환
+      const safeKey = fullAddr.replace(/[.#$[\]\/]/g, '_'); 
       const isCurrentlyDone = isAddressDone(safeKey);
       const newState = !isCurrentlyDone;
 
-      // ★ 즉각적인 UI 반응 (버튼 누르자마자 서버 응답 대기 없이 바로 화면 변경)
       const card = document.getElementById(`card-addr-${idx}`); 
       const btn = document.getElementById(`btn-check-${idx}`);
       const tagEl = document.getElementById(`map-tag-${idx}`);
@@ -894,23 +901,18 @@
         if(card) card.classList.add('completed');
         if(btn) { btn.classList.add('completed'); btn.innerText = '완료'; }
         if(tagEl) tagEl.classList.add('done');
-        doneMap[safeKey] = { done: true, user: currentUser }; // 임시로 캐시에 저장
-        
-        // 서버에 진짜로 저장
+        doneMap[safeKey] = { done: true, user: currentUser }; 
         db.ref('visits/' + safeKey).set({ done: true, user: currentUser, timestamp: firebase.database.ServerValue.TIMESTAMP });
       } else {
         if(card) card.classList.remove('completed');
         if(btn) { btn.classList.remove('completed'); btn.innerText = '미방문'; }
         if(tagEl) tagEl.classList.remove('done');
-        delete doneMap[safeKey]; // 임시로 캐시에서 삭제
-        
-        // 서버에 진짜로 삭제
+        delete doneMap[safeKey]; 
         db.ref('visits/' + safeKey).remove();
       }
       
-      updateProgressUI(); // 상단 진행 퍼센트 즉시 업데이트
+      updateProgressUI(); 
 
-      // 전체 완료 축하 메시지 로직
       const zone = getCurrentZoneObject();
       if (zone && zone.addrs && newState) {
         let allOthersDone = true;
