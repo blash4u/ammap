@@ -22,6 +22,7 @@
     .modal-card { background: #fff; width: 85%; max-width: 320px; border-radius: 12px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
     .modal-card h3 { font-size: 16px; margin-bottom: 10px; color: #0f172a; }
     .modal-card textarea { width: 100%; height: 80px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; resize: none; outline: none; margin-bottom: 10px; font-size: 13px; }
+    .modal-card textarea[readonly] { background-color: #f1f5f9; color: #475569; cursor: not-allowed; border-style: dashed; }
     .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
     .modal-btn { padding: 8px 16px; border: none; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; }
     .btn-cancel { background: #e2e8f0; color: #475569; }
@@ -71,7 +72,6 @@
     .add-pub-wrap { display: flex; gap: 8px; margin-bottom: 10px; }
     .add-pub-wrap input { flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; }
     .add-pub-wrap button { background: #2ea354; color: white; border: none; padding: 8px 12px; border-radius: 4px; font-size: 13px; font-weight: bold; }
-    .comp-history-item { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; background: #f8fafc; border-radius: 4px; padding: 6px 8px; width: 100%; }
 
     /* 메인 앱 레이아웃 */
     #main-app { display: none; flex-direction: column; height: 100%; width: 100%; }
@@ -86,10 +86,11 @@
     .info-bar-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
     .prog-text { font-size: 14px; color: #166534; font-weight: 800; }
     
-    .btn-zone-complete { background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: 0.1s; }
-    .btn-zone-complete:active { transform: scale(0.95); }
+    /* ★ 구역 완료 버튼 디자인 (비활성화 상태 추가) */
+    .btn-zone-complete { background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: 0.2s; }
+    .btn-zone-complete:active:not(:disabled) { transform: scale(0.95); }
+    .btn-zone-complete:disabled { background: #94a3b8; cursor: not-allowed; box-shadow: none; opacity: 0.6; }
 
-    /* ★ 수정된 타이틀 및 최근 완료일 표시 디자인 */
     .sub-zone-title-container { text-align: center; background: #f0fdf4; padding: 10px; border-radius: 6px; border: 1px solid #bbf7d0; margin-top: 4px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
     .sub-zone-title { font-size: 16px; color: #0f172a; font-weight: 900; }
     .sub-zone-date { font-size: 12px; color: #166534; font-weight: bold; background: #dcfce7; padding: 2px 8px; border-radius: 12px; display: inline-block; }
@@ -102,8 +103,6 @@
     
     .card-top { display: flex; justify-content: space-between; align-items: flex-start; }
     .biz-info { flex: 1; }
-    
-    /* ★ 카드 번호(#1) 크게 디자인 변경 */
     .biz-info .addr-id { font-size: 20px; color: #15803d; font-weight: 900; margin-bottom: 6px; border-bottom: 2px solid #bbf7d0; padding-bottom: 2px; display: inline-block; }
     
     .phone-link { color: #166534; font-weight: 900; font-size: 16px; text-decoration: none; display: inline-block; padding-bottom: 2px; -webkit-touch-callout: none; user-select: none; }
@@ -151,7 +150,8 @@
       <textarea id="memo-input" placeholder="전화 통화 특이사항을 입력하세요"></textarea>
       <div class="modal-actions">
         <button class="modal-btn btn-cancel" onclick="closeMemoModal()">취소</button>
-        <button class="modal-btn btn-save" onclick="saveMemo()">저장</button>
+        <!-- ★ 아이디 부여로 제어 가능하게 설정 -->
+        <button id="btn-memo-save" class="modal-btn btn-save" onclick="saveMemo()">저장</button>
       </div>
     </div>
   </div>
@@ -262,9 +262,9 @@
     <div class="info-bar">
       <div class="info-bar-top">
         <span class="prog-text" id="progRatio">진행률: 0 / 0 (0%)</span>
-        <button class="btn-zone-complete" onclick="completeCurrentZone()">구역 완료 🏆</button>
+        <!-- ★ 구역 완료 버튼에 ID(btnZoneComplete) 추가 및 초기 비활성화 속성 부여 -->
+        <button id="btnZoneComplete" class="btn-zone-complete" onclick="completeCurrentZone()" disabled>구역 완료 🏆</button>
       </div>
-      <!-- ★ 타이틀과 최근 완료일을 감싸는 컨테이너 -->
       <div id="subZoneTitleContainer" class="sub-zone-title-container">
         <div id="subZoneTitle" class="sub-zone-title">구역을 선택해주세요</div>
       </div>
@@ -349,7 +349,7 @@
         globalCompletions = snap.val() || {}; 
         renderAdminCompletions(); 
         if(document.getElementById('admin-screen').style.display === 'flex') searchZoneStats(true); 
-        renderCurrentList(); // 기록 업데이트 시 상단 타이틀 갱신
+        renderCurrentList(); 
       });
       db.ref('phone_visits').on('value', snap => { doneMap = snap.val() || {}; updateProgressUI(); renderCurrentList(); });
       db.ref('phone_edits').on('value', snap => { 
@@ -359,7 +359,6 @@
       });
     }
 
-    // 전화번호 길게 눌러 복사하기
     function initLongPressCopy() {
       let pressTimer;
       
@@ -482,14 +481,28 @@
       return doneMap[safeKey].status || null; 
     }
 
+    // ★ 구역 완료 버튼 활성화 로직 추가
     function updateProgressUI() {
       const zone = getCurrentZoneObject();
-      if (!zone || !zone.addrs || zone.addrs.length === 0) { document.getElementById('progRatio').innerText = '진행률: 0 / 0 (0%)'; return; }
+      const btnComplete = document.getElementById('btnZoneComplete');
+
+      if (!zone || !zone.addrs || zone.addrs.length === 0) { 
+        document.getElementById('progRatio').innerText = '진행률: 0 / 0 (0%)'; 
+        btnComplete.disabled = true;
+        return; 
+      }
       let doneCnt = 0;
       zone.addrs.forEach(itemString => { 
         if (getAddressStatus(getSafeKey(itemString))) doneCnt++; 
       });
       document.getElementById('progRatio').innerText = `진행률: ${doneCnt} / ${zone.addrs.length} (${Math.round((doneCnt / zone.addrs.length) * 100)}%)`;
+
+      // ★ 모든 전화번호가 클릭되었을 때만 '구역 완료' 버튼 활성화
+      if (doneCnt === zone.addrs.length && zone.addrs.length > 0) {
+        btnComplete.disabled = false;
+      } else {
+        btnComplete.disabled = true;
+      }
     }
 
     function renderCurrentList() {
@@ -502,14 +515,12 @@
         return; 
       }
       
-      // ★ 최근 완료일자 계산 로직
       let history = globalCompletions[zone.globalNum] ? (globalCompletions[zone.globalNum].history || []) : [];
       let lastDateStr = "기록 없음";
       if (history.length > 0) {
           lastDateStr = new Date(history[history.length - 1].timestamp).toLocaleDateString();
       }
 
-      // ★ 구역 제목 및 최근 완료일자 렌더링
       document.getElementById('subZoneTitleContainer').innerHTML = `
         <div class="sub-zone-title">전화구역 ${parseInt(zone.globalNum, 10)}번 - ${zone.newSubTitle}</div>
         <div class="sub-zone-date">최근 완료일: ${lastDateStr}</div>
@@ -641,6 +652,7 @@
       alert(`수고하셨습니다\n구역완료`);
     }
 
+    // ★ 메모 접근 권한 제한 로직 (기록만 가능, 수정 불가)
     function openMemoModal(idx) {
       const zone = getCurrentZoneObject();
       const originalString = zone.addrs[idx];
@@ -650,8 +662,24 @@
       const flatEditKey = zone.globalNum + '_' + idx;
       let displayString = globalPhoneEdits[flatEditKey] ? globalPhoneEdits[flatEditKey] : originalString;
       
+      const existingMemo = globalMemos[currentMemoKey] || "";
+      const memoInput = document.getElementById('memo-input');
+      const saveBtn = document.getElementById('btn-memo-save');
+
       document.getElementById('memo-target-addr').innerText = displayString;
-      document.getElementById('memo-input').value = globalMemos[currentMemoKey] || "";
+      memoInput.value = existingMemo;
+
+      // 이미 메모가 존재하면 일반 전도인은 덮어쓰기 금지 (읽기 전용 모드)
+      if (existingMemo) {
+        memoInput.readOnly = true;
+        memoInput.placeholder = "등록된 메모입니다. (수정은 관리자에게 문의하세요)";
+        saveBtn.style.display = 'none'; // 저장 버튼 숨김
+      } else {
+        memoInput.readOnly = false;
+        memoInput.placeholder = "전화 통화 특이사항을 입력하세요";
+        saveBtn.style.display = 'inline-block'; // 저장 버튼 표시
+      }
+
       document.getElementById('memo-modal').style.display = 'flex';
     }
     
@@ -660,9 +688,7 @@
     function saveMemo() {
       const text = document.getElementById('memo-input').value.trim();
       if(currentMemoKey) {
-        if(text === "") {
-          db.ref('phone_memos/' + currentMemoKey).remove().catch(e => alert("DB 에러: " + e.message + "\n(Firebase 보안 규칙을 확인해주세요.)"));
-        } else {
+        if(text !== "") {
           db.ref('phone_memos/' + currentMemoKey).set(text).catch(e => alert("DB 에러: " + e.message + "\n(Firebase 보안 규칙을 확인해주세요.)"));
         }
       }
@@ -766,7 +792,7 @@
         li.innerHTML = `
           <div style="font-size:11px; color:#64748b; margin-bottom:6px;">#${idx + 1} 원본: ${origStr}</div>
           <div style="display:flex; width:100%; gap:5px;">
-            <input type="text" id="edit-input-${zoneNum}-${idx}" value="${editedStr}" style="flex:1; padding:8px; border:1px solid #cbd5e1; border-radius:4px; font-size:13px; outline:none;">
+            <input type="text" id="edit-input-${zoneNum}-${idx}" value="${editedStr.replace(/"/g, '&quot;')}" style="flex:1; padding:8px; border:1px solid #cbd5e1; border-radius:4px; font-size:13px; outline:none;">
             <button onclick="savePhoneEdit('${zoneNum}', ${idx})" style="background:#2ea354; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold;">저장</button>
             <button onclick="resetPhoneEdit('${zoneNum}', ${idx})" style="background:#64748b; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold;">복구</button>
           </div>
@@ -849,7 +875,10 @@
       });
       renderPagination('compPagination', totalPages, currentCompPage, (p) => { currentCompPage = p; renderAdminCompletions(); });
     }
+    
     function resetMemoPageAndRender() { currentMemoPage = 1; renderAdminMemos(); }
+    
+    // ★ 관리자 페이지 메모 수정/삭제 로직 업그레이드
     function renderAdminMemos() {
       const searchVal = document.getElementById('searchMemo').value.trim();
       let listArr = [];
@@ -861,16 +890,40 @@
       if (currentMemoPage > totalPages) currentMemoPage = totalPages;
       const startIdx = (currentMemoPage - 1) * ITEMS_PER_PAGE;
       const paginatedList = listArr.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+      
       const ul = document.getElementById('adminMemoList');
       ul.innerHTML = '';
       paginatedList.forEach(data => {
         const displayAddr = data.safeKey.replace(/_/g, ' '); 
-        const li = document.createElement('li'); li.style.alignItems = 'flex-start';
-        li.innerHTML = `<div style="flex:1;"><strong>${displayAddr}</strong><br><span style="color:#ef4444">${data.text}</span></div><button class="btn-delete" style="margin-top:14px;" onclick="db.ref('phone_memos/${data.safeKey}').remove()">삭제</button>`;
+        const li = document.createElement('li'); 
+        li.style.flexDirection = 'column';
+        li.style.alignItems = 'flex-start';
+        li.innerHTML = `
+          <div style="width:100%;">
+            <strong>${displayAddr}</strong>
+            <div style="display:flex; gap:5px; margin-top:6px;">
+              <input type="text" id="edit-memo-${data.safeKey}" value="${data.text.replace(/"/g, '&quot;')}" style="flex:1; padding:6px; border:1px solid #cbd5e1; border-radius:4px; font-size:12px; outline:none;">
+              <button onclick="saveAdminMemo('${data.safeKey}')" style="background:#2ea354; color:white; border:none; padding:6px 10px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">수정</button>
+              <button onclick="db.ref('phone_memos/${data.safeKey}').remove()" style="background:#ef4444; color:white; border:none; padding:6px 10px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">삭제</button>
+            </div>
+          </div>
+        `;
         ul.appendChild(li);
       });
       renderPagination('memoPagination', totalPages, currentMemoPage, (p) => { currentMemoPage = p; renderAdminMemos(); });
     }
+
+    function saveAdminMemo(safeKey) {
+      const val = document.getElementById(`edit-memo-${safeKey}`).value.trim();
+      if(!val) {
+        db.ref(`phone_memos/${safeKey}`).remove();
+      } else {
+        db.ref(`phone_memos/${safeKey}`).set(val).then(() => {
+          alert('메모가 수정되었습니다.');
+        }).catch(e => alert("DB 에러: " + e.message));
+      }
+    }
+
     function renderPagination(containerId, totalPages, currentPage, callback) {
       const container = document.getElementById(containerId);
       container.innerHTML = '';
