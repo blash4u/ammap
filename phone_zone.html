@@ -43,6 +43,34 @@
     .recent-visit { font-size: 12px; color: #64748b; font-weight: 600; background: #e2e8f0; padding: 8px; border-radius: 6px; }
     .recent-visit strong { color: #2ea354; }
 
+    /* 관리자 화면 스타일 */
+    #admin-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f8fafc; z-index: 9500; display: none; flex-direction: column; }
+    .admin-header { background: #166534; color: white; padding: 15px; font-size: 16px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+    .admin-close { background: none; border: none; color: white; font-size: 14px; font-weight: bold; cursor: pointer; }
+    .admin-content { flex: 1; overflow-y: auto; padding: 15px; }
+    .admin-section { background: white; border-radius: 8px; padding: 15px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .admin-section h2 { font-size: 15px; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .stat-card { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 14px; text-align: center; }
+    .stat-card.full-width { grid-column: span 2; }
+    .stat-title { font-size: 11px; color: #166534; font-weight: bold; margin-bottom: 6px; }
+    .stat-value { font-size: 22px; font-weight: 900; color: #2ea354; }
+    .stat-subtext { font-size: 11px; color: #15803d; margin-top: 4px; line-height: 1.4; }
+    
+    .search-wrap { display: flex; margin-bottom: 10px; }
+    .search-wrap input { flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; outline: none; }
+    .admin-btn-search { background: #2ea354; color: white; border: none; padding: 8px 12px; border-radius: 4px; font-size: 13px; font-weight: bold; cursor: pointer; margin-left: 5px; }
+    
+    .admin-list { list-style: none; font-size: 13px; color: #334155; }
+    .admin-list li { padding: 10px 0; border-bottom: 1px dashed #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+    .admin-list li:last-child { border-bottom: none; }
+    .btn-delete { background: #fee2e2; color: #b91c1c; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; flex-shrink: 0; }
+    .add-pub-wrap { display: flex; gap: 8px; margin-bottom: 10px; }
+    .add-pub-wrap input { flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; }
+    .add-pub-wrap button { background: #2ea354; color: white; border: none; padding: 8px 12px; border-radius: 4px; font-size: 13px; font-weight: bold; }
+    .comp-history-item { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; background: #f8fafc; border-radius: 4px; padding: 6px 8px; width: 100%; }
+
     /* 메인 앱 레이아웃 */
     #main-app { display: none; flex-direction: column; height: 100%; width: 100%; }
     .header { background-color: #166534; padding: 10px; flex-shrink: 0; }
@@ -72,7 +100,6 @@
     .biz-info { flex: 1; }
     .biz-info .addr-id { font-size: 11px; color: #94a3b8; font-weight: bold; margin-bottom: 4px; }
     
-    /* ★ 전화번호 및 상호명 스타일링 */
     .phone-link { color: #166534; font-weight: 900; font-size: 16px; text-decoration: none; display: inline-block; padding-bottom: 2px; }
     .biz-name-highlight { color: #0284c7; font-weight: 800; font-size: 14px; margin-left: 6px; }
     .btn-memo { background: #e2e8f0; color: #475569; border: none; padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; flex-shrink: 0; }
@@ -87,11 +114,11 @@
     .btn-status.active.wrong { background: #64748b; color: white; border-color: #64748b; }
     .btn-status.active.reject { background: #ef4444; color: white; border-color: #ef4444; }
 
-    /* ★ 결번 상태 시 취소선 */
+    /* 결번 상태 시 취소선 */
     .phone-card.status-wrong .phone-link, 
     .phone-card.status-wrong .biz-name-highlight { text-decoration: line-through; color: #94a3b8; }
     
-    /* ★ 거절 상태 시 취소선 및 붉은색 라벨 */
+    /* 거절 상태 시 취소선 및 붉은색 라벨 */
     .phone-card.status-reject .phone-link, 
     .phone-card.status-reject .biz-name-highlight { text-decoration: line-through; color: #ef4444; }
     .reject-label { display: none; background-color: #ef4444; color: white; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
@@ -99,6 +126,13 @@
 
     .memo-display { font-size: 12px; color: #ef4444; font-weight: bold; background: #fee2e2; padding: 6px 8px; border-radius: 4px; display: none; }
     .memo-display.has-memo { display: block; }
+
+    .consonant-filter { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
+    .consonant-btn { padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px; background: white; font-size: 12px; cursor: pointer; color: #475569; }
+    .consonant-btn.active { background: #2ea354; color: white; border-color: #2ea354; font-weight: bold; }
+    .pagination { display: flex; justify-content: center; gap: 5px; margin-top: 15px; flex-wrap: wrap; }
+    .page-btn { padding: 4px 10px; border: 1px solid #cbd5e1; border-radius: 4px; background: white; cursor: pointer; font-size: 12px; color: #475569; }
+    .page-btn.active { background: #2ea354; color: white; border-color: #2ea354; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -117,7 +151,7 @@
   <!-- 시작 화면 -->
   <div id="login-screen">
     <a href="index.html" class="btn-map-zone" title="지도구역으로 이동">🗺️</a>
-    <div class="btn-admin-gear" onclick="alert('전화구역 통계 페이지는 준비중입니다.')" title="관리자 페이지">⚙️</div>
+    <div class="btn-admin-gear" onclick="openAdmin()" title="관리자 페이지">⚙️</div>
     
     <div class="login-card">
       <div class="brand-wrapper">
@@ -137,6 +171,64 @@
       
       <button class="btn-start" onclick="startApp()">시 작</button>
       <div class="recent-visit" id="recentVisitDisplay">최근 방문 기록이 없습니다.</div>
+    </div>
+  </div>
+
+  <!-- 관리자 화면 -->
+  <div id="admin-screen">
+    <div class="admin-header">
+      <span>관리자 페이지 (전화구역)</span>
+      <button class="admin-close" onclick="closeAdmin()">닫기 ✕</button>
+    </div>
+    <div class="admin-content">
+      
+      <!-- ★ 통계 패널 (전화구역 맞춤 텍스트) -->
+      <div class="admin-section">
+        <h2>📊 전화구역 활동 통계</h2>
+        <div class="stats-grid" id="statsGridArea">
+          <!-- 통계 렌더링 영역 -->
+        </div>
+      </div>
+
+      <!-- ★ 데이터 수정 패널 신설 -->
+      <div class="admin-section">
+        <h2>✏️ 전화번호/상호명 수정</h2>
+        <p style="font-size:11px; color:#64748b; margin-bottom:10px;">전화번호와 상호가 변경되었을 때 여기서 수정하면 기록(메모 등)이 보존됩니다.</p>
+        <div class="search-wrap">
+          <input type="text" id="searchEditZone" placeholder="수정할 구역번호 (예: 001)" onkeyup="if(event.key==='Enter') searchZoneToEdit()">
+          <button class="admin-btn-search" onclick="searchZoneToEdit()">검색</button>
+        </div>
+        <ul class="admin-list" id="adminEditList"></ul>
+      </div>
+
+      <div class="admin-section">
+        <h2>👥 전도인 관리</h2>
+        <div class="add-pub-wrap">
+          <input type="text" id="newPubName" placeholder="추가할 이름 입력">
+          <button onclick="addPublisher()">추가</button>
+        </div>
+        <ul class="admin-list" id="adminPubList"></ul>
+        <div class="consonant-filter" id="pubFilterBar"></div>
+      </div>
+
+      <div class="admin-section">
+        <h2>🏆 전화구역 완료 기록</h2>
+        <div class="search-wrap">
+          <input type="text" id="searchComp" placeholder="구역번호 검색 (예: 001)" onkeyup="resetCompPageAndRender()">
+        </div>
+        <ul class="admin-list" id="adminCompList"></ul>
+        <div class="pagination" id="compPagination"></div>
+      </div>
+
+      <div class="admin-section">
+        <h2>📝 특이사항 메모 관리</h2>
+        <div class="search-wrap">
+          <input type="text" id="searchMemo" placeholder="구역번호 검색 (예: 001)" onkeyup="resetMemoPageAndRender()">
+        </div>
+        <ul class="admin-list" id="adminMemoList"></ul>
+        <div class="pagination" id="memoPagination"></div>
+      </div>
+
     </div>
   </div>
 
@@ -185,18 +277,48 @@
 
     let curTown = "", curVillage = "", curZoneKey = "";
     let currentUser = ""; 
-    let doneMap = {}; // phone_visits 데이터
-    let globalMemos = {}; // phone_memos 데이터
+    let doneMap = {}; 
+    let globalMemos = {}; 
+    let globalCompletions = {};
+    let globalPublishers = {};
+    let globalPhoneEdits = {}; // ★ 데이터 수정 보관 객체
     let currentMemoKey = "";
     let focusedAddr = null;
+    let currentPubFilter = "전체";
+    const ITEMS_PER_PAGE = 10;
+    let currentCompPage = 1, currentMemoPage = 1;
+    const consonantsList = ["전체", "ㄱ","ㄴ","ㄷ","ㄹ","ㅁ","ㅂ","ㅅ","ㅇ","ㅈ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
 
-    window.ZONE_DATABASE = window.ZONE_DATABASE || {};
+    window.PHONE_ZONE_DATABASE = window.PHONE_ZONE_DATABASE || {};
+
+    function getInitialSound(str) {
+      const cho = ["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
+      if (!str) return "";
+      const code = str.charCodeAt(0) - 44032;
+      if (code > -1 && code < 11172) return cho[Math.floor(code / 588)];
+      return str.charAt(0);
+    }
+
+    function formatZoneData() {
+      // data_phone.js 데이터 형식 초기화 작업
+      for(let town in window.PHONE_ZONE_DATABASE) {
+        for(let village in window.PHONE_ZONE_DATABASE[town]) {
+          for(let zoneKey in window.PHONE_ZONE_DATABASE[town][village]) {
+            let zoneData = window.PHONE_ZONE_DATABASE[town][village][zoneKey];
+            if (zoneData.addrs) {
+              zoneData.addrs = zoneData.addrs.map(addr => addr.replace(/[\r\n\t]+/g, '').trim());
+            }
+          }
+        }
+      }
+    }
 
     window.onload = function() {
       if (typeof PHONE_ZONE_DATABASE === 'undefined') {
         alert("전화구역 데이터 파일(data_phone.js)을 불러올 수 없습니다.");
         return;
       }
+      formatZoneData();
       
       const savedName = localStorage.getItem('ammap_username') || "";
       const savedZone = localStorage.getItem('phone_ammap_recentzone') || "";
@@ -204,14 +326,31 @@
       document.getElementById('inputName').value = savedName;
       if (savedZone) document.getElementById('recentVisitDisplay').innerHTML = `최근 통화<br><strong>${savedZone} 번</strong>`;
 
-      db.ref('phone_memos').on('value', snap => { globalMemos = snap.val() || {}; renderCurrentList(); });
-      db.ref('phone_visits').on('value', snap => { doneMap = snap.val() || {}; updateProgressUI(); renderCurrentList(); });
+      initFirebaseGlobalSync();
 
       if (sessionStorage.getItem('phone_ammap_active_session') === 'true' && savedName) {
         document.getElementById('inputZoneNum').value = savedZone;
         startApp(); 
       }
     };
+
+    function initFirebaseGlobalSync() {
+      db.ref('publishers').on('value', snap => { globalPublishers = snap.val() || {}; renderAdminPublishers(); });
+      db.ref('phone_memos').on('value', snap => { globalMemos = snap.val() || {}; renderAdminMemos(); renderCurrentList(); });
+      db.ref('phone_zone_completions').on('value', snap => { 
+        globalCompletions = snap.val() || {}; 
+        renderAdminCompletions(); 
+        if(document.getElementById('admin-screen').style.display === 'flex') renderAdminStats(); 
+      });
+      db.ref('phone_visits').on('value', snap => { doneMap = snap.val() || {}; updateProgressUI(); renderCurrentList(); });
+      
+      // ★ 전화번호부 수정 내역 동기화
+      db.ref('phone_edits').on('value', snap => { 
+        globalPhoneEdits = snap.val() || {}; 
+        renderCurrentList(); 
+        if(document.getElementById('adminEditList').innerHTML !== '') searchZoneToEdit(); 
+      });
+    }
 
     function startApp() {
       const nameVal = document.getElementById('inputName').value.trim();
@@ -220,7 +359,7 @@
       if (!nameVal) { alert("전도인 이름을 입력해주세요."); return; }
 
       currentUser = nameVal;
-      localStorage.setItem('ammap_username', currentUser); // 전자구역과 이름 공유 저장
+      localStorage.setItem('ammap_username', currentUser); 
       sessionStorage.setItem('phone_ammap_active_session', 'true');
       document.getElementById('mainHeaderTitle').innerHTML = `전도인: <span style="color:#ffffff;">${currentUser}</span>`;
 
@@ -303,6 +442,7 @@
 
     function getCurrentZoneObject() { return PHONE_ZONE_DATABASE[curTown]?.[curVillage]?.[curZoneKey] || null; }
     
+    // 원본 텍스트를 고유 식별 키로 변환
     function getSafeKey(str) { return str.replace(/[.#$[\]\/]/g, '_'); }
 
     function getAddressStatus(safeKey) {
@@ -320,31 +460,39 @@
       document.getElementById('progRatio').innerText = `진행률: ${doneCnt} / ${zone.addrs.length} (${Math.round((doneCnt / zone.addrs.length) * 100)}%)`;
     }
 
+    // ★ 메인 전화구역 리스트 렌더링
     function renderCurrentList() {
-      const zone = getCurrentZoneObject(); const listEl = document.getElementById('listArea'); listEl.innerHTML = '';
+      const zone = getCurrentZoneObject(); 
+      const listEl = document.getElementById('listArea'); 
+      if(!listEl) return;
+      listEl.innerHTML = '';
       if (!zone || !zone.addrs || zone.addrs.length === 0) { document.getElementById('subZoneTitle').innerText = `데이터를 준비 중입니다.`; return; }
       
       document.getElementById('subZoneTitle').innerText = zone.newSubTitle;
 
-      zone.addrs.forEach((itemString, idx) => {
-        const safeKey = getSafeKey(itemString);
+      zone.addrs.forEach((originalString, idx) => {
+        const safeKey = getSafeKey(originalString); // DB 연동은 무조건 원본 키 사용
         const status = getAddressStatus(safeKey); 
         const memoText = globalMemos[safeKey] || "";
-        const isFocused = (focusedAddr === itemString);
+        const isFocused = (focusedAddr === originalString);
 
-        // ★ 전화번호와 상호명 분리 (첫 번째 띄어쓰기 기준)
-        let phoneNum = itemString;
+        // ★ Firebase 데이터 수정 내역 확인 후 표시할 텍스트 결정
+        const displayString = (globalPhoneEdits[zone.globalNum] && globalPhoneEdits[zone.globalNum][idx]) 
+                              ? globalPhoneEdits[zone.globalNum][idx] 
+                              : originalString;
+
+        // 전화번호와 상호명 분리
+        let phoneNum = displayString;
         let bizName = "";
-        const firstSpaceIdx = itemString.indexOf(' ');
+        const firstSpaceIdx = displayString.indexOf(' ');
         if (firstSpaceIdx > -1) {
-          phoneNum = itemString.substring(0, firstSpaceIdx);
-          bizName = itemString.substring(firstSpaceIdx + 1);
+          phoneNum = displayString.substring(0, firstSpaceIdx);
+          bizName = displayString.substring(firstSpaceIdx + 1);
         }
-
-        // 모바일 발신을 위한 tel: 링크 생성 (숫자와 하이픈만 추출)
+        
+        // 착신 다이얼 링크 생성 (숫자와 하이픈만 추출)
         const telLink = `tel:${phoneNum.replace(/[^0-9\-]/g, '')}`;
 
-        // 상태별 추가 클래스 설정 (결번, 거절)
         let statusClass = '';
         if (status === '결번') statusClass = 'status-wrong';
         if (status === '거절') statusClass = 'status-reject';
@@ -355,7 +503,7 @@
         
         card.innerHTML = `
           <div class="card-top">
-            <div class="biz-info" onclick="focusSinglePhone('${itemString}', ${idx})">
+            <div class="biz-info" onclick="focusSinglePhone('${originalString}', ${idx})">
               <div class="addr-id">#${idx + 1}</div>
               <div class="biz-name">
                 <a href="${telLink}" class="phone-link">${phoneNum}</a>
@@ -363,14 +511,14 @@
                 <span class="reject-label">전화거절</span>
               </div>
             </div>
-            <button class="btn-memo" onclick="openMemoModal('${itemString}')">📝 메모</button>
+            <button class="btn-memo" onclick="openMemoModal('${originalString}')">📝 메모</button>
           </div>
           
           <div class="status-group">
-            <button id="btn-call-${idx}" class="btn-status call ${status === '통화' ? 'active' : ''}" onclick="toggleStatus('${itemString}', '통화', ${idx})">통화</button>
-            <button id="btn-absent-${idx}" class="btn-status absent ${status === '부재' ? 'active' : ''}" onclick="toggleStatus('${itemString}', '부재', ${idx})">부재</button>
-            <button id="btn-wrong-${idx}" class="btn-status wrong ${status === '결번' ? 'active' : ''}" onclick="toggleStatus('${itemString}', '결번', ${idx})">결번</button>
-            <button id="btn-reject-${idx}" class="btn-status reject ${status === '거절' ? 'active' : ''}" onclick="toggleStatus('${itemString}', '거절', ${idx})">거절</button>
+            <button id="btn-call-${idx}" class="btn-status call ${status === '통화' ? 'active' : ''}" onclick="toggleStatus('${originalString}', '통화', ${idx})">통화</button>
+            <button id="btn-absent-${idx}" class="btn-status absent ${status === '부재' ? 'active' : ''}" onclick="toggleStatus('${originalString}', '부재', ${idx})">부재</button>
+            <button id="btn-wrong-${idx}" class="btn-status wrong ${status === '결번' ? 'active' : ''}" onclick="toggleStatus('${originalString}', '결번', ${idx})">결번</button>
+            <button id="btn-reject-${idx}" class="btn-status reject ${status === '거절' ? 'active' : ''}" onclick="toggleStatus('${originalString}', '거절', ${idx})">거절</button>
           </div>
           <div class="memo-display ${memoText ? 'has-memo' : ''}">↳ ${memoText}</div>
         `;
@@ -379,20 +527,17 @@
       updateProgressUI();
     }
 
-    function focusSinglePhone(itemString, idx) {
-      focusedAddr = itemString;
+    function focusSinglePhone(originalString, idx) {
+      focusedAddr = originalString;
       document.querySelectorAll('.phone-card').forEach(c => c.classList.remove('focused'));
       const targetCard = document.getElementById(`card-phone-${idx}`); 
-      if (targetCard) { 
-        targetCard.classList.add('focused'); 
-      }
+      if (targetCard) targetCard.classList.add('focused'); 
     }
 
-    function toggleStatus(itemString, newStatus, idx) {
-      const safeKey = getSafeKey(itemString); 
+    function toggleStatus(originalString, newStatus, idx) {
+      const safeKey = getSafeKey(originalString); 
       const currentStatus = getAddressStatus(safeKey);
 
-      // 즉각적인 UI 반응 처리 (Optimistic UI)
       const card = document.getElementById(`card-phone-${idx}`);
       const btnCall = document.getElementById(`btn-call-${idx}`);
       const btnAbsent = document.getElementById(`btn-absent-${idx}`);
@@ -402,12 +547,10 @@
       [btnCall, btnAbsent, btnWrong, btnReject].forEach(btn => { if(btn) btn.classList.remove('active'); });
 
       if (currentStatus === newStatus) {
-        // 이미 선택된 상태 취소
         if(card) card.classList.remove('has-status', 'status-wrong', 'status-reject');
         delete doneMap[safeKey];
         db.ref('phone_visits/' + safeKey).remove();
       } else {
-        // 새로운 상태 적용
         if(card) {
           card.classList.remove('status-wrong', 'status-reject');
           card.classList.add('has-status');
@@ -425,12 +568,11 @@
       
       updateProgressUI();
 
-      // 전체 완료 체크
       const zone = getCurrentZoneObject();
       if (zone && zone.addrs && currentStatus !== newStatus) {
         let allOthersDone = true;
         for (let i = 0; i < zone.addrs.length; i++) {
-          if (zone.addrs[i] === itemString) continue; 
+          if (zone.addrs[i] === originalString) continue; 
           const otherSafeKey = getSafeKey(zone.addrs[i]);
           if (!getAddressStatus(otherSafeKey)) {
             allOthersDone = false;
@@ -457,9 +599,16 @@
       zone.addrs.forEach(itemString => { db.ref('phone_visits/' + getSafeKey(itemString)).remove(); });
     }
 
-    function openMemoModal(itemString) {
-      currentMemoKey = getSafeKey(itemString);
-      document.getElementById('memo-target-addr').innerText = itemString;
+    function openMemoModal(originalString) {
+      currentMemoKey = getSafeKey(originalString);
+      // 메모창 타이틀에도 수정된 값이 있다면 반영
+      const zone = getCurrentZoneObject();
+      const idx = zone.addrs.indexOf(originalString);
+      let displayString = originalString;
+      if (idx > -1 && globalPhoneEdits[zone.globalNum] && globalPhoneEdits[zone.globalNum][idx]) {
+        displayString = globalPhoneEdits[zone.globalNum][idx];
+      }
+      document.getElementById('memo-target-addr').innerText = displayString;
       document.getElementById('memo-input').value = globalMemos[currentMemoKey] || "";
       document.getElementById('memo-modal').style.display = 'flex';
     }
@@ -473,6 +622,230 @@
         else db.ref('phone_memos/' + currentMemoKey).set(text);
       }
       closeMemoModal();
+    }
+
+    // ==========================================
+    // 6. 관리자 모드 전용 함수 (통계 및 데이터 수정)
+    // ==========================================
+    function openAdmin() {
+      const pwd = prompt("관리자 비밀번호를 입력하세요.");
+      if (pwd === "1234") { 
+        document.getElementById('admin-screen').style.display = 'flex';
+        renderAdminStats(); 
+      } else if (pwd !== null) {
+        alert("비밀번호가 일치하지 않습니다.");
+      }
+    }
+    function closeAdmin() { 
+      document.getElementById('admin-screen').style.display = 'none'; 
+      document.getElementById('adminEditList').innerHTML = '';
+      document.getElementById('searchEditZone').value = '';
+    }
+
+    function renderAdminStats() {
+      const grid = document.getElementById('statsGridArea');
+      
+      let totalZonesCount = 0;
+      Object.keys(PHONE_ZONE_DATABASE).forEach(t => {
+        Object.keys(PHONE_ZONE_DATABASE[t]).forEach(v => {
+          totalZonesCount += Object.keys(PHONE_ZONE_DATABASE[t][v]).length;
+        });
+      });
+      if (totalZonesCount === 0) return;
+
+      let minCompletions = 999;
+      let completedZonesCount = 0;
+      let latestCompDate = 0;
+
+      // 전화구역에서는 구역별 최소 회독수를 기준으로 통계 산출
+      for (const town in PHONE_ZONE_DATABASE) {
+        for (const village in PHONE_ZONE_DATABASE[town]) {
+          const zones = PHONE_ZONE_DATABASE[town][village];
+          for (const key in zones) { 
+            let globalNum = zones[key].globalNum;
+            let compCount = globalCompletions[globalNum] && globalCompletions[globalNum].history ? globalCompletions[globalNum].history.length : 0;
+            if (compCount < minCompletions) minCompletions = compCount;
+          }
+        }
+      }
+      if(minCompletions === 999) minCompletions = 0;
+
+      for (const town in PHONE_ZONE_DATABASE) {
+        for (const village in PHONE_ZONE_DATABASE[town]) {
+          const zones = PHONE_ZONE_DATABASE[town][village];
+          for (const key in zones) { 
+            let globalNum = zones[key].globalNum;
+            let history = globalCompletions[globalNum] ? (globalCompletions[globalNum].history || []) : [];
+            if (history.length > minCompletions) {
+               completedZonesCount++;
+            }
+            if (history.length > 0 && history[history.length - 1].timestamp > latestCompDate) {
+               latestCompDate = history[history.length - 1].timestamp;
+            }
+          }
+        }
+      }
+
+      let progressPct = Math.round((completedZonesCount / totalZonesCount) * 100);
+      let lastFullCompletionDateText = latestCompDate > 0 ? new Date(latestCompDate).toLocaleDateString() : "기록 없음";
+
+      grid.innerHTML = `
+        <div class="stat-card">
+          <div class="stat-title">전체 통화 진행률 (${minCompletions + 1}회독)</div>
+          <div class="stat-value">${progressPct}%</div>
+          <div class="stat-subtext">${completedZonesCount} / ${totalZonesCount} 구역 완료</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">최근 통화 완료일</div>
+          <div class="stat-value" style="font-size:16px; margin-top:4px;">${lastFullCompletionDateText}</div>
+          <div class="stat-subtext">누적 전체 회독: ${minCompletions}회</div>
+        </div>
+      `;
+    }
+
+    // ★ 전화구역 데이터 관리자 수정 로직
+    function searchZoneToEdit() {
+      const num = document.getElementById('searchEditZone').value.trim();
+      if(!num) return;
+      const target = String(num).padStart(3, '0');
+      const found = searchZoneByNumber(target);
+      if(!found) { alert("입력하신 번호의 전화구역을 찾을 수 없습니다."); return; }
+      
+      const zoneObj = PHONE_ZONE_DATABASE[found.town][found.village][found.zoneKey];
+      renderAdminPhoneEdits(target, zoneObj);
+    }
+
+    function renderAdminPhoneEdits(zoneNum, zoneObj) {
+      const ul = document.getElementById('adminEditList');
+      ul.innerHTML = `<div style="font-weight:bold; margin-bottom:10px; color:#2ea354;">[${zoneNum}번 전화구역] 데이터 수정</div>`;
+      
+      zoneObj.addrs.forEach((origStr, idx) => {
+        const editedStr = (globalPhoneEdits[zoneNum] && globalPhoneEdits[zoneNum][idx]) ? globalPhoneEdits[zoneNum][idx] : origStr;
+        const li = document.createElement('li');
+        li.style.flexDirection = 'column';
+        li.style.alignItems = 'flex-start';
+        li.style.background = '#f8fafc';
+        li.style.padding = '10px';
+        li.style.borderRadius = '6px';
+        li.style.marginBottom = '8px';
+        li.style.border = '1px solid #cbd5e1';
+        
+        li.innerHTML = `
+          <div style="font-size:11px; color:#64748b; margin-bottom:6px;">#${idx + 1} 원본: ${origStr}</div>
+          <div style="display:flex; width:100%; gap:5px;">
+            <input type="text" id="edit-input-${zoneNum}-${idx}" value="${editedStr}" style="flex:1; padding:8px; border:1px solid #cbd5e1; border-radius:4px; font-size:13px; outline:none;">
+            <button onclick="savePhoneEdit('${zoneNum}', ${idx})" style="background:#2ea354; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold;">저장</button>
+            <button onclick="resetPhoneEdit('${zoneNum}', ${idx})" style="background:#64748b; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold;">복구</button>
+          </div>
+        `;
+        ul.appendChild(li);
+      });
+    }
+
+    function savePhoneEdit(zoneNum, idx) {
+      const val = document.getElementById(`edit-input-${zoneNum}-${idx}`).value.trim();
+      if(!val) return;
+      db.ref(`phone_edits/${zoneNum}/${idx}`).set(val).then(() => {
+        alert('저장되었습니다. 앱 화면에 즉시 반영됩니다.');
+      });
+    }
+
+    function resetPhoneEdit(zoneNum, idx) {
+      if(confirm('기본 원본 데이터로 복구하시겠습니까?')) {
+        db.ref(`phone_edits/${zoneNum}/${idx}`).remove().then(() => {
+          alert('복구되었습니다.');
+        });
+      }
+    }
+
+    // 그 외 관리자 리스트 렌더링 함수들
+    function addPublisher() {
+      const name = document.getElementById('newPubName').value.trim();
+      if(name) { db.ref('publishers/' + name).set(true); document.getElementById('newPubName').value = ""; }
+    }
+    function removePublisher(name) {
+      if(confirm(`'${name}' 전도인을 삭제하시겠습니까?`)) db.ref('publishers/' + name).remove();
+    }
+    function renderAdminPublishers() {
+      initConsonantFilter();
+      const ul = document.getElementById('adminPubList');
+      ul.innerHTML = '';
+      Object.keys(globalPublishers).forEach(name => {
+        if (currentPubFilter !== "전체") {
+          const initial = getInitialSound(name);
+          if (initial !== currentPubFilter && initial.replace(/ㄲ/,'ㄱ').replace(/ㄸ/,'ㄷ').replace(/ㅃ/,'ㅂ').replace(/ㅆ/,'ㅅ').replace(/ㅉ/,'ㅈ') !== currentPubFilter) return;
+        }
+        const li = document.createElement('li');
+        li.innerHTML = `<span>${name}</span> <button class="btn-delete" onclick="removePublisher('${name}')">삭제</button>`;
+        ul.appendChild(li);
+      });
+    }
+    function removeCompletion(zoneNum, index) {
+      if(!confirm(`해당 구역의 완료 기록을 삭제하시겠습니까?`)) return;
+      const history = globalCompletions[zoneNum].history || [];
+      history.splice(index, 1);
+      if (history.length === 0) db.ref('phone_zone_completions/' + zoneNum).remove();
+      else db.ref('phone_zone_completions/' + zoneNum + '/history').set(history);
+    }
+    function resetCompPageAndRender() { currentCompPage = 1; renderAdminCompletions(); }
+    function renderAdminCompletions() {
+      const searchVal = document.getElementById('searchComp').value.trim();
+      let listArr = [];
+      Object.keys(globalCompletions).forEach(zoneNum => {
+        if (searchVal && !zoneNum.includes(searchVal)) return;
+        const history = globalCompletions[zoneNum].history || [];
+        if(history.length === 0) return;
+        listArr.push({ zoneNum, history });
+      });
+      const totalPages = Math.ceil(listArr.length / ITEMS_PER_PAGE) || 1;
+      if (currentCompPage > totalPages) currentCompPage = totalPages;
+      const startIdx = (currentCompPage - 1) * ITEMS_PER_PAGE;
+      const paginatedList = listArr.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+      const ul = document.getElementById('adminCompList');
+      ul.innerHTML = '';
+      paginatedList.forEach(data => {
+        const li = document.createElement('li');
+        li.style.flexDirection = 'column'; li.style.alignItems = 'flex-start';
+        let html = `<div style="width:100%; border-bottom:1px solid #e2e8f0; padding-bottom:4px; margin-bottom:4px;"><strong style="color:#2ea354;">${data.zoneNum}번 구역</strong> (총 ${data.history.length}회 완료)</div>`;
+        data.history.forEach((record, index) => {
+          const dateStr = new Date(record.timestamp).toLocaleDateString();
+          html += `<div class="comp-history-item"><span>${index + 1}회: <strong>${record.user}</strong> / ${dateStr}</span><button class="btn-delete" onclick="removeCompletion('${data.zoneNum}', ${index})">삭제</button></div>`;
+        });
+        li.innerHTML = html; ul.appendChild(li);
+      });
+      renderPagination('compPagination', totalPages, currentCompPage, (p) => { currentCompPage = p; renderAdminCompletions(); });
+    }
+    function resetMemoPageAndRender() { currentMemoPage = 1; renderAdminMemos(); }
+    function renderAdminMemos() {
+      const searchVal = document.getElementById('searchMemo').value.trim();
+      let listArr = [];
+      Object.keys(globalMemos).forEach(safeKey => {
+        if (searchVal && !safeKey.includes(searchVal)) return;
+        listArr.push({ safeKey, text: globalMemos[safeKey] });
+      });
+      const totalPages = Math.ceil(listArr.length / ITEMS_PER_PAGE) || 1;
+      if (currentMemoPage > totalPages) currentMemoPage = totalPages;
+      const startIdx = (currentMemoPage - 1) * ITEMS_PER_PAGE;
+      const paginatedList = listArr.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+      const ul = document.getElementById('adminMemoList');
+      ul.innerHTML = '';
+      paginatedList.forEach(data => {
+        const displayAddr = data.safeKey.replace(/_/g, ' '); 
+        const li = document.createElement('li'); li.style.alignItems = 'flex-start';
+        li.innerHTML = `<div style="flex:1;"><strong>${displayAddr}</strong><br><span style="color:#ef4444">${data.text}</span></div><button class="btn-delete" style="margin-top:14px;" onclick="db.ref('phone_memos/${data.safeKey}').remove()">삭제</button>`;
+        ul.appendChild(li);
+      });
+      renderPagination('memoPagination', totalPages, currentMemoPage, (p) => { currentMemoPage = p; renderAdminMemos(); });
+    }
+    function renderPagination(containerId, totalPages, currentPage, callback) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+      if (totalPages <= 1) return;
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'page-btn' + (i === currentPage ? ' active' : '');
+        btn.innerText = i; btn.onclick = () => callback(i); container.appendChild(btn);
+      }
     }
   </script>
 </body>
