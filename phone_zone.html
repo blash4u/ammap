@@ -27,8 +27,8 @@
     .btn-cancel { background: #e2e8f0; color: #475569; }
     .btn-save { background: #2ea354; color: #fff; }
 
-    /* 토스트 알림 메시지 (복사 완료 등) */
-    #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 12px 20px; border-radius: 30px; font-size: 14px; font-weight: bold; z-index: 11000; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+    /* 토스트 알림 메시지 */
+    #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 12px 20px; border-radius: 30px; font-size: 14px; font-weight: bold; z-index: 11000; opacity: 0; transition: opacity 0.3s; pointer-events: none; text-align: center; }
     #toast.show { opacity: 1; }
 
     /* 시작 화면 (로그인) */
@@ -44,8 +44,6 @@
     .input-group label { display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px; }
     .input-group input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 15px; font-weight: bold; outline: none; }
     .btn-start { width: 100%; background: #2ea354; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 20px; }
-    .recent-visit { font-size: 12px; color: #64748b; font-weight: 600; background: #e2e8f0; padding: 8px; border-radius: 6px; }
-    .recent-visit strong { color: #2ea354; }
 
     /* 관리자 화면 스타일 */
     #admin-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f8fafc; z-index: 9500; display: none; flex-direction: column; }
@@ -83,11 +81,15 @@
     .btn-home { color: #ffffff; cursor: pointer; }
     .title { color: #86efac; font-size: 15px; font-weight: bold; }
 
-    /* 진행바 및 서브 타이틀 영역 */
+    /* 진행바 및 구역 완료 버튼 영역 */
     .info-bar { background-color: #ffffff; padding: 10px 12px; border-bottom: 1px solid #cbd5e1; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
     .info-bar-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
     .prog-text { font-size: 14px; color: #166534; font-weight: 800; }
-    .btn-reset-zone { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
+    
+    /* ★ 구역 완료 버튼 디자인 새로 적용 */
+    .btn-zone-complete { background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: 0.1s; }
+    .btn-zone-complete:active { transform: scale(0.95); }
+
     .sub-zone-title { text-align: center; font-size: 16px; color: #0f172a; font-weight: 900; background: #f0fdf4; padding: 10px; border-radius: 6px; border: 1px solid #bbf7d0; margin-top: 4px; }
 
     /* 전화구역 전용 카드 리스트 */
@@ -100,7 +102,6 @@
     .biz-info { flex: 1; }
     .biz-info .addr-id { font-size: 11px; color: #94a3b8; font-weight: bold; margin-bottom: 4px; }
     
-    /* 꾹 누르기 기능을 위한 속성 추가 */
     .phone-link { color: #166534; font-weight: 900; font-size: 16px; text-decoration: none; display: inline-block; padding-bottom: 2px; -webkit-touch-callout: none; user-select: none; }
     .biz-name-highlight { color: #0284c7; font-weight: 800; font-size: 14px; margin-left: 6px; }
     .btn-memo { background: #e2e8f0; color: #475569; border: none; padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; flex-shrink: 0; }
@@ -109,23 +110,20 @@
     .status-group { display: flex; gap: 5px; width: 100%; }
     .btn-status { flex: 1; padding: 8px 0; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; font-weight: bold; background: #ffffff; color: #475569; cursor: pointer; transition: 0.1s; }
     
-    /* 각 버튼 활성화 색상 */
     .btn-status.active.call { background: #2ea354; color: white; border-color: #2ea354; }
     .btn-status.active.absent { background: #eab308; color: white; border-color: #eab308; }
     .btn-status.active.wrong { background: #64748b; color: white; border-color: #64748b; }
     .btn-status.active.reject { background: #ef4444; color: white; border-color: #ef4444; }
 
-    /* 결번 상태 시 취소선 */
     .phone-card.status-wrong .phone-link, 
     .phone-card.status-wrong .biz-name-highlight { text-decoration: line-through; color: #94a3b8; }
     
-    /* 거절 상태 시 취소선 및 붉은색 라벨 */
     .phone-card.status-reject .phone-link, 
     .phone-card.status-reject .biz-name-highlight { text-decoration: line-through; color: #ef4444; }
     .reject-label { display: none; background-color: #ef4444; color: white; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
     .phone-card.status-reject .reject-label { display: inline-block; }
 
-    /* ★ 확실하게 보이도록 개선된 메모 표시 UI */
+    /* 메모 상시 노출 스타일 개선 */
     .memo-display { font-size: 13px; color: #b91c1c; font-weight: bold; background: #fef2f2; padding: 8px 12px; border-radius: 6px; display: none; border-left: 4px solid #ef4444; margin-top: 2px; }
     .memo-display.has-memo { display: block; }
 
@@ -175,7 +173,6 @@
       </div>
       
       <button class="btn-start" onclick="startApp()">시 작</button>
-      <div class="recent-visit" id="recentVisitDisplay">최근 방문 기록이 없습니다.</div>
     </div>
   </div>
 
@@ -187,7 +184,7 @@
     </div>
     <div class="admin-content">
       
-      <!-- ★ 개별 구역 검색용 통계 패널 -->
+      <!-- 개별 구역 검색용 통계 패널 -->
       <div class="admin-section">
         <h2>📊 전화구역 개별 통계</h2>
         <div class="search-wrap">
@@ -199,7 +196,6 @@
         </div>
       </div>
 
-      <!-- 데이터 수정 패널 -->
       <div class="admin-section">
         <h2>✏️ 전화번호/상호명 수정</h2>
         <p style="font-size:11px; color:#64748b; margin-bottom:10px;">전화번호와 상호가 변경되었을 때 여기서 수정하면 기록(메모 등)이 보존됩니다.</p>
@@ -260,7 +256,8 @@
     <div class="info-bar">
       <div class="info-bar-top">
         <span class="prog-text" id="progRatio">진행률: 0 / 0 (0%)</span>
-        <button class="btn-reset-zone" onclick="resetCurrentZone()">기록 초기화 ↺</button>
+        <!-- ★ 삭제된 초기화 버튼 대신 수동 '구역 완료' 버튼 추가 -->
+        <button class="btn-zone-complete" onclick="completeCurrentZone()">구역 완료 🏆</button>
       </div>
       <div id="subZoneTitle" class="sub-zone-title">구역을 선택해주세요</div>
     </div>
@@ -327,10 +324,9 @@
       const savedZone = localStorage.getItem('phone_ammap_recentzone') || "";
       
       document.getElementById('inputName').value = savedName;
-      if (savedZone) document.getElementById('recentVisitDisplay').innerHTML = `최근 통화<br><strong>${savedZone} 번</strong>`;
 
       initFirebaseGlobalSync();
-      initLongPressCopy(); // ★ 길게 누르기 복사 기능 활성화
+      initLongPressCopy(); 
 
       if (sessionStorage.getItem('phone_ammap_active_session') === 'true' && savedName) {
         document.getElementById('inputZoneNum').value = savedZone;
@@ -354,7 +350,6 @@
       });
     }
 
-    // ★ 전화번호 길게 눌러서 복사하는 기능
     function initLongPressCopy() {
       let pressTimer;
       
@@ -363,7 +358,7 @@
           const phoneNum = e.target.getAttribute('data-phone');
           pressTimer = window.setTimeout(() => {
             copyToClipboard(phoneNum);
-          }, 600); // 0.6초간 누르고 있으면 복사
+          }, 600); 
         }
       };
       const cancelPress = () => { clearTimeout(pressTimer); };
@@ -376,7 +371,6 @@
       document.body.addEventListener('mouseup', cancelPress);
       document.body.addEventListener('mousemove', cancelPress);
 
-      // 모바일 기기에서 기본 팝업(링크 열기 등) 뜨는 것 방지
       document.body.addEventListener('contextmenu', (e) => {
         if(e.target.classList.contains('phone-link')) {
           e.preventDefault(); 
@@ -385,7 +379,6 @@
     }
 
     function copyToClipboard(text) {
-      // 숫자와 하이픈만 추출하여 깨끗하게 복사
       const cleanText = text.replace(/[^0-9\-]/g, '');
       if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(cleanText).then(() => showToast(`전화번호(${cleanText})가 복사되었습니다.`));
@@ -541,7 +534,6 @@
                 <span class="reject-label">전화거절</span>
               </div>
             </div>
-            <!-- ★ 따옴표 에러 방지를 위해 문자열 대신 idx 번호를 통과시킴 -->
             <button class="btn-memo" onclick="openMemoModal(${idx})">📝 메모</button>
           </div>
           
@@ -565,6 +557,7 @@
       if (targetCard) targetCard.classList.add('focused'); 
     }
 
+    // ★ 상태 수동 조작 기능 (자동 완료 제거)
     function toggleStatus(originalString, newStatus, idx) {
       const safeKey = getSafeKey(originalString); 
       const currentStatus = getAddressStatus(safeKey);
@@ -598,39 +591,38 @@
       }
       
       updateProgressUI();
+    }
 
+    // ★ 구역 수동 완료 기능 (통화, 부재만 초기화)
+    function completeCurrentZone() {
       const zone = getCurrentZoneObject();
-      if (zone && zone.addrs && currentStatus !== newStatus) {
-        let allOthersDone = true;
-        for (let i = 0; i < zone.addrs.length; i++) {
-          if (zone.addrs[i] === originalString) continue; 
-          const otherSafeKey = getSafeKey(zone.addrs[i]);
-          if (!getAddressStatus(otherSafeKey)) {
-            allOthersDone = false;
-            break;
-          }
+      if (!zone || !zone.addrs || zone.addrs.length === 0) return;
+
+      if (!confirm(`현재 구역의 전도를 완료하시겠습니까?\n\n'통화', '부재' 기록은 초기화되며,\n'결번', '거절', '메모'는 그대로 유지됩니다.`)) return;
+
+      const zoneGlobalNum = zone.globalNum;
+
+      // 1. 구역 완료 기록 저장
+      db.ref('phone_zone_completions/' + zoneGlobalNum).once('value').then(snap => {
+        let data = snap.val() || { history: [] };
+        if(!data.history) data.history = [];
+        data.history.push({ user: currentUser, timestamp: Date.now() });
+        db.ref('phone_zone_completions/' + zoneGlobalNum).set(data);
+      });
+
+      // 2. 통화, 부재 기록만 삭제 (결번, 거절은 보존)
+      zone.addrs.forEach(originalString => {
+        const safeKey = getSafeKey(originalString);
+        const status = getAddressStatus(safeKey);
+
+        if (status === '통화' || status === '부재') {
+          db.ref('phone_visits/' + safeKey).remove();
         }
-        
-        if (allOthersDone) {
-          const zoneGlobalNum = zone.globalNum;
-          db.ref('phone_zone_completions/' + zoneGlobalNum).once('value').then(snap => {
-            let data = snap.val() || { history: [] }; 
-            if(!data.history) data.history = [];
-            data.history.push({ user: currentUser, timestamp: Date.now() }); 
-            db.ref('phone_zone_completions/' + zoneGlobalNum).set(data);
-          });
-          setTimeout(() => alert(`🎉 수고하셨습니다!\n\n${currentUser} 전도인님, 해당 구역의 모든 통화 시도를 완료했습니다.`), 300);
-        }
-      }
+      });
+
+      showToast(`🎉 수고하셨습니다! 구역 완료가 저장되었습니다.`);
     }
 
-    function resetCurrentZone() {
-      const zone = getCurrentZoneObject(); if (!zone || !zone.addrs || zone.addrs.length === 0) return;
-      if (!confirm(`이 구역의 통화 기록을 모두 초기화하시겠습니까?\n(작성된 메모는 삭제되지 않습니다)`)) return;
-      zone.addrs.forEach(itemString => { db.ref('phone_visits/' + getSafeKey(itemString)).remove(); });
-    }
-
-    // ★ 메모 오류 완벽 해결! 문자열 충돌 방지를 위해 인덱스를 넘겨받음
     function openMemoModal(idx) {
       const zone = getCurrentZoneObject();
       const originalString = zone.addrs[idx];
@@ -663,7 +655,6 @@
       const pwd = prompt("관리자 비밀번호를 입력하세요.");
       if (pwd === "1234") { 
         document.getElementById('admin-screen').style.display = 'flex';
-        // 열릴 때 최근 작업 구역이 있으면 통계를 먼저 보여줍니다.
         const recent = localStorage.getItem('phone_ammap_recentzone');
         if(recent) { document.getElementById('searchStatZone').value = recent; searchZoneStats(); }
       } else if (pwd !== null) {
@@ -677,7 +668,6 @@
       document.getElementById('searchEditZone').value = '';
     }
 
-    // ★ 2. 관리자 개별 구역 통계 검색 함수
     function searchZoneStats(isAutoRefresh = false) {
       const num = document.getElementById('searchStatZone').value.trim();
       if(!num) return;
@@ -712,12 +702,12 @@
 
       grid.innerHTML = `
         <div class="stat-card">
-          <div class="stat-title">[${target}번] 전체 진행률</div>
+          <div class="stat-title">[${target}번] 통화 진행률</div>
           <div class="stat-value">${progressPct}%</div>
-          <div class="stat-subtext">${doneCount} / ${totalCount} 가구 통화됨</div>
+          <div class="stat-subtext">${doneCount} / ${totalCount} 가구 상태확인</div>
         </div>
         <div class="stat-card">
-          <div class="stat-title">[${target}번] 최근 100% 완료일</div>
+          <div class="stat-title">[${target}번] 최근 구역 완료일</div>
           <div class="stat-value" style="font-size:16px; margin-top:4px;">${lastDateStr}</div>
           <div class="stat-subtext">누적 전체 회독: ${completionsCount}회</div>
         </div>
