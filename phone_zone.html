@@ -74,21 +74,19 @@
     /* 메인 앱 레이아웃 */
     #main-app { display: none; flex-direction: column; height: 100%; width: 100%; }
     .header { background-color: #166534; padding: 10px; flex-shrink: 0; }
-    .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .header-top { display: flex; justify-content: space-between; align-items: center; }
     .title-group { display: flex; align-items: center; gap: 8px; }
     .btn-home { color: #ffffff; cursor: pointer; }
     .title { color: #86efac; font-size: 15px; font-weight: bold; }
-    .dropdown-group { display: flex; gap: 5px; width: 100%; }
-    .select-btn { height: 36px; padding: 4px; border-radius: 5px; font-size: 12px; font-weight: bold; outline: none; }
-    #selTown, #selVillage { flex: 2.5; background: #14532d; color: white; border: 1px solid #166534; }
-    #selZone { flex: 5; background: #228542; color: white; border: none; }
 
-    /* 진행바 영역 */
+    /* 진행바 및 서브 타이틀 영역 */
     .info-bar { background-color: #ffffff; padding: 10px 12px; border-bottom: 1px solid #cbd5e1; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
     .info-bar-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
     .prog-text { font-size: 14px; color: #166534; font-weight: 800; }
     .btn-reset-zone { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
-    .sub-zone-title { text-align: center; font-size: 15px; color: #0f172a; font-weight: 800; background: #f1f5f9; padding: 6px; border-radius: 4px; border: 1px solid #cbd5e1; }
+    
+    /* ★ 수정된 타이틀 스타일 */
+    .sub-zone-title { text-align: center; font-size: 16px; color: #0f172a; font-weight: 900; background: #f0fdf4; padding: 10px; border-radius: 6px; border: 1px solid #bbf7d0; margin-top: 4px; }
 
     /* 전화구역 전용 카드 리스트 */
     .list-area { flex: 1; overflow-y: auto; padding: 10px; background-color: #f8fafc; }
@@ -182,15 +180,13 @@
     </div>
     <div class="admin-content">
       
-      <!-- ★ 통계 패널 (전화구역 맞춤 텍스트) -->
+      <!-- 통계 패널 -->
       <div class="admin-section">
         <h2>📊 전화구역 활동 통계</h2>
-        <div class="stats-grid" id="statsGridArea">
-          <!-- 통계 렌더링 영역 -->
-        </div>
+        <div class="stats-grid" id="statsGridArea"></div>
       </div>
 
-      <!-- ★ 데이터 수정 패널 신설 -->
+      <!-- 데이터 수정 패널 -->
       <div class="admin-section">
         <h2>✏️ 전화번호/상호명 수정</h2>
         <p style="font-size:11px; color:#64748b; margin-bottom:10px;">전화번호와 상호가 변경되었을 때 여기서 수정하면 기록(메모 등)이 보존됩니다.</p>
@@ -246,11 +242,7 @@
           <div class="title" id="mainHeaderTitle">안면도 전화구역</div>
         </div>
       </div>
-      <div class="dropdown-group">
-        <select id="selTown" class="select-btn" onchange="onTownChange()"></select>
-        <select id="selVillage" class="select-btn" onchange="onVillageChange()"></select>
-        <select id="selZone" class="select-btn" onchange="onZoneChange()"></select>
-      </div>
+      <!-- ★ 기존의 드롭다운 영역 HTML이 완전히 삭제되었습니다! -->
     </div>
 
     <div class="info-bar">
@@ -258,6 +250,7 @@
         <span class="prog-text" id="progRatio">진행률: 0 / 0 (0%)</span>
         <button class="btn-reset-zone" onclick="resetCurrentZone()">기록 초기화 ↺</button>
       </div>
+      <!-- ★ 타이틀 텍스트가 표시될 영역 -->
       <div id="subZoneTitle" class="sub-zone-title">구역을 선택해주세요</div>
     </div>
 
@@ -281,7 +274,7 @@
     let globalMemos = {}; 
     let globalCompletions = {};
     let globalPublishers = {};
-    let globalPhoneEdits = {}; // ★ 데이터 수정 보관 객체
+    let globalPhoneEdits = {}; 
     let currentMemoKey = "";
     let focusedAddr = null;
     let currentPubFilter = "전체";
@@ -300,7 +293,6 @@
     }
 
     function formatZoneData() {
-      // data_phone.js 데이터 형식 초기화 작업
       for(let town in window.PHONE_ZONE_DATABASE) {
         for(let village in window.PHONE_ZONE_DATABASE[town]) {
           for(let zoneKey in window.PHONE_ZONE_DATABASE[town][village]) {
@@ -343,8 +335,6 @@
         if(document.getElementById('admin-screen').style.display === 'flex') renderAdminStats(); 
       });
       db.ref('phone_visits').on('value', snap => { doneMap = snap.val() || {}; updateProgressUI(); renderCurrentList(); });
-      
-      // ★ 전화번호부 수정 내역 동기화
       db.ref('phone_edits').on('value', snap => { 
         globalPhoneEdits = snap.val() || {}; 
         renderCurrentList(); 
@@ -366,7 +356,7 @@
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('main-app').style.display = 'flex';
 
-      initDropdowns();
+      // ★ 드롭다운을 그리는 과정 없이 바로 번호로 검색합니다.
       processZoneSelection(zoneNumVal);
     }
 
@@ -377,19 +367,26 @@
       document.getElementById('inputZoneNum').value = '';
     }
 
+    // ★ 번호를 입력받아 구역을 찾아주는 핵심 로직 
     function processZoneSelection(zoneNumVal) {
       if (zoneNumVal) {
          const searchTarget = String(zoneNumVal).padStart(3, '0');
          const found = searchZoneByNumber(searchTarget);
          if (found) {
-            document.getElementById('selTown').value = found.town; onTownChange();
-            document.getElementById('selVillage').value = found.village; onVillageChange();
-            document.getElementById('selZone').value = found.zoneKey; onZoneChange();
+            curTown = found.town;
+            curVillage = found.village;
+            curZoneKey = found.zoneKey;
             localStorage.setItem('phone_ammap_recentzone', searchTarget);
+            onZoneChange();
          } else {
-            alert("입력하신 번호의 전화구역 카드가 아직 생성되지 않았습니다."); onZoneChange();
+            alert("입력하신 번호의 전화구역 카드가 아직 생성되지 않았습니다.");
+            curTown = ""; curVillage = ""; curZoneKey = "";
+            onZoneChange();
          }
-      } else { onZoneChange(); }
+      } else {
+         curTown = ""; curVillage = ""; curZoneKey = "";
+         onZoneChange();
+      }
     }
 
     function searchZoneByNumber(targetNumStr) {
@@ -402,47 +399,19 @@
       return null;
     }
 
-    function initDropdowns() {
-      const tSelect = document.getElementById('selTown'); tSelect.innerHTML = '';
-      const towns = Object.keys(PHONE_ZONE_DATABASE);
-      if(towns.length === 0) return;
-      towns.forEach(town => { const opt = document.createElement('option'); opt.value = town; opt.innerText = town; tSelect.appendChild(opt); });
-      curTown = towns[0]; tSelect.value = curTown; updateVillageDropdown();
-    }
-
-    function onTownChange() { curTown = document.getElementById('selTown').value; updateVillageDropdown(); }
-    function onVillageChange() { curVillage = document.getElementById('selVillage').value; updateZoneDropdown(); }
-    
-    function updateVillageDropdown() {
-      const vSelect = document.getElementById('selVillage'); vSelect.innerHTML = '';
-      const villages = Object.keys(PHONE_ZONE_DATABASE[curTown] || {});
-      villages.forEach(v => { const opt = document.createElement('option'); opt.value = v; opt.innerText = v; vSelect.appendChild(opt); });
-      curVillage = villages[0] || ''; vSelect.value = curVillage; updateZoneDropdown();
-    }
-
-    function updateZoneDropdown() {
-      const zSelect = document.getElementById('selZone'); zSelect.innerHTML = '';
-      const zones = PHONE_ZONE_DATABASE[curTown]?.[curVillage] || {};
-      const zoneKeys = Object.keys(zones);
-      if (zoneKeys.length > 0) {
-        zoneKeys.forEach(k => { const opt = document.createElement('option'); opt.value = k; opt.innerText = zones[k].newTopTitle; zSelect.appendChild(opt); });
-        curZoneKey = zoneKeys[0];
-      } else { zSelect.innerHTML = '<option value="">구역 준비중</option>'; curZoneKey = ""; }
-      onZoneChange();
-    }
-
+    // ★ 구역이 선택(또는 변경)되었을 때 뷰를 갱신합니다.
     function onZoneChange() {
-      curZoneKey = document.getElementById('selZone').value; 
       focusedAddr = null;
       renderCurrentList();
-      const listEl = document.getElementById('listArea'); if (listEl) listEl.scrollTop = 0;
+      const listEl = document.getElementById('listArea'); 
+      if (listEl) listEl.scrollTop = 0;
+      
       const zone = getCurrentZoneObject();
       if (zone && zone.globalNum) localStorage.setItem('phone_ammap_recentzone', zone.globalNum);
     }
 
     function getCurrentZoneObject() { return PHONE_ZONE_DATABASE[curTown]?.[curVillage]?.[curZoneKey] || null; }
     
-    // 원본 텍스트를 고유 식별 키로 변환
     function getSafeKey(str) { return str.replace(/[.#$[\]\/]/g, '_'); }
 
     function getAddressStatus(safeKey) {
@@ -460,28 +429,30 @@
       document.getElementById('progRatio').innerText = `진행률: ${doneCnt} / ${zone.addrs.length} (${Math.round((doneCnt / zone.addrs.length) * 100)}%)`;
     }
 
-    // ★ 메인 전화구역 리스트 렌더링
+    // ★ 메인 렌더링
     function renderCurrentList() {
       const zone = getCurrentZoneObject(); 
       const listEl = document.getElementById('listArea'); 
       if(!listEl) return;
       listEl.innerHTML = '';
-      if (!zone || !zone.addrs || zone.addrs.length === 0) { document.getElementById('subZoneTitle').innerText = `데이터를 준비 중입니다.`; return; }
+      if (!zone || !zone.addrs || zone.addrs.length === 0) { 
+        document.getElementById('subZoneTitle').innerText = `데이터를 준비 중입니다.`; 
+        return; 
+      }
       
-      document.getElementById('subZoneTitle').innerText = zone.newSubTitle;
+      // ★ 요청하신 "전화구역 X번 - 마을이름" 형식으로 타이틀 출력 적용
+      document.getElementById('subZoneTitle').innerText = `전화구역 ${parseInt(zone.globalNum, 10)}번 - ${zone.newSubTitle}`;
 
       zone.addrs.forEach((originalString, idx) => {
-        const safeKey = getSafeKey(originalString); // DB 연동은 무조건 원본 키 사용
+        const safeKey = getSafeKey(originalString); 
         const status = getAddressStatus(safeKey); 
         const memoText = globalMemos[safeKey] || "";
         const isFocused = (focusedAddr === originalString);
 
-        // ★ Firebase 데이터 수정 내역 확인 후 표시할 텍스트 결정
         const displayString = (globalPhoneEdits[zone.globalNum] && globalPhoneEdits[zone.globalNum][idx]) 
                               ? globalPhoneEdits[zone.globalNum][idx] 
                               : originalString;
 
-        // 전화번호와 상호명 분리
         let phoneNum = displayString;
         let bizName = "";
         const firstSpaceIdx = displayString.indexOf(' ');
@@ -490,7 +461,6 @@
           bizName = displayString.substring(firstSpaceIdx + 1);
         }
         
-        // 착신 다이얼 링크 생성 (숫자와 하이픈만 추출)
         const telLink = `tel:${phoneNum.replace(/[^0-9\-]/g, '')}`;
 
         let statusClass = '';
@@ -601,7 +571,6 @@
 
     function openMemoModal(originalString) {
       currentMemoKey = getSafeKey(originalString);
-      // 메모창 타이틀에도 수정된 값이 있다면 반영
       const zone = getCurrentZoneObject();
       const idx = zone.addrs.indexOf(originalString);
       let displayString = originalString;
@@ -657,7 +626,6 @@
       let completedZonesCount = 0;
       let latestCompDate = 0;
 
-      // 전화구역에서는 구역별 최소 회독수를 기준으로 통계 산출
       for (const town in PHONE_ZONE_DATABASE) {
         for (const village in PHONE_ZONE_DATABASE[town]) {
           const zones = PHONE_ZONE_DATABASE[town][village];
@@ -703,7 +671,6 @@
       `;
     }
 
-    // ★ 전화구역 데이터 관리자 수정 로직
     function searchZoneToEdit() {
       const num = document.getElementById('searchEditZone').value.trim();
       if(!num) return;
@@ -758,7 +725,6 @@
       }
     }
 
-    // 그 외 관리자 리스트 렌더링 함수들
     function addPublisher() {
       const name = document.getElementById('newPubName').value.trim();
       if(name) { db.ref('publishers/' + name).set(true); document.getElementById('newPubName').value = ""; }
