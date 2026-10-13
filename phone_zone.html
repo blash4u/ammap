@@ -89,7 +89,10 @@
     .btn-zone-complete { background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: 0.1s; }
     .btn-zone-complete:active { transform: scale(0.95); }
 
-    .sub-zone-title { text-align: center; font-size: 16px; color: #0f172a; font-weight: 900; background: #f0fdf4; padding: 10px; border-radius: 6px; border: 1px solid #bbf7d0; margin-top: 4px; }
+    /* ★ 수정된 타이틀 및 최근 완료일 표시 디자인 */
+    .sub-zone-title-container { text-align: center; background: #f0fdf4; padding: 10px; border-radius: 6px; border: 1px solid #bbf7d0; margin-top: 4px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .sub-zone-title { font-size: 16px; color: #0f172a; font-weight: 900; }
+    .sub-zone-date { font-size: 12px; color: #166534; font-weight: bold; background: #dcfce7; padding: 2px 8px; border-radius: 12px; display: inline-block; }
 
     /* 전화구역 전용 카드 리스트 */
     .list-area { flex: 1; overflow-y: auto; padding: 10px; background-color: #f8fafc; -webkit-overflow-scrolling: touch; }
@@ -99,7 +102,9 @@
     
     .card-top { display: flex; justify-content: space-between; align-items: flex-start; }
     .biz-info { flex: 1; }
-    .biz-info .addr-id { font-size: 11px; color: #94a3b8; font-weight: bold; margin-bottom: 4px; }
+    
+    /* ★ 카드 번호(#1) 크게 디자인 변경 */
+    .biz-info .addr-id { font-size: 20px; color: #15803d; font-weight: 900; margin-bottom: 6px; border-bottom: 2px solid #bbf7d0; padding-bottom: 2px; display: inline-block; }
     
     .phone-link { color: #166534; font-weight: 900; font-size: 16px; text-decoration: none; display: inline-block; padding-bottom: 2px; -webkit-touch-callout: none; user-select: none; }
     .biz-name-highlight { color: #0284c7; font-weight: 800; font-size: 14px; margin-left: 6px; }
@@ -257,10 +262,12 @@
     <div class="info-bar">
       <div class="info-bar-top">
         <span class="prog-text" id="progRatio">진행률: 0 / 0 (0%)</span>
-        <!-- ★ 완료 버튼 -->
         <button class="btn-zone-complete" onclick="completeCurrentZone()">구역 완료 🏆</button>
       </div>
-      <div id="subZoneTitle" class="sub-zone-title">구역을 선택해주세요</div>
+      <!-- ★ 타이틀과 최근 완료일을 감싸는 컨테이너 -->
+      <div id="subZoneTitleContainer" class="sub-zone-title-container">
+        <div id="subZoneTitle" class="sub-zone-title">구역을 선택해주세요</div>
+      </div>
     </div>
 
     <div class="list-area" id="listArea"></div>
@@ -342,6 +349,7 @@
         globalCompletions = snap.val() || {}; 
         renderAdminCompletions(); 
         if(document.getElementById('admin-screen').style.display === 'flex') searchZoneStats(true); 
+        renderCurrentList(); // 기록 업데이트 시 상단 타이틀 갱신
       });
       db.ref('phone_visits').on('value', snap => { doneMap = snap.val() || {}; updateProgressUI(); renderCurrentList(); });
       db.ref('phone_edits').on('value', snap => { 
@@ -490,11 +498,22 @@
       if(!listEl) return;
       listEl.innerHTML = '';
       if (!zone || !zone.addrs || zone.addrs.length === 0) { 
-        document.getElementById('subZoneTitle').innerText = `데이터를 준비 중입니다.`; 
+        document.getElementById('subZoneTitleContainer').innerHTML = `<div class="sub-zone-title">데이터를 준비 중입니다.</div>`; 
         return; 
       }
       
-      document.getElementById('subZoneTitle').innerText = `전화구역 ${parseInt(zone.globalNum, 10)}번 - ${zone.newSubTitle}`;
+      // ★ 최근 완료일자 계산 로직
+      let history = globalCompletions[zone.globalNum] ? (globalCompletions[zone.globalNum].history || []) : [];
+      let lastDateStr = "기록 없음";
+      if (history.length > 0) {
+          lastDateStr = new Date(history[history.length - 1].timestamp).toLocaleDateString();
+      }
+
+      // ★ 구역 제목 및 최근 완료일자 렌더링
+      document.getElementById('subZoneTitleContainer').innerHTML = `
+        <div class="sub-zone-title">전화구역 ${parseInt(zone.globalNum, 10)}번 - ${zone.newSubTitle}</div>
+        <div class="sub-zone-date">최근 완료일: ${lastDateStr}</div>
+      `;
 
       zone.addrs.forEach((originalString, idx) => {
         const safeKey = getSafeKey(originalString); 
@@ -591,7 +610,6 @@
       updateProgressUI();
     }
 
-    // ★ 구역 완료 시 통화, 부재만 즉시 초기화 (UI 강제 리렌더링 반영)
     function completeCurrentZone() {
       const zone = getCurrentZoneObject();
       if (!zone || !zone.addrs || zone.addrs.length === 0) return;
@@ -612,21 +630,17 @@
         const status = getAddressStatus(safeKey);
 
         if (status === '통화' || status === '부재') {
-          // 로컬 데이터 즉시 삭제 (UI 초기화용)
           delete doneMap[safeKey]; 
-          // DB 삭제 요청 (에러 캐치 포함)
           db.ref('phone_visits/' + safeKey).remove().catch(e => console.error(e));
         }
       });
 
-      // UI 즉시 새로고침
       renderCurrentList();
       updateProgressUI();
 
-      alert(`🎉 수고하셨습니다!\n구역완료\n\n${currentUser} 전도인님, 해당 구역의 '통화/부재' 기록이 초기화되었습니다.`);
+      alert(`수고하셨습니다\n구역완료`);
     }
 
-    // ★ 메모 DB 저장 시 권한 거부(PERMISSION_DENIED) 에러를 화면에 띄우도록 캐치 추가
     function openMemoModal(idx) {
       const zone = getCurrentZoneObject();
       const originalString = zone.addrs[idx];
@@ -761,7 +775,6 @@
       });
     }
 
-    // ★ 편집 DB 저장 시 권한 거부(PERMISSION_DENIED) 에러를 화면에 띄우도록 캐치 유지
     function savePhoneEdit(zoneNum, idx) {
       const val = document.getElementById(`edit-input-${zoneNum}-${idx}`).value.trim();
       if(!val) return;
