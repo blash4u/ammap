@@ -341,20 +341,18 @@
       return str.charAt(0);
     }
 
-    // ★ 강력한 3단계 검색 엔진 함수 (정확 -> 지번제거 -> 읍/면 단위 도로명 제한)
+    // 강력한 3단계 검색 엔진 함수
     function searchAddressWithFallback(fullAddr, callback) {
       geocoder.addressSearch(fullAddr, function(res1, stat1) {
         if (stat1 === kakao.maps.services.Status.OK) {
           callback(res1[0]);
         } else {
-          // 1차 폴백: 번지수 뒷자리 제거 (예: -12 제거)
           let fallback1 = fullAddr.replace(/-\d+$/, '');
           
           const doMyeonFallback = () => {
-            // 2차 폴백: 태안군의 중심점으로 튕기지 않도록, 반드시 '읍/면' 단위까지만 검색하도록 제한
             let parts = fullAddr.split(' ');
             if (parts.length >= 3) {
-              let myeonAddr = parts.slice(0, 3).join(' '); // "충청남도 태안군 고남면"
+              let myeonAddr = parts.slice(0, 3).join(' ');
               geocoder.addressSearch(myeonAddr, function(res3, stat3) {
                 if (stat3 === kakao.maps.services.Status.OK) callback(res3[0]);
                 else callback(null);
@@ -380,7 +378,6 @@
     // 3. 구역 데이터 명칭 포맷 변환 및 통계 매핑
     // ==========================================
     function formatZoneData() {
-      // ★ 오천면 추가 및 Prefix 반영
       const regions = ["안면읍", "남면", "고남면", "오천면"];
       const prefixMap = { "안면읍": "안면", "남면": "남면", "고남면": "고남", "오천면": "원산" };
       let counter = 1;
@@ -409,11 +406,15 @@
             window.zoneToRegionMap[paddedCounter] = region;
 
             if (zoneData.addrs) {
+              // ★ 주소에 포함된 숨은 줄바꿈(\r, \n) 및 탭 완벽 제거 (클릭 오류 원인 차단)
+              zoneData.addrs = zoneData.addrs.map(addr => addr.replace(/[\r\n\t]+/g, '').trim());
+              
               zoneData.addrs.forEach(addr => {
-                // ★ 보령시 오천면 예외 처리 적용
                 const baseCity = (region === "오천면") ? "보령시" : "태안군";
                 const fullAddr = addr.startsWith("충청남도") ? addr : `충청남도 ${baseCity} ${region} ${addr}`;
-                const safeKey = fullAddr.replace(/[.#$[\]]/g, '_');
+                
+                // ★ 슬래시(/) 등 파이어베이스에서 에러를 유발하는 기호를 모두 변환
+                const safeKey = fullAddr.replace(/[.#$[\]\/]/g, '_');
                 window.addressToZoneMap[safeKey] = paddedCounter;
               });
             }
@@ -727,7 +728,7 @@
     // ==========================================
     function openMemoModal(shortAddr, idx) {
       const fullAddr = getFullAddr(shortAddr);
-      currentMemoKey = fullAddr.replace(/[.#$[\]]/g, '_');
+      currentMemoKey = fullAddr.replace(/[.#$[\]\/]/g, '_');
       document.getElementById('memo-target-addr').innerText = shortAddr;
       document.getElementById('memo-input').value = globalMemos[currentMemoKey] || "";
       document.getElementById('memo-modal').style.display = 'flex';
@@ -808,7 +809,7 @@
       return ZONE_DATABASE[curTown]?.[curVillage]?.[curZoneKey] || null;
     }
     
-    // ★ 보령시 오천면 검색을 위한 주소 포맷팅 함수 업데이트
+    // 주소 포맷팅 (보령시 오천면 지원)
     function getFullAddr(shortAddr) { 
       if (shortAddr.startsWith("충청남도")) return shortAddr;
       const baseCity = (curTown === "오천면") ? "보령시" : "태안군";
@@ -821,7 +822,9 @@
       const zone = getCurrentZoneObject();
       if (!zone || !zone.addrs || zone.addrs.length === 0) { document.getElementById('progRatio').innerText = '0 / 0 (0%)'; return; }
       let doneCnt = 0;
-      zone.addrs.forEach(addr => { if (isAddressDone(getFullAddr(addr).replace(/[.#$[\]]/g, '_'))) doneCnt++; });
+      zone.addrs.forEach(addr => { 
+        if (isAddressDone(getFullAddr(addr).replace(/[.#$[\]\/]/g, '_'))) doneCnt++; 
+      });
       document.getElementById('progRatio').innerText = `${doneCnt} / ${zone.addrs.length} (${Math.round((doneCnt / zone.addrs.length) * 100)}%)`;
     }
 
@@ -831,7 +834,7 @@
       document.getElementById('subZoneTitle').innerText = zone.newSubTitle;
 
       zone.addrs.forEach((shortAddr, idx) => {
-        const fullAddr = getFullAddr(shortAddr); const safeKey = fullAddr.replace(/[.#$[\]]/g, '_');
+        const fullAddr = getFullAddr(shortAddr); const safeKey = fullAddr.replace(/[.#$[\]\/]/g, '_');
         const isDone = isAddressDone(safeKey); const isFocused = (focusedAddr === shortAddr); const memoText = globalMemos[safeKey] || "";
         const card = document.createElement('div'); card.id = `card-addr-${idx}`; card.className = 'house-card' + (isDone ? ' completed' : '') + (isFocused ? ' focused' : '');
         card.innerHTML = `
@@ -864,7 +867,7 @@
     function refreshSoftUI() {
       const zone = getCurrentZoneObject(); if (!zone || !zone.addrs) return;
       zone.addrs.forEach((shortAddr, idx) => {
-        const safeKey = getFullAddr(shortAddr).replace(/[.#$[\]]/g, '_'); const isDone = isAddressDone(safeKey); const memoText = globalMemos[safeKey] || "";
+        const safeKey = getFullAddr(shortAddr).replace(/[.#$[\]\/]/g, '_'); const isDone = isAddressDone(safeKey); const memoText = globalMemos[safeKey] || "";
         const card = document.getElementById(`card-addr-${idx}`); const btn = document.getElementById(`btn-check-${idx}`); const memoDiv = document.getElementById(`memo-display-${idx}`);
         if (card && btn) {
           if (isDone) { card.classList.add('completed'); btn.classList.add('completed'); btn.innerText = '완료'; } else { card.classList.remove('completed'); btn.classList.remove('completed'); btn.innerText = '미방문'; }
@@ -875,24 +878,45 @@
       });
     }
 
+    // ★ 미방문 버그 100% 수정 및 Optimistic UI 업데이트 적용
     function toggleDone(shortAddr, idx) {
       const fullAddr = getFullAddr(shortAddr);
-      const safeKey = fullAddr.replace(/[.#$[\]]/g, '_'); 
+      const safeKey = fullAddr.replace(/[.#$[\]\/]/g, '_'); // Firebase 에러를 막는 핵심 치환
       const isCurrentlyDone = isAddressDone(safeKey);
       const newState = !isCurrentlyDone;
 
+      // ★ 즉각적인 UI 반응 (버튼 누르자마자 서버 응답 대기 없이 바로 화면 변경)
+      const card = document.getElementById(`card-addr-${idx}`); 
+      const btn = document.getElementById(`btn-check-${idx}`);
+      const tagEl = document.getElementById(`map-tag-${idx}`);
+      
       if (newState) {
+        if(card) card.classList.add('completed');
+        if(btn) { btn.classList.add('completed'); btn.innerText = '완료'; }
+        if(tagEl) tagEl.classList.add('done');
+        doneMap[safeKey] = { done: true, user: currentUser }; // 임시로 캐시에 저장
+        
+        // 서버에 진짜로 저장
         db.ref('visits/' + safeKey).set({ done: true, user: currentUser, timestamp: firebase.database.ServerValue.TIMESTAMP });
       } else {
+        if(card) card.classList.remove('completed');
+        if(btn) { btn.classList.remove('completed'); btn.innerText = '미방문'; }
+        if(tagEl) tagEl.classList.remove('done');
+        delete doneMap[safeKey]; // 임시로 캐시에서 삭제
+        
+        // 서버에 진짜로 삭제
         db.ref('visits/' + safeKey).remove();
       }
       
+      updateProgressUI(); // 상단 진행 퍼센트 즉시 업데이트
+
+      // 전체 완료 축하 메시지 로직
       const zone = getCurrentZoneObject();
       if (zone && zone.addrs && newState) {
         let allOthersDone = true;
         for (let i = 0; i < zone.addrs.length; i++) {
           if (zone.addrs[i] === shortAddr) continue; 
-          const otherSafeKey = getFullAddr(zone.addrs[i]).replace(/[.#$[\]]/g, '_');
+          const otherSafeKey = getFullAddr(zone.addrs[i]).replace(/[.#$[\]\/]/g, '_');
           if (!isAddressDone(otherSafeKey)) {
             allOthersDone = false;
             break;
@@ -915,7 +939,7 @@
     function resetCurrentZone() {
       const zone = getCurrentZoneObject(); if (!zone || !zone.addrs || zone.addrs.length === 0) return;
       if (!confirm(`이 구역의 방문 기록을 '미방문'으로 초기화하시겠습니까?\n(메모는 삭제되지 않으며, 방문 기록만 즉시 초기화됩니다)`)) return;
-      zone.addrs.forEach(shortAddr => { db.ref('visits/' + getFullAddr(shortAddr).replace(/[.#$[\]]/g, '_')).remove(); });
+      zone.addrs.forEach(shortAddr => { db.ref('visits/' + getFullAddr(shortAddr).replace(/[.#$[\]\/]/g, '_')).remove(); });
     }
 
     function getMarkerImage(isDone, isLarge = false) {
@@ -992,7 +1016,7 @@
     }
 
     function addMarkerWithLabel(shortAddr, fullAddr, pos, labelText, idx) {
-      const safeKey = fullAddr.replace(/[.#$[\]]/g, '_'); const isDone = isAddressDone(safeKey); const marker = new kakao.maps.Marker({ map: map, position: pos, image: getMarkerImage(isDone, false) });
+      const safeKey = fullAddr.replace(/[.#$[\]\/]/g, '_'); const isDone = isAddressDone(safeKey); const marker = new kakao.maps.Marker({ map: map, position: pos, image: getMarkerImage(isDone, false) });
       kakao.maps.event.addListener(marker, 'click', () => focusSingleAddress(shortAddr, idx));
       const labelOverlay = new kakao.maps.CustomOverlay({ position: pos, content: `<div id="map-tag-${idx}" class="map-addr-tag ${isDone ? 'done' : ''}">${labelText}</div>`, xAnchor: 0.5, yAnchor: 0.5, map: map });
       markersMap[shortAddr] = marker; overlaysMap[shortAddr] = labelOverlay;
@@ -1005,7 +1029,7 @@
       clearAllMapMarkers(); const fullAddr = getFullAddr(shortAddr);
       
       const showPin = (pos) => {
-        const safeKey = fullAddr.replace(/[.#$[\]]/g, '_'); const isDone = isAddressDone(safeKey);
+        const safeKey = fullAddr.replace(/[.#$[\]\/]/g, '_'); const isDone = isAddressDone(safeKey);
         singleMarker = new kakao.maps.Marker({ map: map, position: pos, image: getMarkerImage(isDone, true) });
         activeOverlay = new kakao.maps.CustomOverlay({ position: pos, content: `<div class="custom-speech-bubble ${isDone ? 'done' : ''}"><div class="bubble-status ${isDone ? 'visited' : 'unvisited'}">${isDone ? '✓ 방문완료' : '● 미방문'}</div><div class="bubble-title">${shortAddr}</div></div>`, yAnchor: 1.35, xAnchor: 0.5, map: map });
         map.setCenter(pos); map.setLevel(2);
