@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>전화구역</title>
 
-  <!-- ★ 전화구역 전용 데이터 로드 (기존 방문 구역 파일과 완벽히 분리) -->
+  <!-- 전화구역 전용 데이터 로드 -->
   <script type="text/javascript" src="data_phone.js"></script>
 
   <!-- Firebase v8 로드 -->
@@ -70,11 +70,14 @@
     
     .card-top { display: flex; justify-content: space-between; align-items: flex-start; }
     .biz-info { flex: 1; }
-    .biz-info .addr-id { font-size: 11px; color: #94a3b8; font-weight: bold; margin-bottom: 2px; }
-    .biz-info .biz-name { font-size: 15px; font-weight: 900; color: #0f172a; word-break: break-all; }
-    .btn-memo { background: #e2e8f0; color: #475569; border: none; padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; }
+    .biz-info .addr-id { font-size: 11px; color: #94a3b8; font-weight: bold; margin-bottom: 4px; }
+    
+    /* ★ 전화번호 및 상호명 스타일링 */
+    .phone-link { color: #166534; font-weight: 900; font-size: 16px; text-decoration: none; display: inline-block; padding-bottom: 2px; }
+    .biz-name-highlight { color: #0284c7; font-weight: 800; font-size: 14px; margin-left: 6px; }
+    .btn-memo { background: #e2e8f0; color: #475569; border: none; padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; flex-shrink: 0; }
 
-    /* 4가지 상태 버튼 그룹 */
+    /* 상태 버튼 그룹 */
     .status-group { display: flex; gap: 5px; width: 100%; }
     .btn-status { flex: 1; padding: 8px 0; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; font-weight: bold; background: #ffffff; color: #475569; cursor: pointer; transition: 0.1s; }
     
@@ -83,6 +86,16 @@
     .btn-status.active.absent { background: #eab308; color: white; border-color: #eab308; }
     .btn-status.active.wrong { background: #64748b; color: white; border-color: #64748b; }
     .btn-status.active.reject { background: #ef4444; color: white; border-color: #ef4444; }
+
+    /* ★ 결번 상태 시 취소선 */
+    .phone-card.status-wrong .phone-link, 
+    .phone-card.status-wrong .biz-name-highlight { text-decoration: line-through; color: #94a3b8; }
+    
+    /* ★ 거절 상태 시 취소선 및 붉은색 라벨 */
+    .phone-card.status-reject .phone-link, 
+    .phone-card.status-reject .biz-name-highlight { text-decoration: line-through; color: #ef4444; }
+    .reject-label { display: none; background-color: #ef4444; color: white; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
+    .phone-card.status-reject .reject-label { display: inline-block; }
 
     .memo-display { font-size: 12px; color: #ef4444; font-weight: bold; background: #fee2e2; padding: 6px 8px; border-radius: 4px; display: none; }
     .memo-display.has-memo { display: block; }
@@ -111,7 +124,6 @@
         <div class="custom-logo">JW</div>
         <div class="brand-text"><span>전</span><span>화</span><span>구</span><span>역</span></div>
       </div>
-      <!-- ★ 소제목 변경 적용 -->
       <div class="login-subtitle">- 안면 회중 -</div>
       
       <div class="input-group">
@@ -173,10 +185,12 @@
 
     let curTown = "", curVillage = "", curZoneKey = "";
     let currentUser = ""; 
-    let doneMap = {}; 
-    let globalMemos = {}; 
+    let doneMap = {}; // phone_visits 데이터
+    let globalMemos = {}; // phone_memos 데이터
     let currentMemoKey = "";
     let focusedAddr = null;
+
+    window.ZONE_DATABASE = window.ZONE_DATABASE || {};
 
     window.onload = function() {
       if (typeof PHONE_ZONE_DATABASE === 'undefined') {
@@ -206,7 +220,7 @@
       if (!nameVal) { alert("전도인 이름을 입력해주세요."); return; }
 
       currentUser = nameVal;
-      localStorage.setItem('ammap_username', currentUser); 
+      localStorage.setItem('ammap_username', currentUser); // 전자구역과 이름 공유 저장
       sessionStorage.setItem('phone_ammap_active_session', 'true');
       document.getElementById('mainHeaderTitle').innerHTML = `전도인: <span style="color:#ffffff;">${currentUser}</span>`;
 
@@ -289,7 +303,6 @@
 
     function getCurrentZoneObject() { return PHONE_ZONE_DATABASE[curTown]?.[curVillage]?.[curZoneKey] || null; }
     
-    // 전화번호는 주소 변환 규칙이 필요 없으므로 그대로 키로 사용 (단, 특수문자 치환)
     function getSafeKey(str) { return str.replace(/[.#$[\]\/]/g, '_'); }
 
     function getAddressStatus(safeKey) {
@@ -311,7 +324,6 @@
       const zone = getCurrentZoneObject(); const listEl = document.getElementById('listArea'); listEl.innerHTML = '';
       if (!zone || !zone.addrs || zone.addrs.length === 0) { document.getElementById('subZoneTitle').innerText = `데이터를 준비 중입니다.`; return; }
       
-      // 최상단 타이틀과 서브타이틀 렌더링
       document.getElementById('subZoneTitle').innerText = zone.newSubTitle;
 
       zone.addrs.forEach((itemString, idx) => {
@@ -320,15 +332,36 @@
         const memoText = globalMemos[safeKey] || "";
         const isFocused = (focusedAddr === itemString);
 
+        // ★ 전화번호와 상호명 분리 (첫 번째 띄어쓰기 기준)
+        let phoneNum = itemString;
+        let bizName = "";
+        const firstSpaceIdx = itemString.indexOf(' ');
+        if (firstSpaceIdx > -1) {
+          phoneNum = itemString.substring(0, firstSpaceIdx);
+          bizName = itemString.substring(firstSpaceIdx + 1);
+        }
+
+        // 모바일 발신을 위한 tel: 링크 생성 (숫자와 하이픈만 추출)
+        const telLink = `tel:${phoneNum.replace(/[^0-9\-]/g, '')}`;
+
+        // 상태별 추가 클래스 설정 (결번, 거절)
+        let statusClass = '';
+        if (status === '결번') statusClass = 'status-wrong';
+        if (status === '거절') statusClass = 'status-reject';
+
         const card = document.createElement('div'); 
         card.id = `card-phone-${idx}`;
-        card.className = 'phone-card' + (status ? ' has-status' : '') + (isFocused ? ' focused' : '');
+        card.className = 'phone-card' + (status ? ' has-status' : '') + (isFocused ? ' focused' : '') + (statusClass ? ' ' + statusClass : '');
         
         card.innerHTML = `
           <div class="card-top">
             <div class="biz-info" onclick="focusSinglePhone('${itemString}', ${idx})">
               <div class="addr-id">#${idx + 1}</div>
-              <div class="biz-name">${itemString}</div>
+              <div class="biz-name">
+                <a href="${telLink}" class="phone-link">${phoneNum}</a>
+                ${bizName ? `<span class="biz-name-highlight">${bizName}</span>` : ''}
+                <span class="reject-label">전화거절</span>
+              </div>
             </div>
             <button class="btn-memo" onclick="openMemoModal('${itemString}')">📝 메모</button>
           </div>
@@ -369,13 +402,18 @@
       [btnCall, btnAbsent, btnWrong, btnReject].forEach(btn => { if(btn) btn.classList.remove('active'); });
 
       if (currentStatus === newStatus) {
-        // 취소
-        if(card) card.classList.remove('has-status');
+        // 이미 선택된 상태 취소
+        if(card) card.classList.remove('has-status', 'status-wrong', 'status-reject');
         delete doneMap[safeKey];
         db.ref('phone_visits/' + safeKey).remove();
       } else {
-        // 적용
-        if(card) card.classList.add('has-status');
+        // 새로운 상태 적용
+        if(card) {
+          card.classList.remove('status-wrong', 'status-reject');
+          card.classList.add('has-status');
+          if (newStatus === '결번') card.classList.add('status-wrong');
+          if (newStatus === '거절') card.classList.add('status-reject');
+        }
         if(newStatus === '통화' && btnCall) btnCall.classList.add('active');
         if(newStatus === '부재' && btnAbsent) btnAbsent.classList.add('active');
         if(newStatus === '결번' && btnWrong) btnWrong.classList.add('active');
