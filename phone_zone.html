@@ -34,8 +34,45 @@
 
     /* 시작 화면 (로그인) */
     #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #2ea354, #166534); display: flex; justify-content: center; align-items: center; z-index: 9000; }
-    .btn-admin-gear { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; color: rgba(255,255,255,0.6); transition: 0.2s; }
-    .btn-map-zone { position: absolute; top: 15px; left: 15px; font-size: 22px; cursor: pointer; color: rgba(255,255,255,0.6); transition: 0.2s; text-decoration: none; }
+    
+    /* ★ 시인성 대폭 개선: 원형 화이트 백그라운드 & 또렷한 아이콘 */
+    .btn-map-zone { 
+      position: absolute; 
+      top: 16px; 
+      left: 16px; 
+      width: 44px; 
+      height: 44px; 
+      background: #ffffff; 
+      border-radius: 50%; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      color: #166534; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25); 
+      transition: transform 0.2s, background 0.2s; 
+      text-decoration: none; 
+      cursor: pointer;
+    }
+    .btn-map-zone:active { transform: scale(0.92); background: #f0fdf4; }
+
+    .btn-admin-gear { 
+      position: absolute; 
+      top: 16px; 
+      right: 16px; 
+      width: 44px; 
+      height: 44px; 
+      background: #ffffff; 
+      border-radius: 50%; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      color: #166534; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25); 
+      transition: transform 0.2s, background 0.2s; 
+      cursor: pointer; 
+    }
+    .btn-admin-gear:active { transform: rotate(90deg) scale(0.92); background: #f0fdf4; }
+
     .login-card { background: rgba(255, 255, 255, 0.95); padding: 40px 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 85%; max-width: 340px; text-align: center; }
     .brand-wrapper { width: 80px; margin: 0 auto 5px auto; display: flex; flex-direction: column; align-items: center; }
     .custom-logo { width: 100%; height: 80px; background-color: #2ea354; color: white; display: flex; justify-content: center; align-items: center; font-size: 38px; font-weight: 900; margin: 0; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
@@ -75,10 +112,26 @@
 
     /* 메인 앱 레이아웃 */
     #main-app { display: none; flex-direction: column; height: 100%; width: 100%; }
-    .header { background-color: #166534; padding: 10px 10px; flex-shrink: 0; }
+    .header { background-color: #166534; padding: 12px 14px; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     .header-top { display: flex; justify-content: space-between; align-items: center; }
-    .title-group { display: flex; align-items: center; gap: 8px; }
-    .btn-home { color: #ffffff; cursor: pointer; }
+    .title-group { display: flex; align-items: center; gap: 10px; }
+    
+    /* ★ 메인 화면 상단 홈 버튼 시인성 강화 */
+    .btn-home { 
+      width: 36px;
+      height: 36px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff; 
+      cursor: pointer; 
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-home:active { transform: scale(0.92); background: rgba(255, 255, 255, 0.3); }
+
     .title { color: #86efac; font-size: 15px; font-weight: bold; }
 
     /* 진행바 및 구역 완료 버튼 영역 */
@@ -86,7 +139,6 @@
     .info-bar-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
     .prog-text { font-size: 14px; color: #166534; font-weight: 800; }
     
-    /* ★ 구역 완료 버튼 디자인 (비활성화 상태 추가) */
     .btn-zone-complete { background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: 0.2s; }
     .btn-zone-complete:active:not(:disabled) { transform: scale(0.95); }
     .btn-zone-complete:disabled { background: #94a3b8; cursor: not-allowed; box-shadow: none; opacity: 0.6; }
@@ -126,7 +178,6 @@
     .reject-label { display: none; background-color: #ef4444; color: white; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
     .phone-card.status-reject .reject-label { display: inline-block; }
 
-    /* 메모 상시 노출 스타일 */
     .memo-display { font-size: 13px; color: #b91c1c; font-weight: bold; background: #fef2f2; padding: 8px 12px; border-radius: 6px; display: none; border-left: 4px solid #ef4444; margin-top: 2px; }
     .memo-display.has-memo { display: block; }
 
@@ -150,7 +201,6 @@
       <textarea id="memo-input" placeholder="전화 통화 특이사항을 입력하세요"></textarea>
       <div class="modal-actions">
         <button class="modal-btn btn-cancel" onclick="closeMemoModal()">취소</button>
-        <!-- ★ 아이디 부여로 제어 가능하게 설정 -->
         <button id="btn-memo-save" class="modal-btn btn-save" onclick="saveMemo()">저장</button>
       </div>
     </div>
@@ -158,8 +208,23 @@
 
   <!-- 시작 화면 -->
   <div id="login-screen">
-    <a href="index.html" class="btn-map-zone" title="지도구역으로 이동">🗺️</a>
-    <div class="btn-admin-gear" onclick="openAdmin()" title="관리자 페이지">⚙️</div>
+    
+    <!-- ★ 시인성이 극대화된 지도구역 이동 아이콘 버튼 (선명한 녹색 벡터 SVG) -->
+    <a href="index.html" class="btn-map-zone" title="지도구역으로 이동">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+        <line x1="8" y1="2" x2="8" y2="18"></line>
+        <line x1="16" y1="6" x2="16" y2="22"></line>
+      </svg>
+    </a>
+    
+    <!-- ★ 관리자 설정 버튼 (선명한 기어 SVG) -->
+    <div class="btn-admin-gear" onclick="openAdmin()" title="관리자 페이지">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      </svg>
+    </div>
     
     <div class="login-card">
       <div class="brand-wrapper">
@@ -248,8 +313,9 @@
     <div class="header">
       <div class="header-top">
         <div class="title-group">
-          <div class="btn-home" onclick="goHome()">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+          <!-- ★ 메인 화면 홈 버튼 (배경 박스 + 선명한 홈 SVG) -->
+          <div class="btn-home" onclick="goHome()" title="처음으로 이동">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.3">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
               <polyline points="9 22 9 12 15 12 15 22"></polyline>
             </svg>
@@ -262,7 +328,6 @@
     <div class="info-bar">
       <div class="info-bar-top">
         <span class="prog-text" id="progRatio">진행률: 0 / 0 (0%)</span>
-        <!-- ★ 구역 완료 버튼에 ID(btnZoneComplete) 추가 및 초기 비활성화 속성 부여 -->
         <button id="btnZoneComplete" class="btn-zone-complete" onclick="completeCurrentZone()" disabled>구역 완료 🏆</button>
       </div>
       <div id="subZoneTitleContainer" class="sub-zone-title-container">
@@ -481,7 +546,6 @@
       return doneMap[safeKey].status || null; 
     }
 
-    // ★ 구역 완료 버튼 활성화 로직 추가
     function updateProgressUI() {
       const zone = getCurrentZoneObject();
       const btnComplete = document.getElementById('btnZoneComplete');
@@ -497,7 +561,6 @@
       });
       document.getElementById('progRatio').innerText = `진행률: ${doneCnt} / ${zone.addrs.length} (${Math.round((doneCnt / zone.addrs.length) * 100)}%)`;
 
-      // ★ 모든 전화번호가 클릭되었을 때만 '구역 완료' 버튼 활성화
       if (doneCnt === zone.addrs.length && zone.addrs.length > 0) {
         btnComplete.disabled = false;
       } else {
@@ -652,7 +715,6 @@
       alert(`수고하셨습니다\n구역완료`);
     }
 
-    // ★ 메모 접근 권한 제한 로직 (기록만 가능, 수정 불가)
     function openMemoModal(idx) {
       const zone = getCurrentZoneObject();
       const originalString = zone.addrs[idx];
@@ -669,15 +731,14 @@
       document.getElementById('memo-target-addr').innerText = displayString;
       memoInput.value = existingMemo;
 
-      // 이미 메모가 존재하면 일반 전도인은 덮어쓰기 금지 (읽기 전용 모드)
       if (existingMemo) {
         memoInput.readOnly = true;
         memoInput.placeholder = "등록된 메모입니다. (수정은 관리자에게 문의하세요)";
-        saveBtn.style.display = 'none'; // 저장 버튼 숨김
+        saveBtn.style.display = 'none';
       } else {
         memoInput.readOnly = false;
         memoInput.placeholder = "전화 통화 특이사항을 입력하세요";
-        saveBtn.style.display = 'inline-block'; // 저장 버튼 표시
+        saveBtn.style.display = 'inline-block';
       }
 
       document.getElementById('memo-modal').style.display = 'flex';
@@ -875,10 +936,7 @@
       });
       renderPagination('compPagination', totalPages, currentCompPage, (p) => { currentCompPage = p; renderAdminCompletions(); });
     }
-    
     function resetMemoPageAndRender() { currentMemoPage = 1; renderAdminMemos(); }
-    
-    // ★ 관리자 페이지 메모 수정/삭제 로직 업그레이드
     function renderAdminMemos() {
       const searchVal = document.getElementById('searchMemo').value.trim();
       let listArr = [];
@@ -890,7 +948,6 @@
       if (currentMemoPage > totalPages) currentMemoPage = totalPages;
       const startIdx = (currentMemoPage - 1) * ITEMS_PER_PAGE;
       const paginatedList = listArr.slice(startIdx, startIdx + ITEMS_PER_PAGE);
-      
       const ul = document.getElementById('adminMemoList');
       ul.innerHTML = '';
       paginatedList.forEach(data => {
