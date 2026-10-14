@@ -43,9 +43,25 @@
     .btn-admin-gear { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; color: rgba(255,255,255,0.6); transition: 0.2s; }
     .btn-admin-gear:active { transform: rotate(90deg) scale(0.9); color: #fff; }
     
-    /* ★ 전화구역 이동 아이콘 추가 */
-    .btn-phone-zone { position: absolute; top: 15px; left: 15px; font-size: 22px; cursor: pointer; color: rgba(255,255,255,0.6); transition: 0.2s; text-decoration: none; }
-    .btn-phone-zone:active { transform: scale(0.9); color: #fff; }
+    /* ★ 전화구역 이동 아이콘 (시인성 극대화: 화이트 원형 뱃지) */
+    .btn-phone-zone { 
+      position: absolute; 
+      top: 16px; 
+      left: 16px; 
+      width: 44px; 
+      height: 44px; 
+      background: #ffffff; 
+      border-radius: 50%; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      color: #166534; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25); 
+      transition: transform 0.2s, background 0.2s; 
+      text-decoration: none; 
+      cursor: pointer; 
+    }
+    .btn-phone-zone:active { transform: scale(0.92); background: #f0fdf4; }
 
     .login-card { background: rgba(255, 255, 255, 0.95); padding: 40px 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 85%; max-width: 340px; text-align: center; }
     
