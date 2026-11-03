@@ -32,52 +32,78 @@
     #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 12px 20px; border-radius: 30px; font-size: 14px; font-weight: bold; z-index: 11000; opacity: 0; transition: opacity 0.3s; pointer-events: none; text-align: center; }
     #toast.show { opacity: 1; }
 
-    /* 시작 화면 (로그인) */
-    #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #2ea354, #166534); display: flex; justify-content: center; align-items: center; z-index: 9000; }
+    /* 1. 시작 화면 (배경색 흰색으로 변경) */
+    #login-screen { 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%; 
+      background: #ffffff; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      z-index: 9000; 
+    }
     
-    /* 시인성 개선된 지도구역 이동 버튼 */
+    /* 흰색 배경에 맞춘 상단 버튼 시인성 */
     .btn-map-zone { 
       position: absolute; 
       top: 16px; 
       left: 16px; 
       width: 44px; 
       height: 44px; 
-      background: #ffffff; 
+      background: #f8fafc; 
+      border: 1px solid #e2e8f0;
       border-radius: 50%; 
       display: flex; 
       align-items: center; 
       justify-content: center; 
       color: #166534; 
-      box-shadow: 0 4px 12px rgba(0,0,0,0.25); 
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08); 
       transition: transform 0.2s, background 0.2s; 
       text-decoration: none; 
       cursor: pointer;
     }
     .btn-map-zone:active { transform: scale(0.92); background: #f0fdf4; }
 
-    /* ★ 기존 원형 복구된 관리자 톱니바퀴 */
     .btn-admin-gear { 
       position: absolute; 
       top: 15px; 
       right: 15px; 
       font-size: 24px; 
       cursor: pointer; 
-      color: rgba(255,255,255,0.7); 
+      color: #64748b; 
       transition: 0.2s; 
-      background: none;
-      border: none;
+      background: none; 
+      border: none; 
     }
-    .btn-admin-gear:active { transform: rotate(90deg) scale(0.9); color: #fff; }
+    .btn-admin-gear:active { transform: rotate(90deg) scale(0.9); color: #0f172a; }
 
-    .login-card { background: rgba(255, 255, 255, 0.95); padding: 40px 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 85%; max-width: 340px; text-align: center; }
+    .login-card { 
+      background: #ffffff; 
+      padding: 35px 28px; 
+      border-radius: 20px; 
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
+      border: 1px solid #e2e8f0;
+      width: 85%; 
+      max-width: 340px; 
+      text-align: center; 
+    }
     .brand-wrapper { width: 80px; margin: 0 auto 5px auto; display: flex; flex-direction: column; align-items: center; }
     .custom-logo { width: 100%; height: 80px; background-color: #2ea354; color: white; display: flex; justify-content: center; align-items: center; font-size: 38px; font-weight: 900; margin: 0; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     .brand-text { width: 100%; display: flex; justify-content: space-between; color: #2ea354; font-size: 16px; font-weight: 900; margin-top: 6px; }
-    .login-subtitle { font-size: 14px; font-weight: bold; color: #64748b; margin-bottom: 25px; margin-top: 5px; }
-    .input-group { margin-bottom: 20px; text-align: left; }
+    .login-subtitle { font-size: 14px; font-weight: bold; color: #64748b; margin-bottom: 22px; margin-top: 5px; }
+    .input-group { margin-bottom: 18px; text-align: left; }
     .input-group label { display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px; }
-    .input-group input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 15px; font-weight: bold; outline: none; }
-    .btn-start { width: 100%; background: #2ea354; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 20px; }
+    .input-group input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 15px; font-weight: bold; outline: none; background: #f8fafc; }
+    .input-group input:focus { border-color: #2ea354; background: #ffffff; }
+    .btn-start { width: 100%; background: #2ea354; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 16px; box-shadow: 0 4px 10px rgba(46, 163, 84, 0.25); }
+    .btn-start:active { transform: scale(0.98); background: #238644; }
+
+    /* 2. 시작 화면 최근 방문 뱃지 */
+    .recent-visit { font-size: 12px; color: #64748b; font-weight: 600; background: #f1f5f9; padding: 8px; border-radius: 8px; border: 1px solid #e2e8f0; }
+    .recent-visit strong { color: #2ea354; font-size: 13px; }
 
     /* 관리자 화면 스타일 */
     #admin-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f8fafc; z-index: 9500; display: none; flex-direction: column; }
@@ -89,7 +115,6 @@
     
     .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
     .stat-card { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 14px; text-align: center; }
-    .stat-card.full-width { grid-column: span 2; }
     .stat-title { font-size: 12px; color: #166534; font-weight: bold; margin-bottom: 6px; }
     .stat-value { font-size: 20px; font-weight: 900; color: #2ea354; }
     .stat-subtext { font-size: 11px; color: #15803d; margin-top: 4px; line-height: 1.4; }
@@ -105,29 +130,46 @@
     .add-pub-wrap { display: flex; gap: 8px; margin-bottom: 10px; }
     .add-pub-wrap input { flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; }
     .add-pub-wrap button { background: #2ea354; color: white; border: none; padding: 8px 12px; border-radius: 4px; font-size: 13px; font-weight: bold; }
+    .comp-history-item { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; background: #f8fafc; border-radius: 4px; padding: 6px 8px; width: 100%; }
 
     /* 메인 앱 레이아웃 */
     #main-app { display: none; flex-direction: column; height: 100%; width: 100%; }
-    .header { background-color: #166534; padding: 12px 14px; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .header { background-color: #166534; padding: 10px 14px; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     .header-top { display: flex; justify-content: space-between; align-items: center; }
     .title-group { display: flex; align-items: center; gap: 10px; }
     
     .btn-home { 
-      width: 36px;
-      height: 36px;
-      background: rgba(255, 255, 255, 0.15);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      width: 34px; 
+      height: 34px; 
+      background: rgba(255, 255, 255, 0.15); 
+      border: 1px solid rgba(255, 255, 255, 0.3); 
+      border-radius: 8px; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
       color: #ffffff; 
       cursor: pointer; 
-      transition: background 0.2s, transform 0.1s;
+      transition: background 0.2s, transform 0.1s; 
     }
     .btn-home:active { transform: scale(0.92); background: rgba(255, 255, 255, 0.3); }
 
-    .title { color: #86efac; font-size: 15px; font-weight: bold; }
+    .title { color: #86efac; font-size: 14px; font-weight: bold; }
+
+    /* 3. 헤더 우측 끝 최근 완료 뱃지 스타일 */
+    .recent-complete-badge { 
+      background: #14532d; 
+      color: #bbf7d0; 
+      border: 1px solid rgba(187, 247, 208, 0.3); 
+      padding: 4px 10px; 
+      border-radius: 14px; 
+      font-size: 11px; 
+      font-weight: 800; 
+      display: inline-flex; 
+      align-items: center; 
+      gap: 4px; 
+      white-space: nowrap; 
+    }
+    .recent-complete-badge strong { color: #ffffff; }
 
     /* 진행바 및 구역 완료 버튼 영역 */
     .info-bar { background-color: #ffffff; padding: 10px 12px; border-bottom: 1px solid #cbd5e1; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
@@ -204,7 +246,7 @@
   <!-- 시작 화면 -->
   <div id="login-screen">
     
-    <!-- 좌측 상단 지도 이동 아이콘 (선명한 화이트 원형 뱃지) -->
+    <!-- 좌측 상단 지도 이동 아이콘 -->
     <a href="index.html" class="btn-map-zone" title="지도구역으로 이동">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
@@ -213,7 +255,7 @@
       </svg>
     </a>
     
-    <!-- ★ 우측 상단 관리자 아이콘 (요청대로 기존 ⚙️ 이모지 형태로 복구 완료) -->
+    <!-- 우측 상단 관리자 아이콘 -->
     <div class="btn-admin-gear" onclick="openAdmin()" title="관리자 페이지">⚙️</div>
     
     <div class="login-card">
@@ -233,6 +275,9 @@
       </div>
       
       <button class="btn-start" onclick="startApp()">시 작</button>
+
+      <!-- 2. 최근 방문 표기 영역 -->
+      <div class="recent-visit" id="recentVisitDisplay">최근 방문 기록이 없습니다.</div>
     </div>
   </div>
 
@@ -307,8 +352,10 @@
               <polyline points="9 22 9 12 15 12 15 22"></polyline>
             </svg>
           </div>
-          <div class="title" id="mainHeaderTitle">안면도 전화구역</div>
+          <div class="title" id="mainHeaderTitle">전도인: -</div>
         </div>
+        <!-- 3. 전도인 우측 끝: 최근 완료 카드 번호 표기 뱃지 -->
+        <div class="recent-complete-badge" id="recentCompleteBadge">최근 완료: 없음</div>
       </div>
     </div>
 
@@ -339,7 +386,7 @@
     let currentUser = ""; 
     let doneMap = {}; 
     let globalMemos = {}; 
-    let globalCompletions = {};
+    let globalCompletions = {}; 
     let globalPublishers = {};
     let globalPhoneEdits = {}; 
     let currentMemoKey = "";
@@ -384,6 +431,11 @@
       
       document.getElementById('inputName').value = savedName;
 
+      // 최근 방문 번호 시작 화면에 표기
+      if (savedZone) {
+        document.getElementById('recentVisitDisplay').innerHTML = `최근 방문<br><strong>${savedZone} 번</strong>`;
+      }
+
       initFirebaseGlobalSync();
       initLongPressCopy(); 
 
@@ -401,6 +453,7 @@
         renderAdminCompletions(); 
         if(document.getElementById('admin-screen').style.display === 'flex') searchZoneStats(true); 
         renderCurrentList(); 
+        updateRecentCompleteDisplay();
       });
       db.ref('phone_visits').on('value', snap => { doneMap = snap.val() || {}; updateProgressUI(); renderCurrentList(); });
       db.ref('phone_edits').on('value', snap => { 
@@ -467,6 +520,7 @@
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('main-app').style.display = 'flex';
 
+      updateRecentCompleteDisplay();
       processZoneSelection(zoneNumVal);
     }
 
@@ -475,6 +529,41 @@
       document.getElementById('main-app').style.display = 'none';
       document.getElementById('login-screen').style.display = 'flex';
       document.getElementById('inputZoneNum').value = '';
+      
+      const savedZone = localStorage.getItem('phone_ammap_recentzone') || "";
+      if (savedZone) {
+        document.getElementById('recentVisitDisplay').innerHTML = `최근 방문<br><strong>${savedZone} 번</strong>`;
+      }
+    }
+
+    // 3. 현재 전도인이 최근 완료한 카드 번호 헤더 우측에 갱신
+    function updateRecentCompleteDisplay() {
+      const badge = document.getElementById('recentCompleteBadge');
+      if (!badge) return;
+
+      if (!currentUser) {
+        badge.innerHTML = `최근 완료: <strong>없음</strong>`;
+        return;
+      }
+
+      let latestTimestamp = 0;
+      let latestZoneNum = null;
+
+      Object.keys(globalCompletions).forEach(zoneNum => {
+        const history = globalCompletions[zoneNum].history || [];
+        history.forEach(rec => {
+          if (rec.user === currentUser && rec.timestamp > latestTimestamp) {
+            latestTimestamp = rec.timestamp;
+            latestZoneNum = zoneNum;
+          }
+        });
+      });
+
+      if (latestZoneNum) {
+        badge.innerHTML = `최근 완료: <strong>${parseInt(latestZoneNum, 10)}번</strong>`;
+      } else {
+        badge.innerHTML = `최근 완료: <strong>없음</strong>`;
+      }
     }
 
     function processZoneSelection(zoneNumVal) {
@@ -515,7 +604,9 @@
       if (listEl) listEl.scrollTop = 0;
       
       const zone = getCurrentZoneObject();
-      if (zone && zone.globalNum) localStorage.setItem('phone_ammap_recentzone', zone.globalNum);
+      if (zone && zone.globalNum) {
+        localStorage.setItem('phone_ammap_recentzone', zone.globalNum);
+      }
     }
 
     function getCurrentZoneObject() { return PHONE_ZONE_DATABASE[curTown]?.[curVillage]?.[curZoneKey] || null; }
