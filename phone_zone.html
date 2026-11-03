@@ -536,31 +536,32 @@
       }
     }
 
-    // 3. 현재 전도인이 최근 완료한 카드 번호 헤더 우측에 갱신
+    // 3. 전체 전도인 대상 최근 완료 구역 번호 및 완료일 갱신
     function updateRecentCompleteDisplay() {
       const badge = document.getElementById('recentCompleteBadge');
       if (!badge) return;
 
-      if (!currentUser) {
-        badge.innerHTML = `최근 완료: <strong>없음</strong>`;
-        return;
-      }
-
       let latestTimestamp = 0;
       let latestZoneNum = null;
 
+      // 전체 전도인의 모든 구역 완료 기록 순회
       Object.keys(globalCompletions).forEach(zoneNum => {
         const history = globalCompletions[zoneNum].history || [];
         history.forEach(rec => {
-          if (rec.user === currentUser && rec.timestamp > latestTimestamp) {
+          if (rec.timestamp && rec.timestamp > latestTimestamp) {
             latestTimestamp = rec.timestamp;
             latestZoneNum = zoneNum;
           }
         });
       });
 
-      if (latestZoneNum) {
-        badge.innerHTML = `최근 완료: <strong>${parseInt(latestZoneNum, 10)}번</strong>`;
+      if (latestZoneNum && latestTimestamp > 0) {
+        const dateStr = new Date(latestTimestamp).toLocaleDateString('ko-KR', {
+          year: 'numeric',
+          month: 'numeric',
+          day: 'numeric'
+        });
+        badge.innerHTML = `최근 완료: <strong>${parseInt(latestZoneNum, 10)}번</strong> (${dateStr})`;
       } else {
         badge.innerHTML = `최근 완료: <strong>없음</strong>`;
       }
