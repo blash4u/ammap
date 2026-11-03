@@ -83,10 +83,26 @@
     .input-group label { display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px; }
     .input-group input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 15px; font-weight: bold; outline: none; transition: border-color 0.2s; }
     .input-group input:focus { border-color: #5c82c2; }
-    .btn-start { width: 100%; background: #4a6da7; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(74, 109, 167, 0.3); transition: background 0.2s; margin-bottom: 20px; }
+    .btn-start { width: 100%; background: #4a6da7; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(74, 109, 167, 0.3); transition: background 0.2s; margin-bottom: 16px; }
     .btn-start:active { background: #3b5a8c; transform: scale(0.98); }
-    .recent-visit { font-size: 12px; color: #64748b; font-weight: 600; background: #e2e8f0; padding: 8px; border-radius: 6px; }
-    .recent-visit strong { color: #4a6da7; }
+
+    /* ★ 2줄 구조로 깔끔하게 정돈된 최근 방문 및 최종 완료 카드 */
+    .recent-visit { 
+      font-size: 13px; 
+      color: #475569; 
+      font-weight: 600; 
+      background: #f1f5f9; 
+      padding: 10px 12px; 
+      border-radius: 8px; 
+      border: 1px solid #e2e8f0; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 6px; 
+      text-align: center; 
+    }
+    .recent-visit-row { display: flex; justify-content: center; align-items: center; gap: 4px; }
+    .recent-visit-row strong { color: #2563eb; font-weight: 800; }
+    .recent-complete-row strong { color: #10b981; font-weight: 800; }
 
     /* 관리자 화면 스타일 */
     #admin-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f8fafc; z-index: 9500; display: none; flex-direction: column; }
@@ -232,7 +248,12 @@
       </div>
       
       <button class="btn-start" onclick="startApp()">시 작</button>
-      <div class="recent-visit" id="recentVisitDisplay">최근 방문 기록이 없습니다.</div>
+
+      <!-- ★ 1, 2 요구사항 반영: 최근 방문 한 줄 + 최종 완료 아랫줄 표기 영역 -->
+      <div class="recent-visit" id="recentVisitDisplay">
+        <div class="recent-visit-row">최근 방문 - <strong id="recentVisitNum">없음</strong></div>
+        <div class="recent-visit-row recent-complete-row">최종 완료 - <strong id="recentCompleteNum">없음</strong></div>
+      </div>
     </div>
   </div>
 
@@ -522,9 +543,9 @@
       const savedZone = localStorage.getItem('ammap_recentzone') || "";
       
       document.getElementById('inputName').value = savedName;
-      if (savedZone) {
-        document.getElementById('recentVisitDisplay').innerHTML = `최근 방문<br><strong>${savedZone} 번</strong>`;
-      }
+
+      // 시작 화면 최근 방문 및 최종 완료 초기 갱신
+      updateLoginScreenRecentInfo();
 
       if (sessionStorage.getItem('ammap_active_session') === 'true' && savedName) {
         document.getElementById('inputZoneNum').value = savedZone;
@@ -539,12 +560,47 @@
         globalCompletions = snap.val() || {}; 
         renderAdminCompletions(); 
         renderAdminStats(); 
+        updateLoginScreenRecentInfo(); // Firebase 동기화 시 최종 완료 번호 실시간 갱신
       });
       db.ref('visits').on('value', snap => { doneMap = snap.val() || {}; updateProgressUI(); refreshSoftUI(); });
       db.ref('custom_zones').on('value', snap => { 
         globalCustomZones = snap.val() || {}; 
         applyCustomZonesAndReformat(); 
       });
+    }
+
+    // ★ 1, 2 요구사항 처리: 시작 화면의 최근 방문 & 최종 완료 표기 업데이트 함수
+    function updateLoginScreenRecentInfo() {
+      const visitEl = document.getElementById('recentVisitNum');
+      const compEl = document.getElementById('recentCompleteNum');
+
+      // 1. 최근 방문 (로컬스토리지)
+      const savedZone = localStorage.getItem('ammap_recentzone') || "";
+      if (visitEl) {
+        visitEl.innerText = savedZone ? `${parseInt(savedZone, 10)}번` : '없음';
+      }
+
+      // 2. 최종 완료 (전체 전도인의 zone_completions 중 가장 최근 타임스탬프)
+      if (compEl) {
+        let latestTimestamp = 0;
+        let latestZoneNum = null;
+
+        Object.keys(globalCompletions).forEach(zoneNum => {
+          const history = globalCompletions[zoneNum].history || [];
+          history.forEach(rec => {
+            if (rec.timestamp && rec.timestamp > latestTimestamp) {
+              latestTimestamp = rec.timestamp;
+              latestZoneNum = zoneNum;
+            }
+          });
+        });
+
+        if (latestZoneNum && latestTimestamp > 0) {
+          compEl.innerText = `${parseInt(latestZoneNum, 10)}번`;
+        } else {
+          compEl.innerText = '없음';
+        }
+      }
     }
 
     function startApp() {
@@ -585,8 +641,7 @@
       document.getElementById('main-app').style.display = 'none';
       document.getElementById('login-screen').style.display = 'flex';
       document.getElementById('inputZoneNum').value = '';
-      const savedZone = localStorage.getItem('ammap_recentzone') || "";
-      if (savedZone) document.getElementById('recentVisitDisplay').innerHTML = `최근 방문<br><strong>${savedZone} 번</strong>`;
+      updateLoginScreenRecentInfo(); // 첫 화면으로 돌아올 때 최신 상태 갱신
     }
 
     // ==========================================
