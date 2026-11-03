@@ -32,60 +32,59 @@
     #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 12px 20px; border-radius: 30px; font-size: 14px; font-weight: bold; z-index: 11000; opacity: 0; transition: opacity 0.3s; pointer-events: none; text-align: center; }
     #toast.show { opacity: 1; }
 
-    /* 1. 시작 화면 (배경색 흰색으로 변경) */
+    /* ★ 1. 시작 화면 배경색 원래의 초록색 그라데이션으로 복원 */
     #login-screen { 
       position: fixed; 
       top: 0; 
       left: 0; 
       width: 100%; 
       height: 100%; 
-      background: #ffffff; 
+      background: linear-gradient(135deg, #2ea354, #166534); 
       display: flex; 
       justify-content: center; 
       align-items: center; 
       z-index: 9000; 
     }
     
-    /* 흰색 배경에 맞춘 상단 버튼 시인성 */
+    /* 초록 배경에 맞춘 시인성 높은 지도 이동 화이트 원형 뱃지 */
     .btn-map-zone { 
       position: absolute; 
       top: 16px; 
       left: 16px; 
       width: 44px; 
       height: 44px; 
-      background: #f8fafc; 
-      border: 1px solid #e2e8f0;
+      background: #ffffff; 
       border-radius: 50%; 
       display: flex; 
       align-items: center; 
       justify-content: center; 
       color: #166534; 
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08); 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25); 
       transition: transform 0.2s, background 0.2s; 
       text-decoration: none; 
       cursor: pointer;
     }
     .btn-map-zone:active { transform: scale(0.92); background: #f0fdf4; }
 
+    /* 초록 배경용 관리자 톱니바퀴 */
     .btn-admin-gear { 
       position: absolute; 
       top: 15px; 
       right: 15px; 
       font-size: 24px; 
       cursor: pointer; 
-      color: #64748b; 
+      color: rgba(255,255,255,0.7); 
       transition: 0.2s; 
       background: none; 
       border: none; 
     }
-    .btn-admin-gear:active { transform: rotate(90deg) scale(0.9); color: #0f172a; }
+    .btn-admin-gear:active { transform: rotate(90deg) scale(0.9); color: #ffffff; }
 
     .login-card { 
-      background: #ffffff; 
-      padding: 35px 28px; 
-      border-radius: 20px; 
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
-      border: 1px solid #e2e8f0;
+      background: rgba(255, 255, 255, 0.95); 
+      padding: 38px 28px; 
+      border-radius: 16px; 
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
       width: 85%; 
       max-width: 340px; 
       text-align: center; 
@@ -96,13 +95,13 @@
     .login-subtitle { font-size: 14px; font-weight: bold; color: #64748b; margin-bottom: 22px; margin-top: 5px; }
     .input-group { margin-bottom: 18px; text-align: left; }
     .input-group label { display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px; }
-    .input-group input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 15px; font-weight: bold; outline: none; background: #f8fafc; }
-    .input-group input:focus { border-color: #2ea354; background: #ffffff; }
-    .btn-start { width: 100%; background: #2ea354; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 16px; box-shadow: 0 4px 10px rgba(46, 163, 84, 0.25); }
+    .input-group input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 15px; font-weight: bold; outline: none; background: #ffffff; }
+    .input-group input:focus { border-color: #2ea354; }
+    .btn-start { width: 100%; background: #2ea354; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 16px; box-shadow: 0 4px 6px rgba(46, 163, 84, 0.3); }
     .btn-start:active { transform: scale(0.98); background: #238644; }
 
-    /* 2. 시작 화면 최근 방문 뱃지 */
-    .recent-visit { font-size: 12px; color: #64748b; font-weight: 600; background: #f1f5f9; padding: 8px; border-radius: 8px; border: 1px solid #e2e8f0; }
+    /* 최근 방문 뱃지 */
+    .recent-visit { font-size: 12px; color: #64748b; font-weight: 600; background: #e2e8f0; padding: 8px; border-radius: 6px; }
     .recent-visit strong { color: #2ea354; font-size: 13px; }
 
     /* 관리자 화면 스타일 */
@@ -155,7 +154,6 @@
 
     .title { color: #86efac; font-size: 14px; font-weight: bold; }
 
-    /* 3. 헤더 우측 끝 최근 완료 뱃지 스타일 */
     .recent-complete-badge { 
       background: #14532d; 
       color: #bbf7d0; 
@@ -228,10 +226,9 @@
 </head>
 <body>
 
-  <!-- 복사 알림 토스트 메세지 -->
   <div id="toast">복사되었습니다.</div>
 
-  <!-- 메모 입력 모달 -->
+  <!-- 메모 모달 -->
   <div id="memo-modal" class="modal-overlay">
     <div class="modal-card">
       <h3 id="memo-target-addr">메모 작성</h3>
@@ -245,8 +242,6 @@
 
   <!-- 시작 화면 -->
   <div id="login-screen">
-    
-    <!-- 좌측 상단 지도 이동 아이콘 -->
     <a href="index.html" class="btn-map-zone" title="지도구역으로 이동">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
@@ -255,7 +250,6 @@
       </svg>
     </a>
     
-    <!-- 우측 상단 관리자 아이콘 -->
     <div class="btn-admin-gear" onclick="openAdmin()" title="관리자 페이지">⚙️</div>
     
     <div class="login-card">
@@ -276,7 +270,7 @@
       
       <button class="btn-start" onclick="startApp()">시 작</button>
 
-      <!-- 2. 최근 방문 표기 영역 -->
+      <!-- 최근 방문 표기 -->
       <div class="recent-visit" id="recentVisitDisplay">최근 방문 기록이 없습니다.</div>
     </div>
   </div>
@@ -288,7 +282,6 @@
       <button class="admin-close" onclick="closeAdmin()">닫기 ✕</button>
     </div>
     <div class="admin-content">
-      
       <div class="admin-section">
         <h2>📊 전화구역 개별 통계</h2>
         <div class="search-wrap">
@@ -337,7 +330,6 @@
         <ul class="admin-list" id="adminMemoList"></ul>
         <div class="pagination" id="memoPagination"></div>
       </div>
-
     </div>
   </div>
 
@@ -354,7 +346,7 @@
           </div>
           <div class="title" id="mainHeaderTitle">전도인: -</div>
         </div>
-        <!-- 3. 전도인 우측 끝: 최근 완료 카드 번호 표기 뱃지 -->
+        <!-- 전체 전도인 대상 최근 완료 뱃지 -->
         <div class="recent-complete-badge" id="recentCompleteBadge">최근 완료: 없음</div>
       </div>
     </div>
@@ -431,7 +423,6 @@
       
       document.getElementById('inputName').value = savedName;
 
-      // 최근 방문 번호 시작 화면에 표기
       if (savedZone) {
         document.getElementById('recentVisitDisplay').innerHTML = `최근 방문<br><strong>${savedZone} 번</strong>`;
       }
@@ -536,7 +527,7 @@
       }
     }
 
-    // 3. 전체 전도인 대상 최근 완료 구역 번호 및 완료일 갱신
+    // 전체 전도인 대상 최근 완료 구역 번호 및 날짜 갱신
     function updateRecentCompleteDisplay() {
       const badge = document.getElementById('recentCompleteBadge');
       if (!badge) return;
@@ -544,7 +535,6 @@
       let latestTimestamp = 0;
       let latestZoneNum = null;
 
-      // 전체 전도인의 모든 구역 완료 기록 순회
       Object.keys(globalCompletions).forEach(zoneNum => {
         const history = globalCompletions[zoneNum].history || [];
         history.forEach(rec => {
