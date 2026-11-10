@@ -31,6 +31,9 @@
   <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=e41e9b55de02ad81ebeb00e3721d52e2&libraries=services&autoload=false"></script>
   <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
 
+  <!-- 드래그 앤 드롭(SortableJS) 로드 -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Malgun Gothic", -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background-color: #f1f5f9; overflow: hidden; height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
@@ -153,14 +156,44 @@
     .btn-home svg { width: 22px; height: 22px; stroke-width: 2px; }
     .title { color: #38bdf8; font-size: 15px; font-weight: bold; }
     
-    .btn-gps { background: #4a6da7; color: #fff; border: none; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; }
+    .header-right-btns { display: flex; align-items: center; gap: 6px; }
+    .btn-gps { background: #4a6da7; color: #fff; border: none; padding: 5px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; }
+    .btn-fs-toggle { background: #0284c7; color: #fff; border: none; padding: 5px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; }
+    .btn-inplace-admin { background: #475569; color: #fff; border: none; padding: 5px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; }
+    .btn-inplace-admin.active { background: #ef4444; }
+
     .dropdown-group { display: flex; gap: 5px; width: 100%; }
     .select-btn { height: 36px; padding: 4px; border-radius: 5px; font-size: 12px; font-weight: bold; border: 1px solid #475569; outline: none; }
     #selTown { flex: 2.5; background: #334155; color: white; }
     #selVillage { flex: 2.5; background: #334155; color: white; }
     #selZone { flex: 5; background: #5c82c2; color: white; border: none; }
 
-    #map-wrapper { position: relative; width: 100%; flex: 1 1 auto; min-height: 40vh; background-color: #cbd5e1; }
+    /* ★ 1. 지도 전체화면 모드 스타일 */
+    #map-wrapper { position: relative; width: 100%; flex: 1 1 auto; min-height: 40vh; background-color: #cbd5e1; transition: all 0.25s ease; }
+    #map-wrapper.fullscreen-mode {
+      position: fixed !important;
+      top: 0; left: 0;
+      width: 100vw !important;
+      height: 100vh !important;
+      z-index: 9999;
+    }
+    .btn-close-fs {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 10000;
+      background: rgba(15, 23, 42, 0.88);
+      color: #ffffff;
+      border: 1px solid #475569;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      display: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+    }
+    #map-wrapper.fullscreen-mode .btn-close-fs { display: block; }
     #map { width: 100%; height: 100%; }
     #map-status { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #e2e8f0; color: #475569; font-size: 13px; font-weight: bold; z-index: 10; padding: 15px; text-align: center; }
 
@@ -173,29 +206,91 @@
     .btn-reset-zone { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
     .sub-zone-title { text-align: center; font-size: 12px; color: #475569; font-weight: 700; background: #f1f5f9; padding: 4px; border-radius: 4px; }
 
+    /* ★ 2 & 3. 인플레이스 관리자 편집 모드 바 */
+    .inplace-admin-toolbar {
+      display: none;
+      background: #fef2f2;
+      border: 1px dashed #f87171;
+      padding: 6px 10px;
+      border-radius: 6px;
+      margin: 4px 0;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: #991b1b;
+      font-weight: bold;
+    }
+    .btn-add-inline-house {
+      background: #10b981;
+      color: #ffffff;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
     .list-area { flex: 1 1 auto; max-height: 300px; overflow-y: auto; padding: 6px 8px 40px 8px; background-color: #f8fafc; -webkit-overflow-scrolling: touch; }
-    .house-card { min-height: 50px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 10px; margin-bottom: 5px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s, background-color 0.2s; }
-    .house-card-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+    .house-card { min-height: 50px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 10px; margin-bottom: 5px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s, background-color 0.2s; user-select: none; }
+    .house-card-top { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 6px; }
     .house-card.completed { background: #d1fae5; border-color: #10b981; }
     .house-card.completed .address-text { text-decoration: line-through; color: #065f46; }
     .house-card.focused { border: 2px solid #4a6da7; background-color: #f0f9ff; }
-    .address-text { font-size: 13px; font-weight: bold; color: #3b5a8c; cursor: pointer; flex: 1; padding-right: 8px; user-select: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .address-text { font-size: 13px; font-weight: bold; color: #3b5a8c; cursor: pointer; flex: 1; padding-right: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* ★ 3. 드래그 앤 드롭 핸들 및 인라인 편집 버튼 */
+    .drag-handle {
+      display: none;
+      cursor: grab;
+      color: #64748b;
+      font-size: 16px;
+      font-weight: 900;
+      padding: 0 4px;
+    }
+    .drag-handle:active { cursor: grabbing; }
+    .inplace-edit-btn {
+      display: none;
+      background: #f59e0b;
+      color: #ffffff;
+      border: none;
+      padding: 4px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .inplace-del-btn {
+      display: none;
+      background: #ef4444;
+      color: #ffffff;
+      border: none;
+      padding: 4px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .admin-editing-active .drag-handle { display: inline-block; }
+    .admin-editing-active .inplace-edit-btn { display: inline-block; }
+    .admin-editing-active .inplace-del-btn { display: inline-block; }
+    .sortable-ghost { opacity: 0.35; background: #e2e8f0; border: 2px dashed #3b82f6; }
 
     .memo-display { font-size: 11px; color: #ef4444; margin-top: 4px; font-weight: bold; display: none; }
     .memo-display.has-memo { display: block; }
 
-    .btn-wrap { display: flex; gap: 5px; align-items: center; flex-shrink: 0; }
-    .btn-memo { background: #cbd5e1; color: #0f172a; border: none; padding: 5px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
-    .btn-navi { background: #fde047; color: #854d0e; text-decoration: none; border: none; padding: 5px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
-    .btn-check { background: #64748b; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; min-width: 54px; transition: background-color 0.2s; }
+    .btn-wrap { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
+    .btn-memo { background: #cbd5e1; color: #0f172a; border: none; padding: 5px 7px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
+    .btn-navi { background: #fde047; color: #854d0e; text-decoration: none; border: none; padding: 5px 7px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
+    .btn-check { background: #64748b; color: white; border: none; padding: 5px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; min-width: 50px; transition: background-color 0.2s; }
     .btn-check.completed { background: #10b981; }
 
-    /* ★ 요청 반영: 사각형 테두리만 남기고 우측 상단 모서리에 흰색 테두리 숫자 배지 적용 */
+    /* 사각형 테두리 + 우측 상단 흰색 테두리 숫자 배지 마커 */
     .box-house-marker {
       position: relative;
       width: 20px;
       height: 20px;
-      background: transparent !important; /* 배경 완전 투명 유지 */
+      background: transparent !important;
       border: 2px solid #2563eb;
       border-radius: 3px;
       cursor: pointer;
@@ -208,7 +303,6 @@
       z-index: 60;
     }
 
-    /* 우측 상단 꼭짓점에 안착하며 흰색 테두리를 두른 숫자 배지 */
     .badge-num {
       position: absolute;
       top: 0;
@@ -223,7 +317,7 @@
       height: 18px;
       padding: 0 3px;
       border-radius: 9999px;
-      border: 2px solid #ffffff; /* ★ 핵심 요청: 뚜렷한 흰색 테두리 */
+      border: 2px solid #ffffff;
       box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
       display: flex;
       align-items: center;
@@ -232,7 +326,6 @@
       pointer-events: none;
     }
 
-    /* 1번 시작 가구: 레드 테두리 + 흰색 테두리가 둘러진 레드 번호 배지 */
     .box-house-marker.start-house {
       border-color: #ef4444 !important;
       border-width: 2.5px !important;
@@ -249,7 +342,6 @@
       box-shadow: 0 0 6px rgba(239, 68, 68, 0.9);
     }
 
-    /* 방문 완료 가구: 그린 아웃라인 + 흰색 테두리가 둘러진 그린 번호 배지 */
     .box-house-marker.done {
       border-color: #10b981 !important;
     }
@@ -266,7 +358,6 @@
       border: 2px solid #ffffff !important;
     }
 
-    /* 상세 주소 클릭 시 나머지 가구 흐림(Dimmed) 처리 */
     .box-house-marker.dimmed {
       opacity: 0.18 !important;
       filter: grayscale(80%);
@@ -274,7 +365,6 @@
       pointer-events: none;
     }
 
-    /* 선택된 가구 강조 (Active Focused) */
     .box-house-marker.active-focused {
       opacity: 1 !important;
       filter: none !important;
@@ -289,7 +379,6 @@
       box-shadow: 0 0 14px rgba(239, 68, 68, 0.9) !important;
     }
 
-    /* 팝업 말풍선 (클릭 시 팝업 닫히고 전체 가구 복귀) */
     .custom-speech-bubble { 
       position: relative; 
       background: #ffffff; 
@@ -304,9 +393,7 @@
       z-index: 120;
       transition: transform 0.15s; 
     }
-    .custom-speech-bubble:active {
-      transform: scale(0.96);
-    }
+    .custom-speech-bubble:active { transform: scale(0.96); }
     .custom-speech-bubble.done { border-color: #10b981; }
     .bubble-status { font-size: 10px; font-weight: 800; margin-bottom: 2px; }
     .bubble-status.unvisited { color: #ef4444; }
@@ -350,7 +437,7 @@
       </svg>
     </a>
     
-    <div class="btn-admin-gear" onclick="openAdmin()" title="관리자 페이지">⚙️</div>
+    <div class="btn-admin-gear" onclick="openAdmin()" title="관리자 대시보드">⚙️</div>
     
     <div class="login-card">
       <div class="brand-wrapper">
@@ -377,18 +464,16 @@
     </div>
   </div>
 
-  <!-- 관리자 화면 -->
+  <!-- 관리자 대시보드 화면 -->
   <div id="admin-screen">
     <div class="admin-header">
-      <span>관리자 페이지</span>
+      <span>관리자 대시보드</span>
       <button class="admin-close" onclick="closeAdmin()">닫기 ✕</button>
     </div>
     <div class="admin-content">
       
-      <!-- 구역 카드 관리 (추가 / 수정 / 삭제) -->
       <div class="admin-section">
         <h2>🗺️ 구역 카드 관리 (추가 / 수정 / 삭제)</h2>
-        
         <div class="search-wrap">
           <input type="text" id="adminSearchZoneInput" placeholder="수정할 구역 검색 (번호 또는 도로명 예: 001 또는 국사봉길)" onkeyup="if(event.key==='Enter') searchZoneForAdmin()">
           <button onclick="searchZoneForAdmin()" style="background:#4a6da7; color:white; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer; margin-left:5px;">검색</button>
@@ -477,8 +562,16 @@
           </div>
           <div class="title" id="mainHeaderTitle">안면도 구역카드</div>
         </div>
-        <button class="btn-gps" onclick="locateUser()">내 위치 📍</button>
+
+        <div class="header-right-btns">
+          <!-- 1. 전체 화면 버튼 -->
+          <button class="btn-fs-toggle" onclick="toggleMapFullscreen()" title="지도만 넓게 보기">전체 화면 ⛶</button>
+          <!-- 2. 인플레이스 관리자 편집 모드 토글 버튼 -->
+          <button id="btnInplaceAdminToggle" class="btn-inplace-admin" onclick="toggleInPlaceAdminMode()">편집 모드</button>
+          <button class="btn-gps" onclick="locateUser()">내 위치 📍</button>
+        </div>
       </div>
+
       <div class="dropdown-group">
         <select id="selTown" class="select-btn" onchange="onTownChange()"></select>
         <select id="selVillage" class="select-btn" onchange="onVillageChange()"></select>
@@ -486,8 +579,10 @@
       </div>
     </div>
 
+    <!-- 1. 메인 지도 영역 (전체 화면 전환 지원) -->
     <div id="map-wrapper">
       <div id="map"></div>
+      <button class="btn-close-fs" onclick="toggleMapFullscreen()">전체 화면 닫기 ✕</button>
       <div id="map-status">지도 정보를 불러오는 중...</div>
     </div>
 
@@ -501,8 +596,15 @@
         </div>
       </div>
       <div id="subZoneTitle" class="sub-zone-title">구역을 선택해주세요</div>
+
+      <!-- 2. 인플레이스 편집 툴바 -->
+      <div id="inplaceAdminToolbar" class="inplace-admin-toolbar">
+        <span>✏️ 편집 모드: ⠿ 핸들을 잡고 드래그하여 순서를 변경하세요.</span>
+        <button class="btn-add-inline-house" onclick="addHouseInPlace()">+ 가구 추가</button>
+      </div>
     </div>
 
+    <!-- 3. 가구 주소 리스트 (Sortable 드래그 앤 드롭 영역) -->
     <div class="list-area" id="listArea"></div>
   </div>
 
@@ -548,6 +650,10 @@
     let globalCompletions = {}; 
     let globalCustomZones = {};
     let currentMemoKey = "";
+
+    // ★ 2 & 3번 요구사항 상태 변수
+    let isInPlaceAdminActive = false;
+    let sortableListInstance = null;
 
     window.addressToZoneMap = {};
     window.zoneToRegionMap = {}; 
@@ -767,7 +873,109 @@
     }
 
     // ==========================================
-    // 5. 관리자 페이지 로직
+    // ★ 기능 1. 메인 지도 전체 화면 토글
+    // ==========================================
+    function toggleMapFullscreen() {
+      const wrapper = document.getElementById('map-wrapper');
+      wrapper.classList.toggle('fullscreen-mode');
+
+      setTimeout(() => {
+        if (map) {
+          map.relayout();
+          if (currentBounds) {
+            map.setBounds(currentBounds, 55);
+          }
+        }
+      }, 250);
+    }
+
+    // ==========================================
+    // ★ 기능 2. 인플레이스 관리자 편집 모드 토글
+    // ==========================================
+    function toggleInPlaceAdminMode() {
+      if (!isInPlaceAdminActive) {
+        const pwd = prompt("관리자 비밀번호를 입력하세요 (비밀번호: 1234):");
+        if (pwd !== "1234") {
+          if (pwd !== null) alert("비밀번호가 일치하지 않습니다.");
+          return;
+        }
+      }
+
+      isInPlaceAdminActive = !isInPlaceAdminActive;
+      const btn = document.getElementById('btnInplaceAdminToggle');
+      const listArea = document.getElementById('listArea');
+      const toolbar = document.getElementById('inplaceAdminToolbar');
+
+      if (isInPlaceAdminActive) {
+        btn.innerText = "편집 종료 ✕";
+        btn.classList.add('active');
+        listArea.classList.add('admin-editing-active');
+        toolbar.style.display = 'flex';
+        if (sortableListInstance) sortableListInstance.option("disabled", false);
+      } else {
+        btn.innerText = "편집 모드";
+        btn.classList.remove('active');
+        listArea.classList.remove('admin-editing-active');
+        toolbar.style.display = 'none';
+        if (sortableListInstance) sortableListInstance.option("disabled", true);
+      }
+    }
+
+    // 인라인 주소 수정
+    function editHouseInPlace(idx) {
+      const zone = getCurrentZoneObject();
+      if (!zone || !zone.addrs) return;
+      const oldAddr = zone.addrs[idx];
+      const newAddr = prompt("가구 주소를 수정하세요:", oldAddr);
+      if (newAddr && newAddr.trim() !== "" && newAddr.trim() !== oldAddr) {
+        zone.addrs[idx] = newAddr.trim();
+        saveCurrentZoneToFirebase(zone);
+      }
+    }
+
+    // 인라인 가구 삭제
+    function deleteHouseInPlace(idx) {
+      const zone = getCurrentZoneObject();
+      if (!zone || !zone.addrs) return;
+      if (confirm(`'${zone.addrs[idx]}' 가구를 삭제하시겠습니까?`)) {
+        zone.addrs.splice(idx, 1);
+        saveCurrentZoneToFirebase(zone);
+      }
+    }
+
+    // 인라인 새 가구 추가
+    function addHouseInPlace() {
+      const zone = getCurrentZoneObject();
+      if (!zone || !zone.addrs) return;
+      const newAddr = prompt("추가할 가구 주소를 입력하세요 (예: 광지길 22):");
+      if (newAddr && newAddr.trim() !== "") {
+        zone.addrs.push(newAddr.trim());
+        saveCurrentZoneToFirebase(zone);
+      }
+    }
+
+    // 변경된 가구 목록 Firebase 저장
+    function saveCurrentZoneToFirebase(zone) {
+      const safeFirebaseKey = `${curTown}_${curVillage}_${curZoneKey}`.replace(/[.#$[\]\/]/g, '_');
+      const payload = {
+        town: curTown,
+        village: curVillage,
+        zoneKey: curZoneKey,
+        title: zone.title,
+        addrs: zone.addrs,
+        deleted: false,
+        updatedAt: Date.now()
+      };
+
+      db.ref('custom_zones/' + safeFirebaseKey).set(payload).then(() => {
+        applyCustomZonesAndReformat();
+      }).catch(err => {
+        alert("저장 실패: " + err.message);
+      });
+    }
+
+    // ==========================================
+    // 5. 관리자 대시보드 로직
     // ==========================================
     function openAdmin() {
       const pwd = prompt("관리자 비밀번호를 입력하세요.");
@@ -803,8 +1011,8 @@
 
       formatZoneData();
       if (document.getElementById('main-app').style.display === 'flex') {
-        initDropdowns();
-        onZoneChange();
+        renderCurrentList();
+        drawPinsForCurrentZone(true);
       }
       renderAdminStats();
     }
@@ -1257,18 +1465,36 @@
       document.getElementById('progRatio').innerText = `${doneCnt} / ${zone.addrs.length} (${Math.round((doneCnt / zone.addrs.length) * 100)}%)`;
     }
 
+    // ★ 3. 가구 주소 리스트 렌더링 및 Sortable 바인딩
     function renderCurrentList() {
-      const zone = getCurrentZoneObject(); const listEl = document.getElementById('listArea'); listEl.innerHTML = '';
-      if (!zone || !zone.addrs || zone.addrs.length === 0) { document.getElementById('subZoneTitle').innerText = `주소 데이터 준비 중`; document.getElementById('pinCount').innerText = '가구: 0개'; updateProgressUI(); return; }
+      const zone = getCurrentZoneObject(); 
+      const listEl = document.getElementById('listArea'); 
+      listEl.innerHTML = '';
+      if (!zone || !zone.addrs || zone.addrs.length === 0) { 
+        document.getElementById('subZoneTitle').innerText = `주소 데이터 준비 중`; 
+        document.getElementById('pinCount').innerText = '가구: 0개'; 
+        updateProgressUI(); 
+        return; 
+      }
       document.getElementById('subZoneTitle').innerText = zone.newSubTitle;
 
       zone.addrs.forEach((shortAddr, idx) => {
-        const fullAddr = getFullAddr(shortAddr); const safeKey = fullAddr.replace(/[.#$[\]\/]/g, '_');
-        const isDone = isAddressDone(safeKey); const isFocused = (focusedAddr === shortAddr); const memoText = globalMemos[safeKey] || "";
-        const card = document.createElement('div'); card.id = `card-addr-${idx}`; card.className = 'house-card' + (isDone ? ' completed' : '') + (isFocused ? ' focused' : '');
+        const fullAddr = getFullAddr(shortAddr); 
+        const safeKey = fullAddr.replace(/[.#$[\]\/]/g, '_');
+        const isDone = isAddressDone(safeKey); 
+        const isFocused = (focusedAddr === shortAddr); 
+        const memoText = globalMemos[safeKey] || "";
+        
+        const card = document.createElement('div'); 
+        card.id = `card-addr-${idx}`; 
+        card.setAttribute('data-index', idx);
+        card.className = 'house-card' + (isDone ? ' completed' : '') + (isFocused ? ' focused' : '');
         card.innerHTML = `
           <div class="house-card-top">
+            <span class="drag-handle" title="순서 드래그">⠿</span>
             <div class="address-text" onclick="focusSingleAddress('${shortAddr}', ${idx})">#${idx + 1}. ${shortAddr}</div>
+            <button class="inplace-edit-btn" onclick="editHouseInPlace(${idx})">수정</button>
+            <button class="inplace-del-btn" onclick="deleteHouseInPlace(${idx})">삭제</button>
             <div class="btn-wrap">
               <button class="btn-memo" onclick="openMemoModal('${shortAddr}', ${idx})">📝</button>
               <button class="btn-navi" onclick="openNavi('${shortAddr}', '${fullAddr}')">안내</button>
@@ -1280,6 +1506,34 @@
         listEl.appendChild(card);
       });
       updateProgressUI();
+      initSortableList();
+    }
+
+    // ★ 3. SortableJS 인스턴스 초기화 (드래그 앤 드롭 순서 변경)
+    function initSortableList() {
+      const listEl = document.getElementById('listArea');
+      if (!listEl) return;
+      if (sortableListInstance) {
+        sortableListInstance.destroy();
+      }
+
+      sortableListInstance = new Sortable(listEl, {
+        handle: '.drag-handle',
+        animation: 160,
+        ghostClass: 'sortable-ghost',
+        disabled: !isInPlaceAdminActive, // 관리자 편집 모드일 때만 활성화
+        onEnd: function (evt) {
+          const zone = getCurrentZoneObject();
+          if (!zone || !zone.addrs) return;
+
+          // 배열 순서 재정렬
+          const movedItem = zone.addrs.splice(evt.oldIndex, 1)[0];
+          zone.addrs.splice(evt.newIndex, 0, movedItem);
+
+          // Firebase 저장 및 화면/지도 리프레시
+          saveCurrentZoneToFirebase(zone);
+        }
+      });
     }
 
     function openNavi(shortAddr, fullAddr) {
@@ -1308,7 +1562,6 @@
         }
         if (memoDiv) { if (memoText) { memoDiv.innerText = `↳ 메모: ${memoText}`; memoDiv.classList.add('has-memo'); } else { memoDiv.classList.remove('has-memo'); } }
         
-        // 사각형 가구 박스 완료 상태 스타일 갱신
         const boxEl = document.getElementById(`box-house-${idx}`);
         if (boxEl) {
           if (isDone) boxEl.classList.add('done');
@@ -1444,9 +1697,7 @@
       });
     }
 
-    // ==========================================
-    // ★ 핵심 수정: 사각형 테두리의 우측 상단 모서리에 흰색 테두리를 둘러준 번호 배지 배치
-    // ==========================================
+    // 사각형 테두리의 우측 상단 모서리에 흰색 테두리를 둘러준 번호 배지 배치
     function addHouseBoxOverlay(shortAddr, fullAddr, pos, idx) {
       const safeKey = fullAddr.replace(/[.#$[\]\/]/g, '_'); 
       const isDone = isAddressDone(safeKey); 
@@ -1460,7 +1711,6 @@
         focusSingleAddress(shortAddr, idx);
       };
 
-      // 우측 상단 모서리에 흰색 테두리(border: 2px solid #ffffff)를 두른 번호 배지
       const badge = document.createElement('span');
       badge.className = 'badge-num';
       badge.innerText = `${idx + 1}`;
@@ -1477,9 +1727,7 @@
       houseBoxesMap[shortAddr] = overlay;
     }
 
-    // ==========================================
     // 지도 전체 그리기: 사각형 가구 마커 + 구역 테두리
-    // ==========================================
     function drawPinsForCurrentZone(fitBounds = false) {
       clearAllMapMarkers(); 
       const zone = getCurrentZoneObject(); 
@@ -1567,9 +1815,7 @@
       });
     }
 
-    // ==========================================
     // 개별 가구 선택 시 해당 가구만 강조 & 팝업 클릭 시 전체 복구
-    // ==========================================
     function focusSingleAddress(shortAddr, idx) {
       if (!map) return; 
       focusedAddr = shortAddr; 
@@ -1619,7 +1865,6 @@
           <div class="bubble-tip">탭하면 전체 가구가 다시 보입니다</div>
         `;
         
-        // 팝업창을 터치하면 전체 가구 보기 복귀
         bubbleContainer.onclick = (e) => {
           e.stopPropagation();
           showAllPins();
@@ -1654,7 +1899,6 @@
       focusedAddr = null; 
       document.querySelectorAll('.house-card').forEach(c => c.classList.remove('focused')); 
       
-      // 모든 가구의 흐림(Dimmed) 및 포커스 클래스 완전 해제 (모두 선명해짐)
       const zone = getCurrentZoneObject();
       if (zone && zone.addrs) {
         zone.addrs.forEach((addr, i) => {
@@ -1665,7 +1909,6 @@
         });
       }
 
-      // 상세 팝업 제거
       if (activeFocusOverlay) { 
         activeFocusOverlay.setMap(null); 
         activeFocusOverlay = null; 
