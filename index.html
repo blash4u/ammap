@@ -146,6 +146,11 @@
     .add-pub-wrap button { background: #10b981; color: white; border: none; padding: 8px 12px; border-radius: 4px; font-size: 13px; font-weight: bold; cursor: pointer; }
     .comp-history-item { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; background: #f8fafc; border-radius: 4px; padding: 6px 8px; width: 100%; }
 
+    /* 전도인 목록 체크박스 스타일 */
+    .pub-item-left { display: flex; align-items: center; gap: 8px; }
+    .pub-perm-label { font-size: 11px; color: #64748b; display: flex; align-items: center; gap: 4px; cursor: pointer; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
+    .pub-perm-label input { cursor: pointer; }
+
     /* 메인 앱 화면 스타일 */
     #main-app { display: none; flex-direction: column; height: 100%; width: 100%; }
     .header { background-color: #1e293b; padding: 10px 10px; flex-shrink: 0; }
@@ -285,11 +290,11 @@
     .btn-check { background: #64748b; color: white; border: none; padding: 5px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; min-width: 50px; transition: background-color 0.2s; }
     .btn-check.completed { background: #10b981; }
 
-    /* ★ 2번 수정: 사각 테두리 삭제 및 단정한 번호 뱃지만 남긴 마커 스타일 */
+    /* 사각 테두리 없이 단정한 원형 번호 뱃지만 남긴 마커 스타일 */
     .box-house-marker {
       position: relative;
       background: transparent !important;
-      border: none !important; /* 사각 테두리 완전 삭제 */
+      border: none !important;
       cursor: pointer;
       user-select: none;
       transform: translate(-50%, -50%);
@@ -453,6 +458,16 @@
       <button class="admin-close" onclick="closeAdmin()">닫기 ✕</button>
     </div>
     <div class="admin-content">
+
+      <!-- ★ 1. 관리자 비밀번호 변경 섹션 -->
+      <div class="admin-section">
+        <h2>🔒 관리자 비밀번호 변경</h2>
+        <div style="display:flex; gap:8px;">
+          <input type="password" id="newAdminPasswordInput" placeholder="새 비밀번호 입력 (4자리 이상)" style="flex:1; padding:8px; border:1px solid #cbd5e1; border-radius:4px; font-size:13px; outline:none;">
+          <button onclick="changeAdminPassword()" style="background:#2563eb; color:white; border:none; padding:8px 14px; border-radius:4px; font-size:13px; font-weight:bold; cursor:pointer;">비밀번호 저장</button>
+        </div>
+      </div>
+      
       <div class="admin-section">
         <h2>🗺️ 구역 카드 관리 (추가 / 수정 / 삭제)</h2>
         <div class="search-wrap">
@@ -499,10 +514,11 @@
         <div class="stats-grid" id="statsGridArea"></div>
       </div>
 
+      <!-- ★ 2. 전도인 관리 (리셋 권한 부여 기능 추가) -->
       <div class="admin-section">
         <h2>👥 전도인 관리</h2>
         <div class="add-pub-wrap">
-          <input type="text" id="newPubName" placeholder="추가할 이름 입력">
+          <input type="text" id="newPubName" placeholder="추가할 전도인 이름 입력">
           <button onclick="addPublisher()">추가</button>
         </div>
         <ul class="admin-list" id="adminPubList"></ul>
@@ -570,6 +586,7 @@
         <div class="status-actions">
           <span class="pin-counter" id="pinCount">가구: 0개</span>
           <span class="prog-text" id="progRatio">0 / 0 (0%)</span>
+          <!-- ★ 2. 권한 검증 기반 리셋 버튼 -->
           <button class="btn-reset-zone" onclick="resetCurrentZone()">리셋 ↺</button>
         </div>
       </div>
@@ -613,10 +630,10 @@
     // 2. 상태 변수 설정
     // ==========================================
     let map = null, geocoder = null, userMarker = null;
-    let houseBoxesMap = {};        // 개별 번호 마커 오버레이들
-    let activeFocusOverlay = null; // 선택된 가구 상세 정보 말풍선
-    let zonePolygon = null;        // 전체 구역을 둘러싸는 외곽 폴리곤
-    let currentBounds = null;      // 전체 구역 확대용 바운드 객체 캐시
+    let houseBoxesMap = {};        
+    let activeFocusOverlay = null; 
+    let zonePolygon = null;        
+    let currentBounds = null;      
     let addrCoordCache = {};
     let curTown = "", curVillage = "", curZoneKey = "";
     let focusedAddr = null, currentDrawSession = 0;
@@ -628,6 +645,9 @@
     let globalCompletions = {}; 
     let globalCustomZones = {};
     let currentMemoKey = "";
+
+    // ★ 1. 관리자 비밀번호 상태 변수 (기본값 "1234")
+    let currentAdminPassword = "1234";
 
     let isInPlaceAdminActive = false;
     let sortableListInstance = null;
@@ -758,7 +778,16 @@
     };
 
     function initFirebaseGlobalSync() {
-      db.ref('publishers').on('value', snap => { globalPublishers = snap.val() || {}; renderAdminPublishers(); });
+      // ★ 1. 관리자 비밀번호 동기화
+      db.ref('admin_password').on('value', snap => {
+        const val = snap.val();
+        currentAdminPassword = (val && String(val).trim()) ? String(val).trim() : "1234";
+      });
+
+      db.ref('publishers').on('value', snap => { 
+        globalPublishers = snap.val() || {}; 
+        renderAdminPublishers(); 
+      });
       db.ref('memos').on('value', snap => { globalMemos = snap.val() || {}; renderAdminMemos(); refreshSoftUI(); });
       db.ref('zone_completions').on('value', snap => { 
         globalCompletions = snap.val() || {}; 
@@ -864,11 +893,11 @@
       }, 250);
     }
 
-    // ★ 1번 수정: 프롬프트 메시지에서 비밀번호 노출 제거
+    // ★ 1. 관리자 비밀번호 검증 기반 인플레이스 편집 모드 토글
     function toggleInPlaceAdminMode() {
       if (!isInPlaceAdminActive) {
         const pwd = prompt("관리자 비밀번호를 입력하세요:");
-        if (pwd !== "1234") {
+        if (pwd !== currentAdminPassword) {
           if (pwd !== null) alert("비밀번호가 일치하지 않습니다.");
           return;
         }
@@ -947,10 +976,12 @@
       });
     }
 
-    // 관리자 대시보드 로직
+    // ==========================================
+    // 5. 관리자 대시보드 로직
+    // ==========================================
     function openAdmin() {
-      const pwd = prompt("관리자 비밀번호를 입력하세요.");
-      if (pwd === "1234") { 
+      const pwd = prompt("관리자 비밀번호를 입력하세요:");
+      if (pwd === currentAdminPassword) { 
         document.getElementById('admin-screen').style.display = 'flex';
         initAdminZoneUI();
         renderAdminStats(); 
@@ -959,6 +990,23 @@
       }
     }
     function closeAdmin() { document.getElementById('admin-screen').style.display = 'none'; }
+
+    // ★ 1. 관리자 비밀번호 변경 함수
+    function changeAdminPassword() {
+      const input = document.getElementById('newAdminPasswordInput');
+      const newPwd = input.value.trim();
+      if (newPwd.length < 4) {
+        alert("비밀번호는 4자리 이상 입력해 주세요.");
+        return;
+      }
+      db.ref('admin_password').set(newPwd).then(() => {
+        currentAdminPassword = newPwd;
+        input.value = "";
+        alert("관리자 비밀번호가 성공적으로 변경되었습니다.");
+      }).catch(e => {
+        alert("비밀번호 저장 실패: " + e.message);
+      });
+    }
 
     function applyCustomZonesAndReformat() {
       Object.keys(globalCustomZones).forEach(key => {
@@ -1228,14 +1276,28 @@
       });
     }
 
+    // ★ 2. 전도인 추가 (기본 리셋 권한 false)
     function addPublisher() {
       const name = document.getElementById('newPubName').value.trim();
-      if(name) { db.ref('publishers/' + name).set(true); document.getElementById('newPubName').value = ""; }
+      if(name) { 
+        db.ref('publishers/' + name).set({ canReset: false }); 
+        document.getElementById('newPubName').value = ""; 
+      }
     }
+    
     function removePublisher(name) {
       if(confirm(`'${name}' 전도인을 삭제하시겠습니까?`)) db.ref('publishers/' + name).remove();
     }
     
+    // ★ 2. 전도인 리셋 권한 토글 함수
+    function togglePublisherResetAuth(name, currentVal) {
+      const newVal = !currentVal;
+      db.ref(`publishers/${name}`).set({ canReset: newVal }).then(() => {
+        globalPublishers[name] = { canReset: newVal };
+      }).catch(e => alert("권한 변경 실패: " + e.message));
+    }
+
+    // ★ 2. 전도인 목록 렌더링 (리셋 권한 체크박스 포함)
     function renderAdminPublishers() {
       initConsonantFilter();
       const ul = document.getElementById('adminPubList');
@@ -1245,8 +1307,21 @@
           const initial = getInitialSound(name);
           if (initial !== currentPubFilter && initial.replace(/ㄲ/,'ㄱ').replace(/ㄸ/,'ㄷ').replace(/ㅃ/,'ㅂ').replace(/ㅆ/,'ㅅ').replace(/ㅉ/,'ㅈ') !== currentPubFilter) return;
         }
+
+        const pubData = globalPublishers[name];
+        const canReset = (pubData && typeof pubData === 'object') ? (pubData.canReset === true) : false;
+
         const li = document.createElement('li');
-        li.innerHTML = `<span>${name}</span> <button class="btn-delete" onclick="removePublisher('${name}')">삭제</button>`;
+        li.innerHTML = `
+          <div class="pub-item-left">
+            <span><strong>${name}</strong></span>
+            <label class="pub-perm-label" title="구역 리셋 권한 부여">
+              <input type="checkbox" ${canReset ? 'checked' : ''} onchange="togglePublisherResetAuth('${name}', ${canReset})">
+              <span>리셋 권한</span>
+            </label>
+          </div>
+          <button class="btn-delete" onclick="removePublisher('${name}')">삭제</button>
+        `;
         ul.appendChild(li);
       });
     }
@@ -1591,10 +1666,26 @@
       }
     }
 
+    // ★ 2. 권한 검증 기반 리셋 기능
     function resetCurrentZone() {
-      const zone = getCurrentZoneObject(); if (!zone || !zone.addrs || zone.addrs.length === 0) return;
-      if (!confirm(`이 구역의 방문 기록을 '미방문'으로 초기화하시겠습니까?\n(메모는 삭제되지 않으며, 방문 기록만 즉시 초기화됩니다)`)) return;
-      zone.addrs.forEach(shortAddr => { db.ref('visits/' + getFullAddr(shortAddr).replace(/[.#$[\]\/]/g, '_')).remove(); });
+      const zone = getCurrentZoneObject(); 
+      if (!zone || !zone.addrs || zone.addrs.length === 0) return;
+
+      // 현재 로그인한 전도인의 리셋 권한 체크
+      const pubData = globalPublishers[currentUser];
+      const hasResetAuth = (pubData && typeof pubData === 'object') ? (pubData.canReset === true) : false;
+
+      if (!hasResetAuth) {
+        alert(`'${currentUser}' 전도인님은 구역 리셋 권한이 없습니다.\n관리자에게 리셋 권한을 요청해 주세요.`);
+        return;
+      }
+
+      if (!confirm(`이 구역의 방문 기록을 '미방문'으로 초기화하시겠습니까?\n(메모는 보존되며, 방문 상태만 초기화됩니다)`)) return;
+
+      zone.addrs.forEach(shortAddr => { 
+        db.ref('visits/' + getFullAddr(shortAddr).replace(/[.#$[\]\/]/g, '_')).remove(); 
+      });
+      alert("구역이 성공적으로 초기화되었습니다.");
     }
 
     function clearAllMapMarkers() {
@@ -1664,7 +1755,7 @@
       });
     }
 
-    // ★ 2번 수정: 사각 테두리 없이 번호만 표시
+    // 사각 테두리 없이 단정한 번호 뱃지만 생성
     function addHouseBoxOverlay(shortAddr, fullAddr, pos, idx) {
       const safeKey = fullAddr.replace(/[.#$[\]\/]/g, '_'); 
       const isDone = isAddressDone(safeKey); 
