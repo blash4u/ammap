@@ -9,6 +9,11 @@
   <meta name="apple-mobile-web-app-title" content="전화구역">
   <meta name="theme-color" content="#166534">
 
+  <!-- 매니페스트 및 아이콘 연결 -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+
   <!-- 최신 전화구역 데이터 로드 -->
   <script type="text/javascript" src="data_phone.js"></script>
 
@@ -19,66 +24,95 @@
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Malgun Gothic", -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background-color: #f0fdf4; overflow: hidden; height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
+    body { background-color: #f1f5f9; overflow: hidden; height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
 
-    /* 시작 화면 */
-    #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #15803d, #14532d); display: flex; justify-content: center; align-items: center; z-index: 9000; }
-    .btn-admin-gear { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; color: rgba(255,255,255,0.7); background: none; border: none; }
+    /* 메모 팝업 모달 */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 10000; }
+    .modal-card { background: #fff; width: 85%; max-width: 320px; border-radius: 12px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .modal-card h3 { font-size: 16px; margin-bottom: 10px; color: #0f172a; }
+    .modal-card textarea { width: 100%; height: 80px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; resize: none; outline: none; margin-bottom: 10px; font-size: 13px; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .modal-btn { padding: 8px 16px; border: none; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; }
+    .btn-cancel { background: #e2e8f0; color: #475569; }
+    .btn-save { background: #166534; color: #fff; }
+
+    /* 시작 화면 (로그인) */
+    #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #166534, #14532d); display: flex; justify-content: center; align-items: center; z-index: 9000; }
     
     .btn-map-zone { 
       position: absolute; top: 16px; left: 16px; width: 44px; height: 44px; background: #ffffff; border-radius: 50%; 
       display: flex; align-items: center; justify-content: center; color: #2563eb; box-shadow: 0 4px 12px rgba(0,0,0,0.25); text-decoration: none; 
+      transition: transform 0.2s;
     }
+    .btn-map-zone:active { transform: scale(0.92); }
 
-    .login-card { background: rgba(255, 255, 255, 0.96); padding: 40px 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.25); width: 85%; max-width: 340px; text-align: center; }
-    .custom-logo { width: 70px; height: 70px; background-color: #166534; color: white; display: flex; justify-content: center; align-items: center; font-size: 32px; font-weight: 900; margin: 0 auto 8px; border-radius: 12px; }
-    .brand-text { color: #166534; font-size: 18px; font-weight: 900; letter-spacing: 4px; margin-bottom: 20px; }
-    
-    .input-group { margin-bottom: 18px; text-align: left; }
+    .login-card { background: rgba(255, 255, 255, 0.96); padding: 40px 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 85%; max-width: 340px; text-align: center; }
+    .brand-wrapper { width: 80px; margin: 0 auto 5px auto; display: flex; flex-direction: column; align-items: center; }
+    .custom-logo { width: 100%; height: 80px; background-color: #166534; color: white; display: flex; justify-content: center; align-items: center; font-size: 38px; font-weight: 900; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .brand-text { width: 100%; display: flex; justify-content: space-between; color: #166534; font-size: 16px; font-weight: 900; margin-top: 6px; }
+    .login-subtitle { font-size: 14px; font-weight: bold; color: #64748b; margin-bottom: 25px; margin-top: 5px; }
+
+    .input-group { margin-bottom: 20px; text-align: left; }
     .input-group label { display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px; }
     .input-group input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 15px; font-weight: bold; outline: none; }
-    .btn-start { width: 100%; background: #166534; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 14px; }
-    
-    /* 메인 앱 */
+    .input-group input:focus { border-color: #22c55e; }
+    .btn-start { width: 100%; background: #166534; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(22, 101, 52, 0.3); }
+    .btn-start:active { background: #14532d; transform: scale(0.98); }
+
+    /* 메인 앱 화면 */
     #main-app { display: none; flex-direction: column; height: 100%; width: 100%; }
-    .header { background-color: #14532d; padding: 10px 12px; color: white; flex-shrink: 0; }
-    .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .header { background-color: #14532d; padding: 10px 10px; flex-shrink: 0; }
+    .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
     .title-group { display: flex; align-items: center; gap: 8px; }
-    .btn-home { color: white; cursor: pointer; display: flex; align-items: center; }
+    .btn-home { display: flex; align-items: center; justify-content: center; cursor: pointer; color: #ffffff; }
+    .btn-home:active { transform: scale(0.85); }
+    .btn-home svg { width: 22px; height: 22px; stroke-width: 2px; }
     .title { color: #86efac; font-size: 15px; font-weight: bold; }
-    
-    /* 상단 초기화 도구 버튼 */
-    .btn-force-sync { background: #b91c1c; color: white; border: 1px solid #f87171; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; }
 
-    .dropdown-group { display: flex; gap: 6px; width: 100%; }
-    .select-btn { height: 36px; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; border: 1px solid #22c55e; outline: none; background: #166534; color: white; flex: 1; }
+    .dropdown-group { display: flex; gap: 5px; width: 100%; }
+    .select-btn { height: 36px; padding: 4px 8px; border-radius: 5px; font-size: 12px; font-weight: bold; border: 1px solid #22c55e; outline: none; background: #166534; color: white; width: 100%; }
 
-    .info-bar { background-color: #ffffff; padding: 10px 12px; border-bottom: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
-    .info-bar-top { display: flex; justify-content: space-between; align-items: center; }
-    .sub-zone-title { font-size: 13px; font-weight: 800; color: #166534; }
+    .info-bar { background-color: #ffffff; padding: 8px 12px; border-top: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1; display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+    .info-bar-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+    .status-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
     .prog-text { font-size: 12px; color: #15803d; font-weight: 800; }
     .btn-reset-zone { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
+    .sub-zone-title { text-align: center; font-size: 12px; color: #475569; font-weight: 700; background: #f1f5f9; padding: 4px; border-radius: 4px; }
 
-    /* 전화 목록 카드 리스트 */
-    .list-area { flex: 1; overflow-y: auto; padding: 8px 10px 40px; background-color: #f8fafc; }
-    .phone-card { background: white; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-    .phone-card.completed { background: #dcfce7; border-color: #86efac; }
+    /* 원래의 컴팩트한 가구 카드 목록 UI */
+    .list-area { flex: 1 1 auto; overflow-y: auto; padding: 6px 8px 40px 8px; background-color: #f8fafc; -webkit-overflow-scrolling: touch; }
+    .house-card { min-height: 50px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 10px; margin-bottom: 5px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .house-card.completed { background: #dcfce7; border-color: #86efac; }
+    .house-card.completed .phone-link { text-decoration: line-through; color: #166534; }
     
-    .phone-row-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-    .phone-main-info { display: flex; align-items: center; gap: 8px; flex: 1; }
-    .phone-seq { font-size: 13px; font-weight: 900; color: #166534; min-width: 28px; }
-    .phone-number { font-size: 15px; font-weight: 800; color: #1d4ed8; text-decoration: none; }
-    .phone-biz { font-size: 13px; font-weight: 700; color: #0f172a; background: #fef08a; padding: 2px 6px; border-radius: 4px; }
+    .house-card-top { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 6px; }
+    .phone-info-wrap { display: flex; align-items: center; gap: 6px; flex: 1; overflow: hidden; white-space: nowrap; }
+    .seq-badge { font-size: 13px; font-weight: 900; color: #166534; min-width: 28px; }
+    .phone-link { font-size: 14px; font-weight: 800; color: #1d4ed8; text-decoration: none; }
+    .biz-badge { font-size: 12px; font-weight: bold; color: #854d0e; background: #fef08a; padding: 2px 6px; border-radius: 4px; overflow: hidden; text-overflow: ellipsis; }
 
-    .call-btn-group { display: flex; gap: 4px; }
-    .btn-status { border: 1px solid #cbd5e1; background: white; padding: 5px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; color: #475569; }
-    .btn-status.active-통화 { background: #16a34a; color: white; border-color: #16a34a; }
-    .btn-status.active-부재 { background: #f59e0b; color: white; border-color: #f59e0b; }
-    .btn-status.active-결번 { background: #ef4444; color: white; border-color: #ef4444; }
-    .btn-status.active-거절 { background: #64748b; color: white; border-color: #64748b; }
+    .btn-wrap { display: flex; gap: 5px; align-items: center; flex-shrink: 0; }
+    .btn-memo { background: #cbd5e1; color: #0f172a; border: none; padding: 5px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
+    .btn-check { background: #64748b; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; min-width: 54px; }
+    .btn-check.completed { background: #16a34a; }
+
+    .memo-display { font-size: 11px; color: #ef4444; margin-top: 4px; font-weight: bold; display: none; }
+    .memo-display.has-memo { display: block; }
   </style>
 </head>
 <body>
+
+  <!-- 메모 팝업 모달 -->
+  <div id="memo-modal" class="modal-overlay">
+    <div class="modal-card">
+      <h3 id="memo-target-phone">전화번호</h3>
+      <textarea id="memo-input" placeholder="특이사항을 입력하세요 (예: 재방문, 거절 등)"></textarea>
+      <div class="modal-actions">
+        <button class="modal-btn btn-cancel" onclick="closeMemoModal()">취소</button>
+        <button class="modal-btn btn-save" onclick="saveMemo()">저장</button>
+      </div>
+    </div>
+  </div>
 
   <!-- 시작 화면 -->
   <div id="login-screen">
@@ -89,20 +123,23 @@
         <line x1="16" y1="6" x2="16" y2="22"></line>
       </svg>
     </a>
-    
+
     <div class="login-card">
-      <div class="custom-logo">📞</div>
-      <div class="brand-text">전화구역</div>
-      
+      <div class="brand-wrapper">
+        <div class="custom-logo">📞</div>
+        <div class="brand-text"><span>전</span><span>화</span><span>구</span><span>역</span></div>
+      </div>
+      <div class="login-subtitle">- 안면 회중 -</div>
+
       <div class="input-group">
-        <label>전도인 이름</label>
+        <label>전도인</label>
         <input type="text" id="inputName" placeholder="이름을 입력하세요">
       </div>
       <div class="input-group">
         <label>구역번호 (1 ~ 89)</label>
-        <input type="number" id="inputZoneNum" placeholder="예: 1">
+        <input type="number" id="inputZoneNum" placeholder="구역번호를 입력하세요">
       </div>
-      
+
       <button class="btn-start" onclick="startApp()">시 작</button>
     </div>
   </div>
@@ -113,18 +150,14 @@
       <div class="header-top">
         <div class="title-group">
           <div class="btn-home" onclick="goHome()" title="첫 화면으로">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
               <polyline points="9 22 9 12 15 12 15 22"></polyline>
             </svg>
           </div>
           <div class="title" id="mainHeaderTitle">전화구역</div>
         </div>
-
-        <!-- ★ 핵심 추가: 클릭 한 번으로 과거 덮어쓰기 캐시를 날려주는 원터치 초기화 버튼 -->
-        <button class="btn-force-sync" onclick="forceSyncOriginalData()">최신 파일로 완전 동기화 ↺</button>
       </div>
-
       <div class="dropdown-group">
         <select id="selZone" class="select-btn" onchange="onZoneChange()"></select>
       </div>
@@ -132,19 +165,19 @@
 
     <div class="info-bar">
       <div class="info-bar-top">
-        <div id="subZoneTitle" class="sub-zone-title">구역 로딩 중...</div>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span class="prog-text" id="progRatio">0 / 0 (0%)</span>
+        <span class="prog-text" id="progRatio">0 / 0 (0%)</span>
+        <div class="status-actions">
           <button class="btn-reset-zone" onclick="resetCurrentZone()">리셋 ↺</button>
         </div>
       </div>
+      <div id="subZoneTitle" class="sub-zone-title">구역을 선택해주세요</div>
     </div>
 
     <div class="list-area" id="listArea"></div>
   </div>
 
   <script>
-    // 1. Firebase 초기화
+    // Firebase 설정
     const firebaseConfig = {
       apiKey: "AIzaSyD3N7SPoV6Z4qsCs3S0vrQ9Tko4Z62ZCfQ",
       authDomain: "anmyeon-map.firebaseapp.com",
@@ -159,11 +192,17 @@
 
     let currentUser = "";
     let curZoneKey = "";
-    let zoneVisits = {};
+    let doneMap = {};
+    let globalMemos = {};
+    let currentMemoKey = "";
 
     window.onload = function() {
       const savedName = localStorage.getItem('ammap_username') || "";
       if (savedName) document.getElementById('inputName').value = savedName;
+
+      // Firebase 실시간 동기화
+      db.ref('phone_visits').on('value', snap => { doneMap = snap.val() || {}; refreshUI(); });
+      db.ref('phone_memos').on('value', snap => { globalMemos = snap.val() || {}; refreshUI(); });
     };
 
     function startApp() {
@@ -173,12 +212,12 @@
 
       currentUser = name;
       localStorage.setItem('ammap_username', currentUser);
-      document.getElementById('mainHeaderTitle').innerText = `전도인: ${currentUser}`;
+      document.getElementById('mainHeaderTitle').innerHTML = `전도인: <span style="color:#ffffff;">${currentUser}</span>`;
 
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('main-app').style.display = 'flex';
 
-      initZoneDropdown(zoneNum);
+      initDropdown(zoneNum);
     }
 
     function goHome() {
@@ -186,14 +225,13 @@
       document.getElementById('login-screen').style.display = 'flex';
     }
 
-    // 구역 드롭다운 채우기 (1~89번)
-    function initZoneDropdown(targetZoneNum) {
+    function initDropdown(targetNum) {
       const sel = document.getElementById('selZone');
       sel.innerHTML = '';
-      
-      const zones = PHONE_ZONE_DATABASE["안면읍"] || {};
+
+      const zones = (window.PHONE_ZONE_DATABASE && window.PHONE_ZONE_DATABASE["안면읍"]) ? window.PHONE_ZONE_DATABASE["안면읍"] : {};
       let selectedKey = "";
-      const targetPadded = targetZoneNum ? String(targetZoneNum).padStart(3, '0') : "001";
+      const paddedTarget = targetNum ? String(targetNum).padStart(3, '0') : "001";
 
       Object.keys(zones).forEach(vil => {
         Object.keys(zones[vil]).forEach(k => {
@@ -201,7 +239,7 @@
           const opt = document.createElement('option');
           opt.value = k;
           opt.innerText = z.newTopTitle || z.title;
-          if (z.globalNum === targetPadded) selectedKey = k;
+          if (z.globalNum === paddedTarget) selectedKey = k;
           sel.appendChild(opt);
         });
       });
@@ -210,114 +248,135 @@
       sel.value = selectedKey;
       curZoneKey = selectedKey;
 
-      loadZoneData();
+      renderList();
     }
 
     function onZoneChange() {
       curZoneKey = document.getElementById('selZone').value;
-      loadZoneData();
+      renderList();
     }
 
     function getCurrentZone() {
-      const zones = PHONE_ZONE_DATABASE["안면읍"] || {};
+      const zones = (window.PHONE_ZONE_DATABASE && window.PHONE_ZONE_DATABASE["안면읍"]) ? window.PHONE_ZONE_DATABASE["안면읍"] : {};
       for (let vil in zones) {
         if (zones[vil][curZoneKey]) return zones[vil][curZoneKey];
       }
       return null;
     }
 
-    function loadZoneData() {
-      const zone = getCurrentZone();
-      if (!zone) return;
-
-      document.getElementById('subZoneTitle').innerText = `${zone.title}`;
-
-      // Firebase 방문 기록 실시간 동기화
-      const safeKey = curZoneKey.replace(/[.#$[\]\/]/g, '_');
-      db.ref('phone_visits/' + safeKey).on('value', snap => {
-        zoneVisits = snap.val() || {};
-        renderList();
-      });
-    }
-
-    // 40개 가구 리스트 렌더링
     function renderList() {
       const zone = getCurrentZone();
       const listEl = document.getElementById('listArea');
       listEl.innerHTML = '';
-      if (!zone || !zone.addrs) return;
+      if (!zone || !zone.addrs || zone.addrs.length === 0) {
+        document.getElementById('subZoneTitle').innerText = "데이터 준비 중";
+        document.getElementById('progRatio').innerText = "0 / 0 (0%)";
+        return;
+      }
 
-      let completedCount = 0;
+      document.getElementById('subZoneTitle').innerText = zone.newSubTitle || zone.title;
 
       zone.addrs.forEach((itemStr, idx) => {
-        // 전화번호와 상호 분리
         const parts = itemStr.split(' ');
         const phone = parts[0];
         const biz = parts.slice(1).join(' ');
-
-        const record = zoneVisits[idx] || {};
-        const curStatus = record.status || "";
-        if (curStatus) completedCount++;
+        const safeKey = `${curZoneKey}_${phone}`.replace(/[.#$[\]\/]/g, '_');
+        const isDone = !!doneMap[safeKey];
+        const memoText = globalMemos[safeKey] || "";
 
         const card = document.createElement('div');
-        card.className = 'phone-card' + (curStatus ? ' completed' : '');
+        card.id = `card-${idx}`;
+        card.className = 'house-card' + (isDone ? ' completed' : '');
         card.innerHTML = `
-          <div class="phone-row-top">
-            <div class="phone-main-info">
-              <span class="phone-seq">#${idx + 1}</span>
-              <a href="tel:${phone.replace(/-/g, '')}" class="phone-number">${phone}</a>
-              ${biz ? `<span class="phone-biz">${biz}</span>` : ''}
+          <div class="house-card-top">
+            <div class="phone-info-wrap">
+              <span class="seq-badge">#${idx + 1}</span>
+              <a href="tel:${phone.replace(/-/g, '')}" class="phone-link">${phone}</a>
+              ${biz ? `<span class="biz-badge">${biz}</span>` : ''}
+            </div>
+            <div class="btn-wrap">
+              <button class="btn-memo" onclick="openMemoModal('${phone}', '${safeKey}')">📝</button>
+              <button id="btn-check-${idx}" class="btn-check ${isDone ? 'completed' : ''}" onclick="toggleDone('${safeKey}', ${idx})">${isDone ? '완료' : '미완료'}</button>
             </div>
           </div>
-          <div class="call-btn-group">
-            <button class="btn-status ${curStatus === '통화' ? 'active-통화' : ''}" onclick="setStatus(${idx}, '통화')">통화</button>
-            <button class="btn-status ${curStatus === '부재' ? 'active-부재' : ''}" onclick="setStatus(${idx}, '부재')">부재</button>
-            <button class="btn-status ${curStatus === '결번' ? 'active-결번' : ''}" onclick="setStatus(${idx}, '결번')">결번</button>
-            <button class="btn-status ${curStatus === '거절' ? 'active-거절' : ''}" onclick="setStatus(${idx}, '거절')">거절</button>
-          </div>
+          <div id="memo-${idx}" class="memo-display ${memoText ? 'has-memo' : ''}">↳ 메모: ${memoText}</div>
         `;
         listEl.appendChild(card);
       });
 
-      document.getElementById('progRatio').innerText = `${completedCount} / ${zone.addrs.length} (${Math.round((completedCount / zone.addrs.length) * 100)}%)`;
+      updateProgress();
     }
 
-    // 상태 저장
-    function setStatus(idx, status) {
-      const safeKey = curZoneKey.replace(/[.#$[\]\/]/g, '_');
-      const current = zoneVisits[idx]?.status;
-      
-      if (current === status) {
-        db.ref(`phone_visits/${safeKey}/${idx}`).remove();
+    function refreshUI() {
+      const zone = getCurrentZone();
+      if (!zone || !zone.addrs) return;
+
+      zone.addrs.forEach((itemStr, idx) => {
+        const phone = itemStr.split(' ')[0];
+        const safeKey = `${curZoneKey}_${phone}`.replace(/[.#$[\]\/]/g, '_');
+        const isDone = !!doneMap[safeKey];
+        const memoText = globalMemos[safeKey] || "";
+
+        const card = document.getElementById(`card-${idx}`);
+        const btn = document.getElementById(`btn-check-${idx}`);
+        const memoEl = document.getElementById(`memo-${idx}`);
+
+        if (card && btn) {
+          if (isDone) { card.classList.add('completed'); btn.classList.add('completed'); btn.innerText = '완료'; }
+          else { card.classList.remove('completed'); btn.classList.remove('completed'); btn.innerText = '미완료'; }
+        }
+        if (memoEl) {
+          if (memoText) { memoEl.innerText = `↳ 메모: ${memoText}`; memoEl.classList.add('has-memo'); }
+          else { memoEl.classList.remove('has-memo'); }
+        }
+      });
+
+      updateProgress();
+    }
+
+    function updateProgress() {
+      const zone = getCurrentZone();
+      if (!zone || !zone.addrs) return;
+      let count = 0;
+      zone.addrs.forEach(itemStr => {
+        const phone = itemStr.split(' ')[0];
+        const safeKey = `${curZoneKey}_${phone}`.replace(/[.#$[\]\/]/g, '_');
+        if (doneMap[safeKey]) count++;
+      });
+      document.getElementById('progRatio').innerText = `${count} / ${zone.addrs.length} (${Math.round((count / zone.addrs.length) * 100)}%)`;
+    }
+
+    function toggleDone(safeKey, idx) {
+      if (doneMap[safeKey]) {
+        db.ref('phone_visits/' + safeKey).remove();
       } else {
-        db.ref(`phone_visits/${safeKey}/${idx}`).set({
-          status: status,
-          user: currentUser,
-          timestamp: Date.now()
-        });
+        db.ref('phone_visits/' + safeKey).set({ done: true, user: currentUser, timestamp: Date.now() });
       }
     }
 
-    // 리셋 기능
     function resetCurrentZone() {
-      if (!confirm("이 구역의 모든 통화 기록을 초기화하시겠습니까?")) return;
-      const safeKey = curZoneKey.replace(/[.#$[\]\/]/g, '_');
-      db.ref('phone_visits/' + safeKey).remove();
+      const zone = getCurrentZone();
+      if (!zone || !zone.addrs) return;
+      if (!confirm("이 구역의 완료 상태를 모두 초기화하시겠습니까?")) return;
+      zone.addrs.forEach(itemStr => {
+        const phone = itemStr.split(' ')[0];
+        const safeKey = `${curZoneKey}_${phone}`.replace(/[.#$[\]\/]/g, '_');
+        db.ref('phone_visits/' + safeKey).remove();
+      });
     }
 
-    // ★ 핵심 기능: 콘솔 입력 없이 클릭 한 번으로 Firebase 과거 데이터 완전 삭제 & 최신화
-    function forceSyncOriginalData() {
-      if (!confirm("과거의 Firebase 덮어쓰기 캐시를 완전히 삭제하고, 최신 'data_phone.js' 원본 데이터로 즉시 복원하시겠습니까?")) return;
-
-      // 1. Firebase의 잘못된 custom_zones 경로를 완전히 비웁니다.
-      db.ref('custom_zones').remove().then(() => {
-        // 2. 브라우저 캐시 클리어
-        localStorage.removeItem('ammap_recentzone');
-        alert("✅ 과거 덮어쓰기 데이터가 완벽하게 삭제되었습니다!\n화면이 최신 원본 데이터로 새로고침됩니다.");
-        window.location.reload();
-      }).catch(err => {
-        alert("동기화 실패: " + err.message);
-      });
+    function openMemoModal(phone, safeKey) {
+      currentMemoKey = safeKey;
+      document.getElementById('memo-target-phone').innerText = phone;
+      document.getElementById('memo-input').value = globalMemos[safeKey] || "";
+      document.getElementById('memo-modal').style.display = 'flex';
+    }
+    function closeMemoModal() { document.getElementById('memo-modal').style.display = 'none'; }
+    function saveMemo() {
+      const text = document.getElementById('memo-input').value.trim();
+      if (text) db.ref('phone_memos/' + currentMemoKey).set(text);
+      else db.ref('phone_memos/' + currentMemoKey).remove();
+      closeMemoModal();
     }
   </script>
 </body>
