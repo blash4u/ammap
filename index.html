@@ -190,60 +190,73 @@
     .btn-check { background: #64748b; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; min-width: 54px; transition: background-color 0.2s; }
     .btn-check.completed { background: #10b981; }
 
-    /* ★ 1번 요구사항: 단순하고 또렷한 번호 말풍선 핀 (사각형 폴리곤 완전 대체) */
-    .pin-bubble {
+    /* ★ 요청 반영: 사각형 벽체 + 삼각 지붕을 가진 '집 모양(House Shape)' 핀 마커 */
+    .pin-house {
       position: relative;
-      background: #2563eb;
+      width: 28px;
+      height: 22px;
+      background-color: #2563eb;
       color: #ffffff;
       font-size: 11px;
       font-weight: 900;
-      padding: 3px 7px;
-      border-radius: 12px;
-      border: 1.5px solid #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 3px;
       box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
       cursor: pointer;
-      white-space: nowrap;
       user-select: none;
       transition: transform 0.15s, background-color 0.2s;
+      margin-top: 10px; /* 지붕 높이 확보 */
     }
-    .pin-bubble::after {
+    /* 삼각 지붕 구조 */
+    .pin-house::before {
       content: '';
       position: absolute;
-      bottom: -6px;
-      left: 50%;
-      transform: translateX(-50%);
+      top: -10px;
+      left: 0;
       width: 0;
       height: 0;
-      border-left: 5px solid transparent;
-      border-right: 5px solid transparent;
-      border-top: 6px solid #2563eb;
+      border-left: 14px solid transparent;
+      border-right: 14px solid transparent;
+      border-bottom: 10px solid #2563eb;
+      transition: border-bottom-color 0.2s;
     }
-    .pin-bubble:hover {
-      transform: scale(1.15);
+    .pin-house:hover {
+      transform: scale(1.18);
       z-index: 50;
     }
 
-    /* 1번 시작 가구: 강렬한 레드(#ef4444) 채우기 */
-    .pin-bubble.start-house {
-      background: #ef4444 !important;
+    /* 1번 시작 가구: 붉은색(#ef4444) 집 모양 채우기 */
+    .pin-house.start-house {
+      background-color: #ef4444 !important;
+      width: 30px;
+      height: 24px;
       font-size: 12px;
-      padding: 4px 8px;
       box-shadow: 0 0 10px rgba(239, 68, 68, 0.8);
       z-index: 40;
     }
-    .pin-bubble.start-house::after {
-      border-top-color: #ef4444 !important;
+    .pin-house.start-house::before {
+      top: -11px;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-bottom: 11px solid #ef4444 !important;
     }
 
-    /* 방문 완료된 가구 말풍선 (차분한 그린) */
-    .pin-bubble.done {
-      background: #10b981 !important;
-      border-color: #e2e8f0;
+    /* 방문 완료된 가구: 깔끔한 초록색(#10b981) 집 모양 */
+    .pin-house.done {
+      background-color: #10b981 !important;
       text-decoration: line-through;
-      opacity: 0.85;
+      opacity: 0.88;
     }
-    .pin-bubble.done::after {
-      border-top-color: #10b981 !important;
+    .pin-house.done::before {
+      border-bottom-color: #10b981 !important;
+    }
+    .pin-house.start-house.done {
+      background-color: #059669 !important;
+    }
+    .pin-house.start-house.done::before {
+      border-bottom-color: #059669 !important;
     }
 
     /* 선택(포커스)된 가구 상단 상세 정보 말풍선 팝업 */
@@ -484,7 +497,7 @@
     // 2. 상태 변수 설정
     // ==========================================
     let map = null, geocoder = null, userMarker = null;
-    let houseBubblesMap = {};  // 개별 번호 말풍선 오버레이들
+    let houseHousesMap = {};       // 개별 집 모양 오버레이들
     let activeFocusOverlay = null; // 선택된 가구 상세 정보 말풍선
     let zonePolygon = null;        // 전체 구역을 둘러싸는 외곽 폴리곤
     let currentBounds = null;      // 전체 구역 확대용 바운드 객체 캐시
@@ -694,7 +707,6 @@
       if (!map) {
         kakao.maps.load(function() {
           const container = document.getElementById('map');
-          // 깨끗하고 선명한 기본 지도 설정
           map = new kakao.maps.Map(container, { 
             center: new kakao.maps.LatLng(36.4178, 126.3985), 
             level: 4 
@@ -1260,11 +1272,11 @@
         }
         if (memoDiv) { if (memoText) { memoDiv.innerText = `↳ 메모: ${memoText}`; memoDiv.classList.add('has-memo'); } else { memoDiv.classList.remove('has-memo'); } }
         
-        // 말풍선 핀 완료 상태 스타일 갱신
-        const bubble = document.getElementById(`pin-bubble-${idx}`);
-        if (bubble) {
-          if (isDone) bubble.classList.add('done');
-          else bubble.classList.remove('done');
+        // 집 모양 마커 완료 상태 스타일 갱신
+        const houseEl = document.getElementById(`pin-house-${idx}`);
+        if (houseEl) {
+          if (isDone) houseEl.classList.add('done');
+          else houseEl.classList.remove('done');
         }
       });
     }
@@ -1277,18 +1289,18 @@
 
       const card = document.getElementById(`card-addr-${idx}`); 
       const btn = document.getElementById(`btn-check-${idx}`);
-      const bubble = document.getElementById(`pin-bubble-${idx}`);
+      const houseEl = document.getElementById(`pin-house-${idx}`);
       
       if (newState) {
         if(card) card.classList.add('completed');
         if(btn) { btn.classList.add('completed'); btn.innerText = '완료'; }
-        if(bubble) bubble.classList.add('done');
+        if(houseEl) houseEl.classList.add('done');
         doneMap[safeKey] = { done: true, user: currentUser }; 
         db.ref('visits/' + safeKey).set({ done: true, user: currentUser, timestamp: firebase.database.ServerValue.TIMESTAMP });
       } else {
         if(card) card.classList.remove('completed');
         if(btn) { btn.classList.remove('completed'); btn.innerText = '미방문'; }
-        if(bubble) bubble.classList.remove('done');
+        if(houseEl) houseEl.classList.remove('done');
         delete doneMap[safeKey]; 
         db.ref('visits/' + safeKey).remove();
       }
@@ -1329,8 +1341,8 @@
 
     // 마커 및 오버레이 정리 함수
     function clearAllMapMarkers() {
-      Object.values(houseBubblesMap).forEach(b => b.setMap(null)); 
-      houseBubblesMap = {};
+      Object.values(houseHousesMap).forEach(b => b.setMap(null)); 
+      houseHousesMap = {};
       if (activeFocusOverlay) { activeFocusOverlay.setMap(null); activeFocusOverlay = null; }
       if (zonePolygon) { zonePolygon.setMap(null); zonePolygon = null; }
     }
@@ -1399,35 +1411,35 @@
     }
 
     // ==========================================
-    // ★ 1번: 단순하고 선명한 번호 말풍선 핀 생성
+    // ★ 요청 반영: 사각형 본체 + 삼각 지붕을 가진 '집 모양(House Shape)' 핀 오버레이
     // ==========================================
-    function addHouseBubbleOverlay(shortAddr, fullAddr, pos, idx) {
+    function addHouseShapeOverlay(shortAddr, fullAddr, pos, idx) {
       const safeKey = fullAddr.replace(/[.#$[\]\/]/g, '_'); 
       const isDone = isAddressDone(safeKey); 
       const isStart = (idx === 0);
 
-      const bubbleDiv = document.createElement('div');
-      bubbleDiv.id = `pin-bubble-${idx}`;
-      bubbleDiv.className = `pin-bubble ${isStart ? 'start-house' : ''} ${isDone ? 'done' : ''}`;
-      bubbleDiv.innerText = `${idx + 1}`;
-      bubbleDiv.title = `#${idx + 1}. ${shortAddr}`;
-      bubbleDiv.onclick = (e) => {
+      const houseDiv = document.createElement('div');
+      houseDiv.id = `pin-house-${idx}`;
+      houseDiv.className = `pin-house ${isStart ? 'start-house' : ''} ${isDone ? 'done' : ''}`;
+      houseDiv.innerText = `${idx + 1}`;
+      houseDiv.title = `#${idx + 1}. ${shortAddr}`;
+      houseDiv.onclick = (e) => {
         focusSingleAddress(shortAddr, idx);
       };
 
       const overlay = new kakao.maps.CustomOverlay({
         position: pos,
-        content: bubbleDiv,
+        content: houseDiv,
         xAnchor: 0.5,
-        yAnchor: 1.15, // 말풍선 꼬리가 정확한 위치를 가리키도록 설정
+        yAnchor: 0.85, // 지붕과 바닥을 감안하여 중심 위치에 안정적으로 착지
         map: map
       });
 
-      houseBubblesMap[shortAddr] = overlay;
+      houseHousesMap[shortAddr] = overlay;
     }
 
     // ==========================================
-    // 지도 전체 그리기: 가구 번호 말풍선 + 넉넉한 구역 테두리
+    // 지도 전체 그리기: 가구 집 모양 마커 + 넉넉한 구역 테두리
     // ==========================================
     function drawPinsForCurrentZone(fitBounds = false) {
       clearAllMapMarkers(); 
@@ -1447,7 +1459,7 @@
       const finalizeBounds = () => {
         if (session !== currentDrawSession) return;
 
-        // ★ 구역 전체를 둘러싸는 넉넉한 외곽 경계선 폴리곤 그리기
+        // 구역 전체를 둘러싸는 넉넉한 외곽 경계선 폴리곤 그리기
         if (allCoords.length >= 3) {
           const hullPoints = calculateConvexHull(allCoords);
           const expandedHull = expandPolygonHull(hullPoints, 45); // 45m 넉넉한 확장 버퍼
@@ -1479,10 +1491,10 @@
       zone.addrs.forEach((shortAddr, idx) => {
         const fullAddr = getFullAddr(shortAddr);
         
-        const placeBubble = (coords, addressType) => {
+        const placeHouse = (coords, addressType) => {
           if (session !== currentDrawSession) return; 
 
-          addHouseBubbleOverlay(shortAddr, fullAddr, coords, idx);
+          addHouseShapeOverlay(shortAddr, fullAddr, coords, idx);
           allCoords.push(coords);
           currentBounds.extend(coords);
 
@@ -1500,13 +1512,13 @@
         };
 
         if (addrCoordCache[fullAddr]) {
-            placeBubble(addrCoordCache[fullAddr].coords, addrCoordCache[fullAddr].type);
+            placeHouse(addrCoordCache[fullAddr].coords, addrCoordCache[fullAddr].type);
         } else {
           searchAddressWithFallback(fullAddr, function(result) {
             if (result) {
               const coords = new kakao.maps.LatLng(result.y, result.x); 
               addrCoordCache[fullAddr] = { coords: coords, type: result.address_type }; 
-              placeBubble(coords, result.address_type); 
+              placeHouse(coords, result.address_type); 
             } else {
               processedCount++;
               if (processedCount === totalCount) finalizeBounds();
@@ -1516,9 +1528,7 @@
       });
     }
 
-    // ==========================================
-    // ★ 2번 버그 해결: 개별 가구 선택 시 전체 마커를 지우지 않고 포커스 유지
-    // ==========================================
+    // 개별 가구 선택 시 전체 마커를 지우지 않고 포커스 유지
     function focusSingleAddress(shortAddr, idx) {
       if (!map) return; 
       focusedAddr = shortAddr; 
@@ -1531,7 +1541,7 @@
         targetCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); 
       }
 
-      // 이전 팝업만 닫고, 전체 가구 말풍선들은 그대로 유지함!
+      // 이전 팝업만 닫고, 전체 가구 집 모양 마커들은 그대로 유지함
       if (activeFocusOverlay) { 
         activeFocusOverlay.setMap(null); 
         activeFocusOverlay = null; 
@@ -1572,7 +1582,7 @@
       }
     }
 
-    // ★ [전체 가구 한눈에 보기] 버튼 클릭 시 호출
+    // [전체 가구 한눈에 보기] 버튼 클릭 시 호출
     function showAllPins() { 
       focusedAddr = null; 
       document.querySelectorAll('.house-card').forEach(c => c.classList.remove('focused')); 
@@ -1583,7 +1593,7 @@
         activeFocusOverlay = null; 
       }
 
-      // 이미 계산된 구역 전체 바운드가 있다면 즉시 전체 화면으로 맞춤 (마커 소실 없음!)
+      // 이미 계산된 구역 전체 바운드가 있다면 즉시 전체 화면으로 맞춤
       if (currentBounds && map) {
         map.setBounds(currentBounds, 55);
       } else {
