@@ -5,16 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>전화구역</title>
 
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="전화구역">
-  <meta name="theme-color" content="#166534">
-
-  <!-- 매니페스트 및 아이콘 연결 -->
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-
-  <!-- 최신 전화구역 데이터 로드 -->
+  <!-- 전화구역 전용 데이터 로드 -->
   <script type="text/javascript" src="data_phone.js"></script>
 
   <!-- Firebase v8 로드 -->
@@ -26,357 +17,1033 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Malgun Gothic", -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background-color: #f1f5f9; overflow: hidden; height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
 
-    /* 메모 팝업 모달 */
+    /* 공통 모달 스타일 */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 10000; }
     .modal-card { background: #fff; width: 85%; max-width: 320px; border-radius: 12px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
     .modal-card h3 { font-size: 16px; margin-bottom: 10px; color: #0f172a; }
     .modal-card textarea { width: 100%; height: 80px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; resize: none; outline: none; margin-bottom: 10px; font-size: 13px; }
+    .modal-card textarea[readonly] { background-color: #f1f5f9; color: #475569; cursor: not-allowed; border-style: dashed; }
     .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
     .modal-btn { padding: 8px 16px; border: none; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; }
     .btn-cancel { background: #e2e8f0; color: #475569; }
-    .btn-save { background: #166534; color: #fff; }
+    .btn-save { background: #2ea354; color: #fff; }
 
-    /* 시작 화면 (로그인) */
-    #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #166534, #14532d); display: flex; justify-content: center; align-items: center; z-index: 9000; }
-    
-    .btn-map-zone { 
-      position: absolute; top: 16px; left: 16px; width: 44px; height: 44px; background: #ffffff; border-radius: 50%; 
-      display: flex; align-items: center; justify-content: center; color: #2563eb; box-shadow: 0 4px 12px rgba(0,0,0,0.25); text-decoration: none; 
-      transition: transform 0.2s;
+    /* 토스트 알림 메시지 */
+    #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 12px 20px; border-radius: 30px; font-size: 14px; font-weight: bold; z-index: 11000; opacity: 0; transition: opacity 0.3s; pointer-events: none; text-align: center; }
+    #toast.show { opacity: 1; }
+
+    /* ★ 1. 시작 화면 배경색 원래의 초록색 그라데이션으로 복원 */
+    #login-screen { 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%; 
+      background: linear-gradient(135deg, #2ea354, #166534); 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      z-index: 9000; 
     }
-    .btn-map-zone:active { transform: scale(0.92); }
-
-    .login-card { background: rgba(255, 255, 255, 0.96); padding: 40px 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 85%; max-width: 340px; text-align: center; }
-    .brand-wrapper { width: 80px; margin: 0 auto 5px auto; display: flex; flex-direction: column; align-items: center; }
-    .custom-logo { width: 100%; height: 80px; background-color: #166534; color: white; display: flex; justify-content: center; align-items: center; font-size: 38px; font-weight: 900; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    .brand-text { width: 100%; display: flex; justify-content: space-between; color: #166534; font-size: 16px; font-weight: 900; margin-top: 6px; }
-    .login-subtitle { font-size: 14px; font-weight: bold; color: #64748b; margin-bottom: 25px; margin-top: 5px; }
-
-    .input-group { margin-bottom: 20px; text-align: left; }
-    .input-group label { display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px; }
-    .input-group input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 15px; font-weight: bold; outline: none; }
-    .input-group input:focus { border-color: #22c55e; }
-    .btn-start { width: 100%; background: #166534; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(22, 101, 52, 0.3); }
-    .btn-start:active { background: #14532d; transform: scale(0.98); }
-
-    /* 메인 앱 화면 */
-    #main-app { display: none; flex-direction: column; height: 100%; width: 100%; }
-    .header { background-color: #14532d; padding: 10px 10px; flex-shrink: 0; }
-    .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-    .title-group { display: flex; align-items: center; gap: 8px; }
-    .btn-home { display: flex; align-items: center; justify-content: center; cursor: pointer; color: #ffffff; }
-    .btn-home:active { transform: scale(0.85); }
-    .btn-home svg { width: 22px; height: 22px; stroke-width: 2px; }
-    .title { color: #86efac; font-size: 15px; font-weight: bold; }
-
-    .dropdown-group { display: flex; gap: 5px; width: 100%; }
-    .select-btn { height: 36px; padding: 4px 8px; border-radius: 5px; font-size: 12px; font-weight: bold; border: 1px solid #22c55e; outline: none; background: #166534; color: white; width: 100%; }
-
-    .info-bar { background-color: #ffffff; padding: 8px 12px; border-top: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1; display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
-    .info-bar-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
-    .status-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
-    .prog-text { font-size: 12px; color: #15803d; font-weight: 800; }
-    .btn-reset-zone { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
-    .sub-zone-title { text-align: center; font-size: 12px; color: #475569; font-weight: 700; background: #f1f5f9; padding: 4px; border-radius: 4px; }
-
-    /* 원래의 컴팩트한 가구 카드 목록 UI */
-    .list-area { flex: 1 1 auto; overflow-y: auto; padding: 6px 8px 40px 8px; background-color: #f8fafc; -webkit-overflow-scrolling: touch; }
-    .house-card { min-height: 50px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 10px; margin-bottom: 5px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-    .house-card.completed { background: #dcfce7; border-color: #86efac; }
-    .house-card.completed .phone-link { text-decoration: line-through; color: #166534; }
     
-    .house-card-top { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 6px; }
-    .phone-info-wrap { display: flex; align-items: center; gap: 6px; flex: 1; overflow: hidden; white-space: nowrap; }
-    .seq-badge { font-size: 13px; font-weight: 900; color: #166534; min-width: 28px; }
-    .phone-link { font-size: 14px; font-weight: 800; color: #1d4ed8; text-decoration: none; }
-    .biz-badge { font-size: 12px; font-weight: bold; color: #854d0e; background: #fef08a; padding: 2px 6px; border-radius: 4px; overflow: hidden; text-overflow: ellipsis; }
+    /* 초록 배경에 맞춘 시인성 높은 지도 이동 화이트 원형 뱃지 */
+    .btn-map-zone { 
+      position: absolute; 
+      top: 16px; 
+      left: 16px; 
+      width: 44px; 
+      height: 44px; 
+      background: #ffffff; 
+      border-radius: 50%; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      color: #166534; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25); 
+      transition: transform 0.2s, background 0.2s; 
+      text-decoration: none; 
+      cursor: pointer;
+    }
+    .btn-map-zone:active { transform: scale(0.92); background: #f0fdf4; }
 
-    .btn-wrap { display: flex; gap: 5px; align-items: center; flex-shrink: 0; }
-    .btn-memo { background: #cbd5e1; color: #0f172a; border: none; padding: 5px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
-    .btn-check { background: #64748b; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; min-width: 54px; }
-    .btn-check.completed { background: #16a34a; }
+    /* 초록 배경용 관리자 톱니바퀴 */
+    .btn-admin-gear { 
+      position: absolute; 
+      top: 15px; 
+      right: 15px; 
+      font-size: 24px; 
+      cursor: pointer; 
+      color: rgba(255,255,255,0.7); 
+      transition: 0.2s; 
+      background: none; 
+      border: none; 
+    }
+    .btn-admin-gear:active { transform: rotate(90deg) scale(0.9); color: #ffffff; }
 
-    .memo-display { font-size: 11px; color: #ef4444; margin-top: 4px; font-weight: bold; display: none; }
+    .login-card { 
+      background: rgba(255, 255, 255, 0.95); 
+      padding: 38px 28px; 
+      border-radius: 16px; 
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
+      width: 85%; 
+      max-width: 340px; 
+      text-align: center; 
+    }
+    .brand-wrapper { width: 80px; margin: 0 auto 5px auto; display: flex; flex-direction: column; align-items: center; }
+    .custom-logo { width: 100%; height: 80px; background-color: #2ea354; color: white; display: flex; justify-content: center; align-items: center; font-size: 38px; font-weight: 900; margin: 0; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .brand-text { width: 100%; display: flex; justify-content: space-between; color: #2ea354; font-size: 16px; font-weight: 900; margin-top: 6px; }
+    .login-subtitle { font-size: 14px; font-weight: bold; color: #64748b; margin-bottom: 22px; margin-top: 5px; }
+    .input-group { margin-bottom: 18px; text-align: left; }
+    .input-group label { display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px; }
+    .input-group input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 15px; font-weight: bold; outline: none; background: #ffffff; }
+    .input-group input:focus { border-color: #2ea354; }
+    .btn-start { width: 100%; background: #2ea354; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 16px; box-shadow: 0 4px 6px rgba(46, 163, 84, 0.3); }
+    .btn-start:active { transform: scale(0.98); background: #238644; }
+
+    /* 최근 방문 뱃지 */
+    .recent-visit { font-size: 12px; color: #64748b; font-weight: 600; background: #e2e8f0; padding: 8px; border-radius: 6px; }
+    .recent-visit strong { color: #2ea354; font-size: 13px; }
+
+    /* 관리자 화면 스타일 */
+    #admin-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f8fafc; z-index: 9500; display: none; flex-direction: column; }
+    .admin-header { background: #166534; color: white; padding: 15px; font-size: 16px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+    .admin-close { background: none; border: none; color: white; font-size: 14px; font-weight: bold; cursor: pointer; }
+    .admin-content { flex: 1; overflow-y: auto; padding: 15px; }
+    .admin-section { background: white; border-radius: 8px; padding: 15px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .admin-section h2 { font-size: 15px; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .stat-card { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 14px; text-align: center; }
+    .stat-title { font-size: 12px; color: #166534; font-weight: bold; margin-bottom: 6px; }
+    .stat-value { font-size: 20px; font-weight: 900; color: #2ea354; }
+    .stat-subtext { font-size: 11px; color: #15803d; margin-top: 4px; line-height: 1.4; }
+    
+    .search-wrap { display: flex; margin-bottom: 10px; }
+    .search-wrap input { flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; outline: none; }
+    .admin-btn-search { background: #2ea354; color: white; border: none; padding: 8px 12px; border-radius: 4px; font-size: 13px; font-weight: bold; cursor: pointer; margin-left: 5px; }
+    
+    .admin-list { list-style: none; font-size: 13px; color: #334155; }
+    .admin-list li { padding: 10px 0; border-bottom: 1px dashed #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+    .admin-list li:last-child { border-bottom: none; }
+    .btn-delete { background: #fee2e2; color: #b91c1c; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; flex-shrink: 0; }
+    .add-pub-wrap { display: flex; gap: 8px; margin-bottom: 10px; }
+    .add-pub-wrap input { flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; }
+    .add-pub-wrap button { background: #2ea354; color: white; border: none; padding: 8px 12px; border-radius: 4px; font-size: 13px; font-weight: bold; }
+    .comp-history-item { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; background: #f8fafc; border-radius: 4px; padding: 6px 8px; width: 100%; }
+
+    /* 메인 앱 레이아웃 */
+    #main-app { display: none; flex-direction: column; height: 100%; width: 100%; }
+    .header { background-color: #166534; padding: 10px 14px; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .header-top { display: flex; justify-content: space-between; align-items: center; }
+    .title-group { display: flex; align-items: center; gap: 10px; }
+    
+    .btn-home { 
+      width: 34px; 
+      height: 34px; 
+      background: rgba(255, 255, 255, 0.15); 
+      border: 1px solid rgba(255, 255, 255, 0.3); 
+      border-radius: 8px; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      color: #ffffff; 
+      cursor: pointer; 
+      transition: background 0.2s, transform 0.1s; 
+    }
+    .btn-home:active { transform: scale(0.92); background: rgba(255, 255, 255, 0.3); }
+
+    .title { color: #86efac; font-size: 14px; font-weight: bold; }
+
+    .recent-complete-badge { 
+      background: #14532d; 
+      color: #bbf7d0; 
+      border: 1px solid rgba(187, 247, 208, 0.3); 
+      padding: 4px 10px; 
+      border-radius: 14px; 
+      font-size: 11px; 
+      font-weight: 800; 
+      display: inline-flex; 
+      align-items: center; 
+      gap: 4px; 
+      white-space: nowrap; 
+    }
+    .recent-complete-badge strong { color: #ffffff; }
+
+    /* 진행바 및 구역 완료 버튼 영역 */
+    .info-bar { background-color: #ffffff; padding: 10px 12px; border-bottom: 1px solid #cbd5e1; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+    .info-bar-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+    .prog-text { font-size: 14px; color: #166534; font-weight: 800; }
+    
+    .btn-zone-complete { background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: 0.2s; }
+    .btn-zone-complete:active:not(:disabled) { transform: scale(0.95); }
+    .btn-zone-complete:disabled { background: #94a3b8; cursor: not-allowed; box-shadow: none; opacity: 0.6; }
+
+    .sub-zone-title-container { text-align: center; background: #f0fdf4; padding: 10px; border-radius: 6px; border: 1px solid #bbf7d0; margin-top: 4px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .sub-zone-title { font-size: 16px; color: #0f172a; font-weight: 900; }
+    .sub-zone-date { font-size: 12px; color: #166534; font-weight: bold; background: #dcfce7; padding: 2px 8px; border-radius: 12px; display: inline-block; }
+
+    /* 전화구역 전용 카드 리스트 */
+    .list-area { flex: 1; overflow-y: auto; padding: 10px; background-color: #f8fafc; -webkit-overflow-scrolling: touch; }
+    .phone-card { background: white; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 10px; transition: border-color 0.2s, background-color 0.2s; }
+    .phone-card.has-status { border-color: #2ea354; background: #f0fdf4; }
+    .phone-card.focused { border: 2px solid #2ea354; background-color: #f0fdf4; }
+    
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .biz-info { flex: 1; }
+    .biz-info .addr-id { font-size: 20px; color: #15803d; font-weight: 900; margin-bottom: 6px; border-bottom: 2px solid #bbf7d0; padding-bottom: 2px; display: inline-block; }
+    
+    .phone-link { color: #166534; font-weight: 900; font-size: 16px; text-decoration: none; display: inline-block; padding-bottom: 2px; -webkit-touch-callout: none; user-select: none; }
+    .biz-name-highlight { color: #0284c7; font-weight: 800; font-size: 14px; margin-left: 6px; }
+    .btn-memo { background: #e2e8f0; color: #475569; border: none; padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; flex-shrink: 0; }
+
+    /* 상태 버튼 그룹 */
+    .status-group { display: flex; gap: 5px; width: 100%; }
+    .btn-status { flex: 1; padding: 8px 0; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; font-weight: bold; background: #ffffff; color: #475569; cursor: pointer; transition: 0.1s; }
+    
+    .btn-status.active.call { background: #2ea354; color: white; border-color: #2ea354; }
+    .btn-status.active.absent { background: #eab308; color: white; border-color: #eab308; }
+    .btn-status.active.wrong { background: #64748b; color: white; border-color: #64748b; }
+    .btn-status.active.reject { background: #ef4444; color: white; border-color: #ef4444; }
+
+    .phone-card.status-wrong .phone-link, 
+    .phone-card.status-wrong .biz-name-highlight { text-decoration: line-through; color: #94a3b8; }
+    
+    .phone-card.status-reject .phone-link, 
+    .phone-card.status-reject .biz-name-highlight { text-decoration: line-through; color: #ef4444; }
+    .reject-label { display: none; background-color: #ef4444; color: white; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
+    .phone-card.status-reject .reject-label { display: inline-block; }
+
+    .memo-display { font-size: 13px; color: #b91c1c; font-weight: bold; background: #fef2f2; padding: 8px 12px; border-radius: 6px; display: none; border-left: 4px solid #ef4444; margin-top: 2px; }
     .memo-display.has-memo { display: block; }
+
+    .consonant-filter { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
+    .consonant-btn { padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px; background: white; font-size: 12px; cursor: pointer; color: #475569; }
+    .consonant-btn.active { background: #2ea354; color: white; border-color: #2ea354; font-weight: bold; }
+    .pagination { display: flex; justify-content: center; gap: 5px; margin-top: 15px; flex-wrap: wrap; }
+    .page-btn { padding: 4px 10px; border: 1px solid #cbd5e1; border-radius: 4px; background: white; cursor: pointer; font-size: 12px; color: #475569; }
+    .page-btn.active { background: #2ea354; color: white; border-color: #2ea354; font-weight: bold; }
   </style>
 </head>
 <body>
 
-  <!-- 메모 팝업 모달 -->
+  <div id="toast">복사되었습니다.</div>
+
+  <!-- 메모 모달 -->
   <div id="memo-modal" class="modal-overlay">
     <div class="modal-card">
-      <h3 id="memo-target-phone">전화번호</h3>
-      <textarea id="memo-input" placeholder="특이사항을 입력하세요 (예: 재방문, 거절 등)"></textarea>
+      <h3 id="memo-target-addr">메모 작성</h3>
+      <textarea id="memo-input" placeholder="전화 통화 특이사항을 입력하세요"></textarea>
       <div class="modal-actions">
         <button class="modal-btn btn-cancel" onclick="closeMemoModal()">취소</button>
-        <button class="modal-btn btn-save" onclick="saveMemo()">저장</button>
+        <button id="btn-memo-save" class="modal-btn btn-save" onclick="saveMemo()">저장</button>
       </div>
     </div>
   </div>
 
   <!-- 시작 화면 -->
   <div id="login-screen">
-    <a href="index.html" class="btn-map-zone" title="전자구역 지도로 이동">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+    <a href="index.html" class="btn-map-zone" title="지도구역으로 이동">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
         <line x1="8" y1="2" x2="8" y2="18"></line>
         <line x1="16" y1="6" x2="16" y2="22"></line>
       </svg>
     </a>
-
+    
+    <div class="btn-admin-gear" onclick="openAdmin()" title="관리자 페이지">⚙️</div>
+    
     <div class="login-card">
       <div class="brand-wrapper">
-        <div class="custom-logo">📞</div>
+        <div class="custom-logo">JW</div>
         <div class="brand-text"><span>전</span><span>화</span><span>구</span><span>역</span></div>
       </div>
       <div class="login-subtitle">- 안면 회중 -</div>
-
+      
       <div class="input-group">
         <label>전도인</label>
         <input type="text" id="inputName" placeholder="이름을 입력하세요">
       </div>
       <div class="input-group">
-        <label>구역번호 (1 ~ 89)</label>
+        <label>구역번호 (숫자만 입력 가능)</label>
         <input type="number" id="inputZoneNum" placeholder="구역번호를 입력하세요">
       </div>
-
+      
       <button class="btn-start" onclick="startApp()">시 작</button>
+
+      <!-- 최근 방문 표기 -->
+      <div class="recent-visit" id="recentVisitDisplay">최근 방문 기록이 없습니다.</div>
     </div>
   </div>
 
-  <!-- 메인 앱 화면 -->
+  <!-- 관리자 화면 -->
+  <div id="admin-screen">
+    <div class="admin-header">
+      <span>관리자 페이지 (전화구역)</span>
+      <button class="admin-close" onclick="closeAdmin()">닫기 ✕</button>
+    </div>
+    <div class="admin-content">
+      <div class="admin-section">
+        <h2>📊 전화구역 개별 통계</h2>
+        <div class="search-wrap">
+          <input type="text" id="searchStatZone" placeholder="구역번호 검색 (예: 001)" onkeyup="if(event.key==='Enter') searchZoneStats()">
+          <button class="admin-btn-search" onclick="searchZoneStats()">조회</button>
+        </div>
+        <div class="stats-grid" id="statsGridArea">
+          <p style="font-size:12px; color:#64748b; grid-column: span 2; text-align:center;">구역 번호를 검색하면 통계가 나타납니다.</p>
+        </div>
+      </div>
+
+      <div class="admin-section">
+        <h2>✏️ 전화번호/상호명 수정</h2>
+        <p style="font-size:11px; color:#64748b; margin-bottom:10px;">전화번호와 상호가 변경되었을 때 여기서 수정하면 기록(메모 등)이 보존됩니다.</p>
+        <div class="search-wrap">
+          <input type="text" id="searchEditZone" placeholder="수정할 구역번호 (예: 001)" onkeyup="if(event.key==='Enter') searchZoneToEdit()">
+          <button class="admin-btn-search" onclick="searchZoneToEdit()">검색</button>
+        </div>
+        <ul class="admin-list" id="adminEditList"></ul>
+      </div>
+
+      <div class="admin-section">
+        <h2>👥 전도인 관리</h2>
+        <div class="add-pub-wrap">
+          <input type="text" id="newPubName" placeholder="추가할 이름 입력">
+          <button onclick="addPublisher()">추가</button>
+        </div>
+        <ul class="admin-list" id="adminPubList"></ul>
+        <div class="consonant-filter" id="pubFilterBar"></div>
+      </div>
+
+      <div class="admin-section">
+        <h2>🏆 전화구역 완료 기록</h2>
+        <div class="search-wrap">
+          <input type="text" id="searchComp" placeholder="구역번호 검색 (예: 001)" onkeyup="resetCompPageAndRender()">
+        </div>
+        <ul class="admin-list" id="adminCompList"></ul>
+        <div class="pagination" id="compPagination"></div>
+      </div>
+
+      <div class="admin-section">
+        <h2>📝 특이사항 메모 관리</h2>
+        <div class="search-wrap">
+          <input type="text" id="searchMemo" placeholder="구역번호 검색 (예: 001)" onkeyup="resetMemoPageAndRender()">
+        </div>
+        <ul class="admin-list" id="adminMemoList"></ul>
+        <div class="pagination" id="memoPagination"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 메인 앱 -->
   <div id="main-app">
     <div class="header">
       <div class="header-top">
         <div class="title-group">
-          <div class="btn-home" onclick="goHome()" title="첫 화면으로">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <div class="btn-home" onclick="goHome()" title="처음으로 이동">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.3">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
               <polyline points="9 22 9 12 15 12 15 22"></polyline>
             </svg>
           </div>
-          <div class="title" id="mainHeaderTitle">전화구역</div>
+          <div class="title" id="mainHeaderTitle">전도인: -</div>
         </div>
-      </div>
-      <div class="dropdown-group">
-        <select id="selZone" class="select-btn" onchange="onZoneChange()"></select>
+        <!-- 전체 전도인 대상 최근 완료 뱃지 -->
+        <div class="recent-complete-badge" id="recentCompleteBadge">최근 완료: 없음</div>
       </div>
     </div>
 
     <div class="info-bar">
       <div class="info-bar-top">
-        <span class="prog-text" id="progRatio">0 / 0 (0%)</span>
-        <div class="status-actions">
-          <button class="btn-reset-zone" onclick="resetCurrentZone()">리셋 ↺</button>
-        </div>
+        <span class="prog-text" id="progRatio">진행률: 0 / 0 (0%)</span>
+        <button id="btnZoneComplete" class="btn-zone-complete" onclick="completeCurrentZone()" disabled>구역 완료 🏆</button>
       </div>
-      <div id="subZoneTitle" class="sub-zone-title">구역을 선택해주세요</div>
+      <div id="subZoneTitleContainer" class="sub-zone-title-container">
+        <div id="subZoneTitle" class="sub-zone-title">구역을 선택해주세요</div>
+      </div>
     </div>
 
     <div class="list-area" id="listArea"></div>
   </div>
 
   <script>
-    // Firebase 설정
     const firebaseConfig = {
       apiKey: "AIzaSyD3N7SPoV6Z4qsCs3S0vrQ9Tko4Z62ZCfQ",
       authDomain: "anmyeon-map.firebaseapp.com",
       databaseURL: "https://anmyeon-map-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "anmyeon-map",
-      storageBucket: "anmyeon-map.firebasestorage.app",
-      messagingSenderId: "109632266942",
-      appId: "1:109632266942:web:5f832f087625ee5c9374ef"
+      projectId: "anmyeon-map"
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let currentUser = "";
-    let curZoneKey = "";
-    let doneMap = {};
-    let globalMemos = {};
+    let curTown = "", curVillage = "", curZoneKey = "";
+    let currentUser = ""; 
+    let doneMap = {}; 
+    let globalMemos = {}; 
+    let globalCompletions = {}; 
+    let globalPublishers = {};
+    let globalPhoneEdits = {}; 
     let currentMemoKey = "";
+    let focusedAddr = null;
+    let currentPubFilter = "전체";
+    const ITEMS_PER_PAGE = 10;
+    let currentCompPage = 1, currentMemoPage = 1;
+    const consonantsList = ["전체", "ㄱ","ㄴ","ㄷ","ㄹ","ㅁ","ㅂ","ㅅ","ㅇ","ㅈ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
+
+    window.PHONE_ZONE_DATABASE = window.PHONE_ZONE_DATABASE || {};
+
+    function getInitialSound(str) {
+      const cho = ["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
+      if (!str) return "";
+      const code = str.charCodeAt(0) - 44032;
+      if (code > -1 && code < 11172) return cho[Math.floor(code / 588)];
+      return str.charAt(0);
+    }
+
+    function formatZoneData() {
+      for(let town in window.PHONE_ZONE_DATABASE) {
+        for(let village in window.PHONE_ZONE_DATABASE[town]) {
+          for(let zoneKey in window.PHONE_ZONE_DATABASE[town][village]) {
+            let zoneData = window.PHONE_ZONE_DATABASE[town][village][zoneKey];
+            if (zoneData.addrs) {
+              zoneData.addrs = zoneData.addrs.map(addr => addr.replace(/[\r\n\t]+/g, '').trim());
+            }
+          }
+        }
+      }
+    }
 
     window.onload = function() {
+      if (typeof PHONE_ZONE_DATABASE === 'undefined') {
+        alert("전화구역 데이터 파일(data_phone.js)을 불러올 수 없습니다.");
+        return;
+      }
+      formatZoneData();
+      
       const savedName = localStorage.getItem('ammap_username') || "";
-      if (savedName) document.getElementById('inputName').value = savedName;
+      const savedZone = localStorage.getItem('phone_ammap_recentzone') || "";
+      
+      document.getElementById('inputName').value = savedName;
 
-      // Firebase 실시간 동기화
-      db.ref('phone_visits').on('value', snap => { doneMap = snap.val() || {}; refreshUI(); });
-      db.ref('phone_memos').on('value', snap => { globalMemos = snap.val() || {}; refreshUI(); });
+      if (savedZone) {
+        document.getElementById('recentVisitDisplay').innerHTML = `최근 방문<br><strong>${savedZone} 번</strong>`;
+      }
+
+      initFirebaseGlobalSync();
+      initLongPressCopy(); 
+
+      if (sessionStorage.getItem('phone_ammap_active_session') === 'true' && savedName) {
+        document.getElementById('inputZoneNum').value = savedZone;
+        startApp(); 
+      }
     };
 
-    function startApp() {
-      const name = document.getElementById('inputName').value.trim();
-      const zoneNum = document.getElementById('inputZoneNum').value.trim();
-      if (!name) { alert("이름을 입력하세요."); return; }
+    function initFirebaseGlobalSync() {
+      db.ref('publishers').on('value', snap => { globalPublishers = snap.val() || {}; renderAdminPublishers(); });
+      db.ref('phone_memos').on('value', snap => { globalMemos = snap.val() || {}; renderAdminMemos(); renderCurrentList(); });
+      db.ref('phone_zone_completions').on('value', snap => { 
+        globalCompletions = snap.val() || {}; 
+        renderAdminCompletions(); 
+        if(document.getElementById('admin-screen').style.display === 'flex') searchZoneStats(true); 
+        renderCurrentList(); 
+        updateRecentCompleteDisplay();
+      });
+      db.ref('phone_visits').on('value', snap => { doneMap = snap.val() || {}; updateProgressUI(); renderCurrentList(); });
+      db.ref('phone_edits').on('value', snap => { 
+        globalPhoneEdits = snap.val() || {}; 
+        renderCurrentList(); 
+        if(document.getElementById('adminEditList').innerHTML !== '') searchZoneToEdit(); 
+      });
+    }
 
-      currentUser = name;
-      localStorage.setItem('ammap_username', currentUser);
+    function initLongPressCopy() {
+      let pressTimer;
+      const startPress = (e) => {
+        if(e.target.classList.contains('phone-link')) {
+          const phoneNum = e.target.getAttribute('data-phone');
+          pressTimer = window.setTimeout(() => { copyToClipboard(phoneNum); }, 600); 
+        }
+      };
+      const cancelPress = () => { clearTimeout(pressTimer); };
+
+      document.body.addEventListener('touchstart', startPress);
+      document.body.addEventListener('touchend', cancelPress);
+      document.body.addEventListener('touchmove', cancelPress);
+      document.body.addEventListener('mousedown', startPress);
+      document.body.addEventListener('mouseup', cancelPress);
+      document.body.addEventListener('mousemove', cancelPress);
+      document.body.addEventListener('contextmenu', (e) => {
+        if(e.target.classList.contains('phone-link')) e.preventDefault(); 
+      });
+    }
+
+    function copyToClipboard(text) {
+      const cleanText = text.replace(/[^0-9\-]/g, '');
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(cleanText).then(() => showToast(`전화번호(${cleanText})가 복사되었습니다.`));
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = cleanText;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+        showToast(`전화번호(${cleanText})가 복사되었습니다.`);
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => { toast.classList.remove('show'); }, 2500);
+    }
+
+    function startApp() {
+      const nameVal = document.getElementById('inputName').value.trim();
+      let zoneNumVal = document.getElementById('inputZoneNum').value.trim();
+
+      if (!nameVal) { alert("전도인 이름을 입력해주세요."); return; }
+
+      currentUser = nameVal;
+      localStorage.setItem('ammap_username', currentUser); 
+      sessionStorage.setItem('phone_ammap_active_session', 'true');
       document.getElementById('mainHeaderTitle').innerHTML = `전도인: <span style="color:#ffffff;">${currentUser}</span>`;
 
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('main-app').style.display = 'flex';
 
-      initDropdown(zoneNum);
+      updateRecentCompleteDisplay();
+      processZoneSelection(zoneNumVal);
     }
 
     function goHome() {
+      sessionStorage.removeItem('phone_ammap_active_session');
       document.getElementById('main-app').style.display = 'none';
       document.getElementById('login-screen').style.display = 'flex';
+      document.getElementById('inputZoneNum').value = '';
+      
+      const savedZone = localStorage.getItem('phone_ammap_recentzone') || "";
+      if (savedZone) {
+        document.getElementById('recentVisitDisplay').innerHTML = `최근 방문<br><strong>${savedZone} 번</strong>`;
+      }
     }
 
-    function initDropdown(targetNum) {
-      const sel = document.getElementById('selZone');
-      sel.innerHTML = '';
+    // 전체 전도인 대상 최근 완료 구역 번호 및 날짜 갱신
+    function updateRecentCompleteDisplay() {
+      const badge = document.getElementById('recentCompleteBadge');
+      if (!badge) return;
 
-      const zones = (window.PHONE_ZONE_DATABASE && window.PHONE_ZONE_DATABASE["안면읍"]) ? window.PHONE_ZONE_DATABASE["안면읍"] : {};
-      let selectedKey = "";
-      const paddedTarget = targetNum ? String(targetNum).padStart(3, '0') : "001";
+      let latestTimestamp = 0;
+      let latestZoneNum = null;
 
-      Object.keys(zones).forEach(vil => {
-        Object.keys(zones[vil]).forEach(k => {
-          const z = zones[vil][k];
-          const opt = document.createElement('option');
-          opt.value = k;
-          opt.innerText = z.newTopTitle || z.title;
-          if (z.globalNum === paddedTarget) selectedKey = k;
-          sel.appendChild(opt);
+      Object.keys(globalCompletions).forEach(zoneNum => {
+        const history = globalCompletions[zoneNum].history || [];
+        history.forEach(rec => {
+          if (rec.timestamp && rec.timestamp > latestTimestamp) {
+            latestTimestamp = rec.timestamp;
+            latestZoneNum = zoneNum;
+          }
         });
       });
 
-      if (!selectedKey && sel.options.length > 0) selectedKey = sel.options[0].value;
-      sel.value = selectedKey;
-      curZoneKey = selectedKey;
-
-      renderList();
+      if (latestZoneNum && latestTimestamp > 0) {
+        const dateStr = new Date(latestTimestamp).toLocaleDateString('ko-KR', {
+          year: 'numeric',
+          month: 'numeric',
+          day: 'numeric'
+        });
+        badge.innerHTML = `최근 완료: <strong>${parseInt(latestZoneNum, 10)}번</strong> (${dateStr})`;
+      } else {
+        badge.innerHTML = `최근 완료: <strong>없음</strong>`;
+      }
     }
 
-    function onZoneChange() {
-      curZoneKey = document.getElementById('selZone').value;
-      renderList();
+    function processZoneSelection(zoneNumVal) {
+      if (zoneNumVal) {
+         const searchTarget = String(zoneNumVal).padStart(3, '0');
+         const found = searchZoneByNumber(searchTarget);
+         if (found) {
+            curTown = found.town;
+            curVillage = found.village;
+            curZoneKey = found.zoneKey;
+            localStorage.setItem('phone_ammap_recentzone', searchTarget);
+            onZoneChange();
+         } else {
+            alert("입력하신 번호의 전화구역 카드가 아직 생성되지 않았습니다.");
+            curTown = ""; curVillage = ""; curZoneKey = "";
+            onZoneChange();
+         }
+      } else {
+         curTown = ""; curVillage = ""; curZoneKey = "";
+         onZoneChange();
+      }
     }
 
-    function getCurrentZone() {
-      const zones = (window.PHONE_ZONE_DATABASE && window.PHONE_ZONE_DATABASE["안면읍"]) ? window.PHONE_ZONE_DATABASE["안면읍"] : {};
-      for (let vil in zones) {
-        if (zones[vil][curZoneKey]) return zones[vil][curZoneKey];
+    function searchZoneByNumber(targetNumStr) {
+      for (const town in PHONE_ZONE_DATABASE) {
+        for (const village in PHONE_ZONE_DATABASE[town]) {
+          const zones = PHONE_ZONE_DATABASE[town][village];
+          for (const key in zones) { if (zones[key].globalNum === targetNumStr) return { town, village, zoneKey: key }; }
+        }
       }
       return null;
     }
 
-    function renderList() {
-      const zone = getCurrentZone();
-      const listEl = document.getElementById('listArea');
+    function onZoneChange() {
+      focusedAddr = null;
+      renderCurrentList();
+      const listEl = document.getElementById('listArea'); 
+      if (listEl) listEl.scrollTop = 0;
+      
+      const zone = getCurrentZoneObject();
+      if (zone && zone.globalNum) {
+        localStorage.setItem('phone_ammap_recentzone', zone.globalNum);
+      }
+    }
+
+    function getCurrentZoneObject() { return PHONE_ZONE_DATABASE[curTown]?.[curVillage]?.[curZoneKey] || null; }
+    function getSafeKey(str) { return str.replace(/[.#$[\]\/]/g, '_'); }
+
+    function getAddressStatus(safeKey) {
+      if(!doneMap[safeKey]) return null;
+      return doneMap[safeKey].status || null; 
+    }
+
+    function updateProgressUI() {
+      const zone = getCurrentZoneObject();
+      const btnComplete = document.getElementById('btnZoneComplete');
+
+      if (!zone || !zone.addrs || zone.addrs.length === 0) { 
+        document.getElementById('progRatio').innerText = '진행률: 0 / 0 (0%)'; 
+        btnComplete.disabled = true;
+        return; 
+      }
+      let doneCnt = 0;
+      zone.addrs.forEach(itemString => { 
+        if (getAddressStatus(getSafeKey(itemString))) doneCnt++; 
+      });
+      document.getElementById('progRatio').innerText = `진행률: ${doneCnt} / ${zone.addrs.length} (${Math.round((doneCnt / zone.addrs.length) * 100)}%)`;
+
+      if (doneCnt === zone.addrs.length && zone.addrs.length > 0) {
+        btnComplete.disabled = false;
+      } else {
+        btnComplete.disabled = true;
+      }
+    }
+
+    function renderCurrentList() {
+      const zone = getCurrentZoneObject(); 
+      const listEl = document.getElementById('listArea'); 
+      if(!listEl) return;
       listEl.innerHTML = '';
-      if (!zone || !zone.addrs || zone.addrs.length === 0) {
-        document.getElementById('subZoneTitle').innerText = "데이터 준비 중";
-        document.getElementById('progRatio').innerText = "0 / 0 (0%)";
-        return;
+      if (!zone || !zone.addrs || zone.addrs.length === 0) { 
+        document.getElementById('subZoneTitleContainer').innerHTML = `<div class="sub-zone-title">데이터를 준비 중입니다.</div>`; 
+        return; 
+      }
+      
+      let history = globalCompletions[zone.globalNum] ? (globalCompletions[zone.globalNum].history || []) : [];
+      let lastDateStr = "기록 없음";
+      if (history.length > 0) {
+          lastDateStr = new Date(history[history.length - 1].timestamp).toLocaleDateString();
       }
 
-      document.getElementById('subZoneTitle').innerText = zone.newSubTitle || zone.title;
+      document.getElementById('subZoneTitleContainer').innerHTML = `
+        <div class="sub-zone-title">전화구역 ${parseInt(zone.globalNum, 10)}번 - ${zone.newSubTitle}</div>
+        <div class="sub-zone-date">최근 완료일: ${lastDateStr}</div>
+      `;
 
-      zone.addrs.forEach((itemStr, idx) => {
-        const parts = itemStr.split(' ');
-        const phone = parts[0];
-        const biz = parts.slice(1).join(' ');
-        const safeKey = `${curZoneKey}_${phone}`.replace(/[.#$[\]\/]/g, '_');
-        const isDone = !!doneMap[safeKey];
+      zone.addrs.forEach((originalString, idx) => {
+        const safeKey = getSafeKey(originalString); 
+        const status = getAddressStatus(safeKey); 
         const memoText = globalMemos[safeKey] || "";
+        const isFocused = (focusedAddr === originalString);
 
-        const card = document.createElement('div');
-        card.id = `card-${idx}`;
-        card.className = 'house-card' + (isDone ? ' completed' : '');
+        const flatEditKey = zone.globalNum + '_' + idx;
+        const displayString = globalPhoneEdits[flatEditKey] ? globalPhoneEdits[flatEditKey] : originalString;
+
+        let phoneNum = displayString;
+        let bizName = "";
+        const firstSpaceIdx = displayString.indexOf(' ');
+        if (firstSpaceIdx > -1) {
+          phoneNum = displayString.substring(0, firstSpaceIdx);
+          bizName = displayString.substring(firstSpaceIdx + 1);
+        }
+        
+        const telLink = `tel:${phoneNum.replace(/[^0-9\-]/g, '')}`;
+
+        let statusClass = '';
+        if (status === '결번') statusClass = 'status-wrong';
+        if (status === '거절') statusClass = 'status-reject';
+
+        const card = document.createElement('div'); 
+        card.id = `card-phone-${idx}`;
+        card.className = 'phone-card' + (status ? ' has-status' : '') + (isFocused ? ' focused' : '') + (statusClass ? ' ' + statusClass : '');
+        
         card.innerHTML = `
-          <div class="house-card-top">
-            <div class="phone-info-wrap">
-              <span class="seq-badge">#${idx + 1}</span>
-              <a href="tel:${phone.replace(/-/g, '')}" class="phone-link">${phone}</a>
-              ${biz ? `<span class="biz-badge">${biz}</span>` : ''}
+          <div class="card-top">
+            <div class="biz-info" onclick="focusSinglePhone('${originalString}', ${idx})">
+              <div class="addr-id">#${idx + 1}</div>
+              <div class="biz-name">
+                <a href="${telLink}" class="phone-link" data-phone="${phoneNum}">${phoneNum}</a>
+                ${bizName ? `<span class="biz-name-highlight">${bizName}</span>` : ''}
+                <span class="reject-label">전화거절</span>
+              </div>
             </div>
-            <div class="btn-wrap">
-              <button class="btn-memo" onclick="openMemoModal('${phone}', '${safeKey}')">📝</button>
-              <button id="btn-check-${idx}" class="btn-check ${isDone ? 'completed' : ''}" onclick="toggleDone('${safeKey}', ${idx})">${isDone ? '완료' : '미완료'}</button>
-            </div>
+            <button class="btn-memo" onclick="openMemoModal(${idx})">📝 메모</button>
           </div>
-          <div id="memo-${idx}" class="memo-display ${memoText ? 'has-memo' : ''}">↳ 메모: ${memoText}</div>
+          
+          <div class="status-group">
+            <button id="btn-call-${idx}" class="btn-status call ${status === '통화' ? 'active' : ''}" onclick="toggleStatus('${originalString}', '통화', ${idx})">통화</button>
+            <button id="btn-absent-${idx}" class="btn-status absent ${status === '부재' ? 'active' : ''}" onclick="toggleStatus('${originalString}', '부재', ${idx})">부재</button>
+            <button id="btn-wrong-${idx}" class="btn-status wrong ${status === '결번' ? 'active' : ''}" onclick="toggleStatus('${originalString}', '결번', ${idx})">결번</button>
+            <button id="btn-reject-${idx}" class="btn-status reject ${status === '거절' ? 'active' : ''}" onclick="toggleStatus('${originalString}', '거절', ${idx})">거절</button>
+          </div>
+          <div class="memo-display ${memoText ? 'has-memo' : ''}">↳ ${memoText}</div>
         `;
         listEl.appendChild(card);
       });
-
-      updateProgress();
+      updateProgressUI();
     }
 
-    function refreshUI() {
-      const zone = getCurrentZone();
-      if (!zone || !zone.addrs) return;
-
-      zone.addrs.forEach((itemStr, idx) => {
-        const phone = itemStr.split(' ')[0];
-        const safeKey = `${curZoneKey}_${phone}`.replace(/[.#$[\]\/]/g, '_');
-        const isDone = !!doneMap[safeKey];
-        const memoText = globalMemos[safeKey] || "";
-
-        const card = document.getElementById(`card-${idx}`);
-        const btn = document.getElementById(`btn-check-${idx}`);
-        const memoEl = document.getElementById(`memo-${idx}`);
-
-        if (card && btn) {
-          if (isDone) { card.classList.add('completed'); btn.classList.add('completed'); btn.innerText = '완료'; }
-          else { card.classList.remove('completed'); btn.classList.remove('completed'); btn.innerText = '미완료'; }
-        }
-        if (memoEl) {
-          if (memoText) { memoEl.innerText = `↳ 메모: ${memoText}`; memoEl.classList.add('has-memo'); }
-          else { memoEl.classList.remove('has-memo'); }
-        }
-      });
-
-      updateProgress();
+    function focusSinglePhone(originalString, idx) {
+      focusedAddr = originalString;
+      document.querySelectorAll('.phone-card').forEach(c => c.classList.remove('focused'));
+      const targetCard = document.getElementById(`card-phone-${idx}`); 
+      if (targetCard) targetCard.classList.add('focused'); 
     }
 
-    function updateProgress() {
-      const zone = getCurrentZone();
-      if (!zone || !zone.addrs) return;
-      let count = 0;
-      zone.addrs.forEach(itemStr => {
-        const phone = itemStr.split(' ')[0];
-        const safeKey = `${curZoneKey}_${phone}`.replace(/[.#$[\]\/]/g, '_');
-        if (doneMap[safeKey]) count++;
-      });
-      document.getElementById('progRatio').innerText = `${count} / ${zone.addrs.length} (${Math.round((count / zone.addrs.length) * 100)}%)`;
-    }
+    function toggleStatus(originalString, newStatus, idx) {
+      const safeKey = getSafeKey(originalString); 
+      const currentStatus = getAddressStatus(safeKey);
 
-    function toggleDone(safeKey, idx) {
-      if (doneMap[safeKey]) {
+      const card = document.getElementById(`card-phone-${idx}`);
+      const btnCall = document.getElementById(`btn-call-${idx}`);
+      const btnAbsent = document.getElementById(`btn-absent-${idx}`);
+      const btnWrong = document.getElementById(`btn-wrong-${idx}`);
+      const btnReject = document.getElementById(`btn-reject-${idx}`);
+
+      [btnCall, btnAbsent, btnWrong, btnReject].forEach(btn => { if(btn) btn.classList.remove('active'); });
+
+      if (currentStatus === newStatus) {
+        if(card) card.classList.remove('has-status', 'status-wrong', 'status-reject');
+        delete doneMap[safeKey];
         db.ref('phone_visits/' + safeKey).remove();
       } else {
-        db.ref('phone_visits/' + safeKey).set({ done: true, user: currentUser, timestamp: Date.now() });
+        if(card) {
+          card.classList.remove('status-wrong', 'status-reject');
+          card.classList.add('has-status');
+          if (newStatus === '결번') card.classList.add('status-wrong');
+          if (newStatus === '거절') card.classList.add('status-reject');
+        }
+        if(newStatus === '통화' && btnCall) btnCall.classList.add('active');
+        if(newStatus === '부재' && btnAbsent) btnAbsent.classList.add('active');
+        if(newStatus === '결번' && btnWrong) btnWrong.classList.add('active');
+        if(newStatus === '거절' && btnReject) btnReject.classList.add('active');
+
+        doneMap[safeKey] = { status: newStatus, user: currentUser };
+        db.ref('phone_visits/' + safeKey).set({ status: newStatus, user: currentUser, timestamp: firebase.database.ServerValue.TIMESTAMP });
+      }
+      updateProgressUI();
+    }
+
+    function completeCurrentZone() {
+      const zone = getCurrentZoneObject();
+      if (!zone || !zone.addrs || zone.addrs.length === 0) return;
+
+      if (!confirm(`현재 구역의 전도를 완료하시겠습니까?\n\n'통화', '부재' 기록은 초기화되며,\n'결번', '거절', '메모'는 그대로 유지됩니다.`)) return;
+
+      const zoneGlobalNum = zone.globalNum;
+
+      db.ref('phone_zone_completions/' + zoneGlobalNum).once('value').then(snap => {
+        let data = snap.val() || { history: [] };
+        if(!data.history) data.history = [];
+        data.history.push({ user: currentUser, timestamp: Date.now() });
+        db.ref('phone_zone_completions/' + zoneGlobalNum).set(data);
+      });
+
+      zone.addrs.forEach(originalString => {
+        const safeKey = getSafeKey(originalString);
+        const status = getAddressStatus(safeKey);
+        if (status === '통화' || status === '부재') {
+          delete doneMap[safeKey]; 
+          db.ref('phone_visits/' + safeKey).remove().catch(e => console.error(e));
+        }
+      });
+
+      renderCurrentList();
+      updateProgressUI();
+      alert(`수고하셨습니다\n구역완료`);
+    }
+
+    function openMemoModal(idx) {
+      const zone = getCurrentZoneObject();
+      const originalString = zone.addrs[idx];
+      currentMemoKey = getSafeKey(originalString);
+      
+      const flatEditKey = zone.globalNum + '_' + idx;
+      let displayString = globalPhoneEdits[flatEditKey] ? globalPhoneEdits[flatEditKey] : originalString;
+      
+      const existingMemo = globalMemos[currentMemoKey] || "";
+      const memoInput = document.getElementById('memo-input');
+      const saveBtn = document.getElementById('btn-memo-save');
+
+      document.getElementById('memo-target-addr').innerText = displayString;
+      memoInput.value = existingMemo;
+
+      if (existingMemo) {
+        memoInput.readOnly = true;
+        memoInput.placeholder = "등록된 메모입니다. (수정은 관리자에게 문의하세요)";
+        saveBtn.style.display = 'none';
+      } else {
+        memoInput.readOnly = false;
+        memoInput.placeholder = "전화 통화 특이사항을 입력하세요";
+        saveBtn.style.display = 'inline-block';
+      }
+
+      document.getElementById('memo-modal').style.display = 'flex';
+    }
+    
+    function closeMemoModal() { document.getElementById('memo-modal').style.display = 'none'; currentMemoKey = ""; }
+    
+    function saveMemo() {
+      const text = document.getElementById('memo-input').value.trim();
+      if(currentMemoKey) {
+        if(text !== "") {
+          db.ref('phone_memos/' + currentMemoKey).set(text).catch(e => alert("DB 에러: " + e.message + "\n(Firebase 보안 규칙을 확인해주세요.)"));
+        }
+      }
+      closeMemoModal();
+    }
+
+    function openAdmin() {
+      const pwd = prompt("관리자 비밀번호를 입력하세요.");
+      if (pwd === "1234") { 
+        document.getElementById('admin-screen').style.display = 'flex';
+        const recent = localStorage.getItem('phone_ammap_recentzone');
+        if(recent) { document.getElementById('searchStatZone').value = recent; searchZoneStats(); }
+      } else if (pwd !== null) {
+        alert("비밀번호가 일치하지 않습니다.");
+      }
+    }
+    
+    function closeAdmin() { 
+      document.getElementById('admin-screen').style.display = 'none'; 
+      document.getElementById('adminEditList').innerHTML = '';
+      document.getElementById('searchEditZone').value = '';
+    }
+
+    function searchZoneStats(isAutoRefresh = false) {
+      const num = document.getElementById('searchStatZone').value.trim();
+      if(!num) return;
+      const target = String(num).padStart(3, '0');
+      const found = searchZoneByNumber(target);
+      
+      const grid = document.getElementById('statsGridArea');
+      if(!found) { 
+        if(!isAutoRefresh) grid.innerHTML = '<p style="grid-column: span 2; text-align:center; color:#ef4444; font-weight:bold;">해당 번호의 구역이 없습니다.</p>';
+        return; 
+      }
+
+      const zoneObj = PHONE_ZONE_DATABASE[found.town][found.village][found.zoneKey];
+      let totalCount = zoneObj.addrs.length;
+      let doneCount = 0;
+
+      zoneObj.addrs.forEach(addr => {
+          let safeKey = getSafeKey(addr);
+          if (doneMap[safeKey] && doneMap[safeKey].status) {
+              doneCount++;
+          }
+      });
+
+      let progressPct = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
+      let history = globalCompletions[target] ? (globalCompletions[target].history || []) : [];
+      let completionsCount = history.length;
+      let lastDateStr = "기록 없음";
+      if (completionsCount > 0) {
+          lastDateStr = new Date(history[completionsCount - 1].timestamp).toLocaleDateString();
+      }
+
+      grid.innerHTML = `
+        <div class="stat-card">
+          <div class="stat-title">[${target}번] 통화 진행률</div>
+          <div class="stat-value">${progressPct}%</div>
+          <div class="stat-subtext">${doneCount} / ${totalCount} 가구 상태확인</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">[${target}번] 최근 구역 완료일</div>
+          <div class="stat-value" style="font-size:16px; margin-top:4px;">${lastDateStr}</div>
+          <div class="stat-subtext">누적 전체 회독: ${completionsCount}회</div>
+        </div>
+      `;
+    }
+
+    function searchZoneToEdit() {
+      const num = document.getElementById('searchEditZone').value.trim();
+      if(!num) return;
+      const target = String(num).padStart(3, '0');
+      const found = searchZoneByNumber(target);
+      if(!found) { alert("입력하신 번호의 전화구역을 찾을 수 없습니다."); return; }
+      
+      const zoneObj = PHONE_ZONE_DATABASE[found.town][found.village][found.zoneKey];
+      renderAdminPhoneEdits(target, zoneObj);
+    }
+
+    function renderAdminPhoneEdits(zoneNum, zoneObj) {
+      const ul = document.getElementById('adminEditList');
+      ul.innerHTML = `<div style="font-weight:bold; margin-bottom:10px; color:#2ea354;">[${zoneNum}번 전화구역] 데이터 수정</div>`;
+      
+      zoneObj.addrs.forEach((origStr, idx) => {
+        const flatEditKey = zoneNum + '_' + idx;
+        const editedStr = globalPhoneEdits[flatEditKey] ? globalPhoneEdits[flatEditKey] : origStr;
+        
+        const li = document.createElement('li');
+        li.style.flexDirection = 'column';
+        li.style.alignItems = 'flex-start';
+        li.style.background = '#f8fafc';
+        li.style.padding = '10px';
+        li.style.borderRadius = '6px';
+        li.style.marginBottom = '8px';
+        li.style.border = '1px solid #cbd5e1';
+        
+        li.innerHTML = `
+          <div style="font-size:11px; color:#64748b; margin-bottom:6px;">#${idx + 1} 원본: ${origStr}</div>
+          <div style="display:flex; width:100%; gap:5px;">
+            <input type="text" id="edit-input-${zoneNum}-${idx}" value="${editedStr.replace(/"/g, '&quot;')}" style="flex:1; padding:8px; border:1px solid #cbd5e1; border-radius:4px; font-size:13px; outline:none;">
+            <button onclick="savePhoneEdit('${zoneNum}', ${idx})" style="background:#2ea354; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold;">저장</button>
+            <button onclick="resetPhoneEdit('${zoneNum}', ${idx})" style="background:#64748b; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold;">복구</button>
+          </div>
+        `;
+        ul.appendChild(li);
+      });
+    }
+
+    function savePhoneEdit(zoneNum, idx) {
+      const val = document.getElementById(`edit-input-${zoneNum}-${idx}`).value.trim();
+      if(!val) return;
+      const flatEditKey = zoneNum + '_' + idx; 
+      db.ref(`phone_edits/${flatEditKey}`).set(val).then(() => {
+        alert('저장되었습니다. 앱 화면에 즉시 반영됩니다.');
+      }).catch(e => alert("DB 에러: " + e.message + "\n(Firebase 보안 규칙을 확인해주세요.)"));
+    }
+
+    function resetPhoneEdit(zoneNum, idx) {
+      if(confirm('기본 원본 데이터로 복구하시겠습니까?')) {
+        const flatEditKey = zoneNum + '_' + idx;
+        db.ref(`phone_edits/${flatEditKey}`).remove().then(() => {
+          alert('복구되었습니다.');
+        }).catch(e => alert("DB 에러: " + e.message + "\n(Firebase 보안 규칙을 확인해주세요.)"));
       }
     }
 
-    function resetCurrentZone() {
-      const zone = getCurrentZone();
-      if (!zone || !zone.addrs) return;
-      if (!confirm("이 구역의 완료 상태를 모두 초기화하시겠습니까?")) return;
-      zone.addrs.forEach(itemStr => {
-        const phone = itemStr.split(' ')[0];
-        const safeKey = `${curZoneKey}_${phone}`.replace(/[.#$[\]\/]/g, '_');
-        db.ref('phone_visits/' + safeKey).remove();
+    function addPublisher() {
+      const name = document.getElementById('newPubName').value.trim();
+      if(name) { db.ref('publishers/' + name).set(true); document.getElementById('newPubName').value = ""; }
+    }
+    function removePublisher(name) {
+      if(confirm(`'${name}' 전도인을 삭제하시겠습니까?`)) db.ref('publishers/' + name).remove();
+    }
+    function renderAdminPublishers() {
+      initConsonantFilter();
+      const ul = document.getElementById('adminPubList');
+      ul.innerHTML = '';
+      Object.keys(globalPublishers).forEach(name => {
+        if (currentPubFilter !== "전체") {
+          const initial = getInitialSound(name);
+          if (initial !== currentPubFilter && initial.replace(/ㄲ/,'ㄱ').replace(/ㄸ/,'ㄷ').replace(/ㅃ/,'ㅂ').replace(/ㅆ/,'ㅅ').replace(/ㅉ/,'ㅈ') !== currentPubFilter) return;
+        }
+        const li = document.createElement('li');
+        li.innerHTML = `<span>${name}</span> <button class="btn-delete" onclick="removePublisher('${name}')">삭제</button>`;
+        ul.appendChild(li);
       });
     }
-
-    function openMemoModal(phone, safeKey) {
-      currentMemoKey = safeKey;
-      document.getElementById('memo-target-phone').innerText = phone;
-      document.getElementById('memo-input').value = globalMemos[safeKey] || "";
-      document.getElementById('memo-modal').style.display = 'flex';
+    function removeCompletion(zoneNum, index) {
+      if(!confirm(`해당 구역의 완료 기록을 삭제하시겠습니까?`)) return;
+      const history = globalCompletions[zoneNum].history || [];
+      history.splice(index, 1);
+      if (history.length === 0) db.ref('phone_zone_completions/' + zoneNum).remove();
+      else db.ref('phone_zone_completions/' + zoneNum + '/history').set(history);
     }
-    function closeMemoModal() { document.getElementById('memo-modal').style.display = 'none'; }
-    function saveMemo() {
-      const text = document.getElementById('memo-input').value.trim();
-      if (text) db.ref('phone_memos/' + currentMemoKey).set(text);
-      else db.ref('phone_memos/' + currentMemoKey).remove();
-      closeMemoModal();
+    function resetCompPageAndRender() { currentCompPage = 1; renderAdminCompletions(); }
+    function renderAdminCompletions() {
+      const searchVal = document.getElementById('searchComp').value.trim();
+      let listArr = [];
+      Object.keys(globalCompletions).forEach(zoneNum => {
+        if (searchVal && !zoneNum.includes(searchVal)) return;
+        const history = globalCompletions[zoneNum].history || [];
+        if(history.length === 0) return;
+        listArr.push({ zoneNum, history });
+      });
+      const totalPages = Math.ceil(listArr.length / ITEMS_PER_PAGE) || 1;
+      if (currentCompPage > totalPages) currentCompPage = totalPages;
+      const startIdx = (currentCompPage - 1) * ITEMS_PER_PAGE;
+      const paginatedList = listArr.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+      const ul = document.getElementById('adminCompList');
+      ul.innerHTML = '';
+      paginatedList.forEach(data => {
+        const li = document.createElement('li');
+        li.style.flexDirection = 'column'; li.style.alignItems = 'flex-start';
+        let html = `<div style="width:100%; border-bottom:1px solid #e2e8f0; padding-bottom:4px; margin-bottom:4px;"><strong style="color:#2ea354;">${data.zoneNum}번 구역</strong> (총 ${data.history.length}회 완료)</div>`;
+        data.history.forEach((record, index) => {
+          const dateStr = new Date(record.timestamp).toLocaleDateString();
+          html += `<div class="comp-history-item"><span>${index + 1}회: <strong>${record.user}</strong> / ${dateStr}</span><button class="btn-delete" onclick="removeCompletion('${data.zoneNum}', ${index})">삭제</button></div>`;
+        });
+        li.innerHTML = html; ul.appendChild(li);
+      });
+      renderPagination('compPagination', totalPages, currentCompPage, (p) => { currentCompPage = p; renderAdminCompletions(); });
+    }
+    function resetMemoPageAndRender() { currentMemoPage = 1; renderAdminMemos(); }
+    function renderAdminMemos() {
+      const searchVal = document.getElementById('searchMemo').value.trim();
+      let listArr = [];
+      Object.keys(globalMemos).forEach(safeKey => {
+        if (searchVal && !safeKey.includes(searchVal)) return;
+        listArr.push({ safeKey, text: globalMemos[safeKey] });
+      });
+      const totalPages = Math.ceil(listArr.length / ITEMS_PER_PAGE) || 1;
+      if (currentMemoPage > totalPages) currentMemoPage = totalPages;
+      const startIdx = (currentMemoPage - 1) * ITEMS_PER_PAGE;
+      const paginatedList = listArr.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+      const ul = document.getElementById('adminMemoList');
+      ul.innerHTML = '';
+      paginatedList.forEach(data => {
+        const displayAddr = data.safeKey.replace(/_/g, ' '); 
+        const li = document.createElement('li'); 
+        li.style.flexDirection = 'column';
+        li.style.alignItems = 'flex-start';
+        li.innerHTML = `
+          <div style="width:100%;">
+            <strong>${displayAddr}</strong>
+            <div style="display:flex; gap:5px; margin-top:6px;">
+              <input type="text" id="edit-memo-${data.safeKey}" value="${data.text.replace(/"/g, '&quot;')}" style="flex:1; padding:6px; border:1px solid #cbd5e1; border-radius:4px; font-size:12px; outline:none;">
+              <button onclick="saveAdminMemo('${data.safeKey}')" style="background:#2ea354; color:white; border:none; padding:6px 10px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">수정</button>
+              <button onclick="db.ref('phone_memos/${data.safeKey}').remove()" style="background:#ef4444; color:white; border:none; padding:6px 10px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">삭제</button>
+            </div>
+          </div>
+        `;
+        ul.appendChild(li);
+      });
+      renderPagination('memoPagination', totalPages, currentMemoPage, (p) => { currentMemoPage = p; renderAdminMemos(); });
+    }
+
+    function saveAdminMemo(safeKey) {
+      const val = document.getElementById(`edit-memo-${safeKey}`).value.trim();
+      if(!val) {
+        db.ref(`phone_memos/${safeKey}`).remove();
+      } else {
+        db.ref(`phone_memos/${safeKey}`).set(val).then(() => {
+          alert('메모가 수정되었습니다.');
+        }).catch(e => alert("DB 에러: " + e.message));
+      }
+    }
+
+    function renderPagination(containerId, totalPages, currentPage, callback) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+      if (totalPages <= 1) return;
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'page-btn' + (i === currentPage ? ' active' : '');
+        btn.innerText = i; btn.onclick = () => callback(i); container.appendChild(btn);
+      }
     }
   </script>
 </body>
