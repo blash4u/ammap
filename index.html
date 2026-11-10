@@ -168,7 +168,7 @@
     #selVillage { flex: 2.5; background: #334155; color: white; }
     #selZone { flex: 5; background: #5c82c2; color: white; border: none; }
 
-    /* ★ 1. 지도 전체화면 모드 스타일 */
+    /* 지도 전체화면 모드 스타일 */
     #map-wrapper { position: relative; width: 100%; flex: 1 1 auto; min-height: 40vh; background-color: #cbd5e1; transition: all 0.25s ease; }
     #map-wrapper.fullscreen-mode {
       position: fixed !important;
@@ -206,7 +206,7 @@
     .btn-reset-zone { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
     .sub-zone-title { text-align: center; font-size: 12px; color: #475569; font-weight: 700; background: #f1f5f9; padding: 4px; border-radius: 4px; }
 
-    /* ★ 2 & 3. 인플레이스 관리자 편집 모드 바 */
+    /* 인플레이스 관리자 편집 모드 바 */
     .inplace-admin-toolbar {
       display: none;
       background: #fef2f2;
@@ -239,7 +239,7 @@
     .house-card.focused { border: 2px solid #4a6da7; background-color: #f0f9ff; }
     .address-text { font-size: 13px; font-weight: bold; color: #3b5a8c; cursor: pointer; flex: 1; padding-right: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    /* ★ 3. 드래그 앤 드롭 핸들 및 인라인 편집 버튼 */
+    /* 드래그 앤 드롭 핸들 및 인라인 편집 버튼 */
     .drag-handle {
       display: none;
       cursor: grab;
@@ -285,40 +285,34 @@
     .btn-check { background: #64748b; color: white; border: none; padding: 5px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; min-width: 50px; transition: background-color 0.2s; }
     .btn-check.completed { background: #10b981; }
 
-    /* 사각형 테두리 + 우측 상단 흰색 테두리 숫자 배지 마커 */
+    /* ★ 2번 수정: 사각 테두리 삭제 및 단정한 번호 뱃지만 남긴 마커 스타일 */
     .box-house-marker {
       position: relative;
-      width: 20px;
-      height: 20px;
       background: transparent !important;
-      border: 2px solid #2563eb;
-      border-radius: 3px;
+      border: none !important; /* 사각 테두리 완전 삭제 */
       cursor: pointer;
       user-select: none;
       transform: translate(-50%, -50%);
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .box-house-marker:hover {
-      transform: translate(-50%, -50%) scale(1.2);
+      transform: translate(-50%, -50%) scale(1.25);
       z-index: 60;
     }
 
+    /* 번호 뱃지 스타일 (가구 중심에 위치) */
     .badge-num {
-      position: absolute;
-      top: 0;
-      right: 0;
-      transform: translate(50%, -50%);
       background-color: #2563eb;
       color: #ffffff;
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 900;
       line-height: 1;
-      min-width: 18px;
-      height: 18px;
-      padding: 0 3px;
+      min-width: 22px;
+      height: 22px;
+      padding: 0 4px;
       border-radius: 9999px;
-      border: 2px solid #ffffff;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+      border: 2px solid #ffffff; /* 선명한 흰색 외곽선 */
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -326,38 +320,25 @@
       pointer-events: none;
     }
 
-    .box-house-marker.start-house {
-      border-color: #ef4444 !important;
-      border-width: 2.5px !important;
-      width: 22px;
-      height: 22px;
-      z-index: 40;
-    }
+    /* 1번 시작 가구 번호 뱃지 */
     .box-house-marker.start-house .badge-num {
       background-color: #ef4444 !important;
-      border: 2px solid #ffffff !important;
-      font-size: 11px;
-      min-width: 20px;
-      height: 20px;
-      box-shadow: 0 0 6px rgba(239, 68, 68, 0.9);
+      font-size: 12px;
+      min-width: 24px;
+      height: 24px;
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.9);
     }
 
-    .box-house-marker.done {
-      border-color: #10b981 !important;
-    }
+    /* 방문 완료 가구 번호 뱃지 */
     .box-house-marker.done .badge-num {
       background-color: #10b981 !important;
-      border: 2px solid #ffffff !important;
       text-decoration: line-through;
-    }
-    .box-house-marker.start-house.done {
-      border-color: #059669 !important;
     }
     .box-house-marker.start-house.done .badge-num {
       background-color: #059669 !important;
-      border: 2px solid #ffffff !important;
     }
 
+    /* 상세 주소 클릭 시 나머지 가구 흐림(Dimmed) 처리 */
     .box-house-marker.dimmed {
       opacity: 0.18 !important;
       filter: grayscale(80%);
@@ -365,20 +346,21 @@
       pointer-events: none;
     }
 
+    /* 선택된 가구 강조 (Active Focused) */
     .box-house-marker.active-focused {
       opacity: 1 !important;
       filter: none !important;
       transform: translate(-50%, -50%) scale(1.35) !important;
-      border-width: 3px !important;
-      background: rgba(255, 255, 255, 0.8) !important;
-      box-shadow: 0 0 14px rgba(37, 99, 235, 0.9) !important;
       z-index: 100 !important;
     }
-    .box-house-marker.start-house.active-focused {
-      border-color: #ef4444 !important;
+    .box-house-marker.active-focused .badge-num {
+      box-shadow: 0 0 14px rgba(37, 99, 235, 0.9) !important;
+    }
+    .box-house-marker.start-house.active-focused .badge-num {
       box-shadow: 0 0 14px rgba(239, 68, 68, 0.9) !important;
     }
 
+    /* 팝업 말풍선 */
     .custom-speech-bubble { 
       position: relative; 
       background: #ffffff; 
@@ -471,7 +453,6 @@
       <button class="admin-close" onclick="closeAdmin()">닫기 ✕</button>
     </div>
     <div class="admin-content">
-      
       <div class="admin-section">
         <h2>🗺️ 구역 카드 관리 (추가 / 수정 / 삭제)</h2>
         <div class="search-wrap">
@@ -545,7 +526,6 @@
         <ul class="admin-list" id="adminMemoList"></ul>
         <div class="pagination" id="memoPagination"></div>
       </div>
-
     </div>
   </div>
 
@@ -564,9 +544,7 @@
         </div>
 
         <div class="header-right-btns">
-          <!-- 1. 전체 화면 버튼 -->
           <button class="btn-fs-toggle" onclick="toggleMapFullscreen()" title="지도만 넓게 보기">전체 화면 ⛶</button>
-          <!-- 2. 인플레이스 관리자 편집 모드 토글 버튼 -->
           <button id="btnInplaceAdminToggle" class="btn-inplace-admin" onclick="toggleInPlaceAdminMode()">편집 모드</button>
           <button class="btn-gps" onclick="locateUser()">내 위치 📍</button>
         </div>
@@ -579,7 +557,7 @@
       </div>
     </div>
 
-    <!-- 1. 메인 지도 영역 (전체 화면 전환 지원) -->
+    <!-- 지도 영역 -->
     <div id="map-wrapper">
       <div id="map"></div>
       <button class="btn-close-fs" onclick="toggleMapFullscreen()">전체 화면 닫기 ✕</button>
@@ -597,14 +575,14 @@
       </div>
       <div id="subZoneTitle" class="sub-zone-title">구역을 선택해주세요</div>
 
-      <!-- 2. 인플레이스 편집 툴바 -->
+      <!-- 인플레이스 편집 툴바 -->
       <div id="inplaceAdminToolbar" class="inplace-admin-toolbar">
         <span>✏️ 편집 모드: ⠿ 핸들을 잡고 드래그하여 순서를 변경하세요.</span>
         <button class="btn-add-inline-house" onclick="addHouseInPlace()">+ 가구 추가</button>
       </div>
     </div>
 
-    <!-- 3. 가구 주소 리스트 (Sortable 드래그 앤 드롭 영역) -->
+    <!-- 가구 주소 리스트 (Sortable 영역) -->
     <div class="list-area" id="listArea"></div>
   </div>
 
@@ -635,7 +613,7 @@
     // 2. 상태 변수 설정
     // ==========================================
     let map = null, geocoder = null, userMarker = null;
-    let houseBoxesMap = {};        // 개별 사각형 박스 오버레이들
+    let houseBoxesMap = {};        // 개별 번호 마커 오버레이들
     let activeFocusOverlay = null; // 선택된 가구 상세 정보 말풍선
     let zonePolygon = null;        // 전체 구역을 둘러싸는 외곽 폴리곤
     let currentBounds = null;      // 전체 구역 확대용 바운드 객체 캐시
@@ -651,7 +629,6 @@
     let globalCustomZones = {};
     let currentMemoKey = "";
 
-    // ★ 2 & 3번 요구사항 상태 변수
     let isInPlaceAdminActive = false;
     let sortableListInstance = null;
 
@@ -872,9 +849,7 @@
       updateLoginScreenRecentInfo();
     }
 
-    // ==========================================
-    // ★ 기능 1. 메인 지도 전체 화면 토글
-    // ==========================================
+    // 메인 지도 전체 화면 토글
     function toggleMapFullscreen() {
       const wrapper = document.getElementById('map-wrapper');
       wrapper.classList.toggle('fullscreen-mode');
@@ -889,12 +864,10 @@
       }, 250);
     }
 
-    // ==========================================
-    // ★ 기능 2. 인플레이스 관리자 편집 모드 토글
-    // ==========================================
+    // ★ 1번 수정: 프롬프트 메시지에서 비밀번호 노출 제거
     function toggleInPlaceAdminMode() {
       if (!isInPlaceAdminActive) {
-        const pwd = prompt("관리자 비밀번호를 입력하세요 (비밀번호: 1234):");
+        const pwd = prompt("관리자 비밀번호를 입력하세요:");
         if (pwd !== "1234") {
           if (pwd !== null) alert("비밀번호가 일치하지 않습니다.");
           return;
@@ -974,9 +947,7 @@
       });
     }
 
-    // ==========================================
-    // 5. 관리자 대시보드 로직
-    // ==========================================
+    // 관리자 대시보드 로직
     function openAdmin() {
       const pwd = prompt("관리자 비밀번호를 입력하세요.");
       if (pwd === "1234") { 
@@ -1465,7 +1436,7 @@
       document.getElementById('progRatio').innerText = `${doneCnt} / ${zone.addrs.length} (${Math.round((doneCnt / zone.addrs.length) * 100)}%)`;
     }
 
-    // ★ 3. 가구 주소 리스트 렌더링 및 Sortable 바인딩
+    // 가구 주소 리스트 렌더링 및 Sortable 바인딩
     function renderCurrentList() {
       const zone = getCurrentZoneObject(); 
       const listEl = document.getElementById('listArea'); 
@@ -1509,7 +1480,7 @@
       initSortableList();
     }
 
-    // ★ 3. SortableJS 인스턴스 초기화 (드래그 앤 드롭 순서 변경)
+    // SortableJS 인스턴스 초기화
     function initSortableList() {
       const listEl = document.getElementById('listArea');
       if (!listEl) return;
@@ -1521,16 +1492,14 @@
         handle: '.drag-handle',
         animation: 160,
         ghostClass: 'sortable-ghost',
-        disabled: !isInPlaceAdminActive, // 관리자 편집 모드일 때만 활성화
+        disabled: !isInPlaceAdminActive,
         onEnd: function (evt) {
           const zone = getCurrentZoneObject();
           if (!zone || !zone.addrs) return;
 
-          // 배열 순서 재정렬
           const movedItem = zone.addrs.splice(evt.oldIndex, 1)[0];
           zone.addrs.splice(evt.newIndex, 0, movedItem);
 
-          // Firebase 저장 및 화면/지도 리프레시
           saveCurrentZoneToFirebase(zone);
         }
       });
@@ -1635,9 +1604,7 @@
       if (zonePolygon) { zonePolygon.setMap(null); zonePolygon = null; }
     }
 
-    // ==========================================
-    // 3. 최외곽 경계선 계산 및 버퍼 확장 알고리즘
-    // ==========================================
+    // 최외곽 경계선 계산 및 버퍼 확장 알고리즘
     function calculateConvexHull(points) {
       if (points.length <= 2) return points;
 
@@ -1697,7 +1664,7 @@
       });
     }
 
-    // 사각형 테두리의 우측 상단 모서리에 흰색 테두리를 둘러준 번호 배지 배치
+    // ★ 2번 수정: 사각 테두리 없이 번호만 표시
     function addHouseBoxOverlay(shortAddr, fullAddr, pos, idx) {
       const safeKey = fullAddr.replace(/[.#$[\]\/]/g, '_'); 
       const isDone = isAddressDone(safeKey); 
@@ -1727,7 +1694,7 @@
       houseBoxesMap[shortAddr] = overlay;
     }
 
-    // 지도 전체 그리기: 사각형 가구 마커 + 구역 테두리
+    // 지도 전체 그리기
     function drawPinsForCurrentZone(fitBounds = false) {
       clearAllMapMarkers(); 
       const zone = getCurrentZoneObject(); 
@@ -1746,7 +1713,6 @@
       const finalizeBounds = () => {
         if (session !== currentDrawSession) return;
 
-        // 구역 전체를 둘러싸는 넉넉한 외곽 경계선 폴리곤 그리기
         if (allCoords.length >= 3) {
           const hullPoints = calculateConvexHull(allCoords);
           const expandedHull = expandPolygonHull(hullPoints, 45);
@@ -1820,7 +1786,6 @@
       if (!map) return; 
       focusedAddr = shortAddr; 
 
-      // 1) 하단 목록 카드 포커스 스타일 적용 및 스크롤
       document.querySelectorAll('.house-card').forEach(c => c.classList.remove('focused'));
       const targetCard = document.getElementById(`card-addr-${idx}`); 
       if (targetCard) { 
@@ -1828,7 +1793,6 @@
         targetCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); 
       }
 
-      // 2) 지도 위 마커 강조 & 나머지 흐림 효과 적용
       const zone = getCurrentZoneObject();
       if (zone && zone.addrs) {
         zone.addrs.forEach((addr, i) => {
@@ -1845,7 +1809,6 @@
         });
       }
 
-      // 3) 이전 팝업만 제거
       if (activeFocusOverlay) { 
         activeFocusOverlay.setMap(null); 
         activeFocusOverlay = null; 
@@ -1894,7 +1857,7 @@
       }
     }
 
-    // [전체 가구 한눈에 보기] 버튼 및 팝업창 클릭 시 모든 가구 선명하게 초기화
+    // 전체 가구 선명하게 초기화
     function showAllPins() { 
       focusedAddr = null; 
       document.querySelectorAll('.house-card').forEach(c => c.classList.remove('focused')); 
