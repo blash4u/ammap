@@ -183,7 +183,14 @@
     .sub-zone-date { font-size: 12px; color: #166534; font-weight: bold; background: #dcfce7; padding: 2px 8px; border-radius: 12px; display: inline-block; }
 
     /* 전화구역 전용 카드 리스트 */
-    .list-area { flex: 1; overflow-y: auto; padding: 10px; background-color: #f8fafc; -webkit-overflow-scrolling: touch; }
+    /* 수정 후: UI 변형 없이 하단 스크롤 안전 여백만 확보 */
+    .list-area { 
+      flex: 1; 
+      overflow-y: auto; 
+      padding: 10px 10px calc(85px + env(safe-area-inset-bottom)) 10px; 
+      background-color: #f8fafc; 
+      -webkit-overflow-scrolling: touch; 
+    }
     .phone-card { background: white; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 10px; transition: border-color 0.2s, background-color 0.2s; }
     .phone-card.has-status { border-color: #2ea354; background: #f0fdf4; }
     .phone-card.focused { border: 2px solid #2ea354; background-color: #f0fdf4; }
