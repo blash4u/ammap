@@ -15,7 +15,15 @@
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Malgun Gothic", -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background-color: #f1f5f9; overflow: hidden; height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
+    body { 
+      background-color: #f1f5f9; 
+      overflow: hidden; 
+      height: 100vh; 
+      height: 100dvh; 
+      height: calc(var(--vh, 1vh) * 100); 
+      display: flex; 
+      flex-direction: column; 
+    }
 
     /* 공통 모달 스타일 */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 10000; }
@@ -132,7 +140,13 @@
     .comp-history-item { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; background: #f8fafc; border-radius: 4px; padding: 6px 8px; width: 100%; }
 
     /* 메인 앱 레이아웃 */
-    #main-app { display: none; flex-direction: column; height: 100%; width: 100%; }
+    #main-app { 
+      display: none; 
+      flex-direction: column; 
+      height: 100%; 
+      width: 100%; 
+      overflow: hidden; 
+    }
     .header { background-color: #166534; padding: 10px 14px; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     .header-top { display: flex; justify-content: space-between; align-items: center; }
     .title-group { display: flex; align-items: center; gap: 10px; }
@@ -183,11 +197,11 @@
     .sub-zone-date { font-size: 12px; color: #166534; font-weight: bold; background: #dcfce7; padding: 2px 8px; border-radius: 12px; display: inline-block; }
 
     /* 전화구역 전용 카드 리스트 */
-    /* 수정 후: UI 변형 없이 하단 스크롤 안전 여백만 확보 */
     .list-area { 
-      flex: 1; 
+      flex: 1 1 auto; 
+      min-height: 0; 
       overflow-y: auto; 
-      padding: 10px 10px calc(85px + env(safe-area-inset-bottom)) 10px; 
+      padding: 10px 10px calc(85px + env(safe-area-inset-bottom, 20px)) 10px; 
       background-color: #f8fafc; 
       -webkit-overflow-scrolling: touch; 
     }
@@ -372,6 +386,15 @@
   </div>
 
   <script>
+    // 기기별 다양한 세로 사이즈 및 브라우저 주소창 변화에 맞춘 실시간 높이 자동 리사이징
+    function updateViewportHeight() {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    }
+    updateViewportHeight();
+    window.addEventListener('resize', updateViewportHeight);
+    window.addEventListener('orientationchange', updateViewportHeight);
+
     const firebaseConfig = {
       apiKey: "AIzaSyD3N7SPoV6Z4qsCs3S0vrQ9Tko4Z62ZCfQ",
       authDomain: "anmyeon-map.firebaseapp.com",
@@ -518,6 +541,7 @@
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('main-app').style.display = 'flex';
 
+      updateViewportHeight();
       updateRecentCompleteDisplay();
       processZoneSelection(zoneNumVal);
     }
